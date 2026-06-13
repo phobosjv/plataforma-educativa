@@ -151,3 +151,54 @@ body { font-family: var(--cms-font); background: var(--cms-color-bg); color: var
 
 /* ── Ejercicio interactivo ───────────────────────────── */
 .cms-exercise-frame { width: 100%; min-height: 70vh; border: 0; border-radius: var(--cms-radius); }
+
+/* ── Alerta de error ─────────────────────────────────── */
+.cms-alert-error {
+  background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c;
+  border-radius: var(--cms-radius); padding: .75rem 1rem; font-size: .9rem;
+}
+
+/* ── Editor de texto enriquecido (Tiptap) ────────────── */
+.cms-editor {
+  border: 1px solid var(--cms-color-border);
+  border-radius: var(--cms-radius);
+  background: var(--cms-color-surface);
+  overflow: hidden;
+}
+.cms-editor-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .25rem;
+  padding: .5rem; border-bottom: 1px solid var(--cms-color-border);
+  background: var(--cms-color-bg);
+}
+.cms-editor-btn {
+  min-width: 30px; padding: .3rem .5rem; font-size: .85rem;
+  border: 1px solid transparent; border-radius: var(--cms-radius-sm);
+  background: transparent; color: var(--cms-color-fg); cursor: pointer; line-height: 1;
+}
+.cms-editor-btn:hover { background: var(--cms-color-surface); border-color: var(--cms-color-border); }
+.cms-editor-btn[data-activo="true"] { background: var(--cms-color-primary); color: #fff; }
+.cms-editor-sep { width: 1px; align-self: stretch; background: var(--cms-color-border); margin: 0 .25rem; }
+.cms-editor-area { padding: .75rem 1rem; min-height: 220px; }
+.cms-editor-area .ProseMirror { outline: none; min-height: 200px; }
+.cms-editor-area .ProseMirror p.is-editor-empty:first-child::before {
+  content: "Escribe aquí el artículo…"; color: var(--cms-color-muted);
+  float: left; height: 0; pointer-events: none;
+}
+
+/* ── Tipografia de cuerpo de articulo (editor y vista publica) ── */
+.cms-prose { line-height: 1.7; }
+.cms-prose h2 { font-size: 1.4rem; font-weight: 700; margin: 1.2rem 0 .5rem; }
+.cms-prose h3 { font-size: 1.15rem; font-weight: 600; margin: 1rem 0 .4rem; }
+.cms-prose p { margin: .6rem 0; }
+.cms-prose ul, .cms-prose ol { margin: .6rem 0 .6rem 1.4rem; }
+.cms-prose li { margin: .2rem 0; }
+.cms-prose a { color: var(--cms-color-primary); text-decoration: underline; }
+.cms-prose blockquote {
+  border-left: 3px solid var(--cms-color-primary); margin: .8rem 0;
+  padding: .2rem 0 .2rem 1rem; color: var(--cms-color-muted);
+}
+.cms-prose img { max-width: 100%; height: auto; border-radius: var(--cms-radius-sm); }
+.cms-prose code {
+  background: var(--cms-color-bg); padding: .1rem .35rem; border-radius: 4px;
+  font-size: .9em;
+}

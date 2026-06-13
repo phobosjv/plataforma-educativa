@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
+import DOMPurify from "dompurify";
 import { api } from "../shared/api/client";
 import type { components } from "../shared/api/schema";
 
@@ -49,9 +50,11 @@ export function ContenidoPage() {
           loading="lazy"
         />
       ) : data.body_html ? (
+        // El HTML ya se saneó en el servidor (nh3); DOMPurify es la 2ª capa
+        // en cliente exigida por la sanitización asimétrica (CLAUDE.md §10).
         <div
-          className="cms-text"
-          dangerouslySetInnerHTML={{ __html: data.body_html }}
+          className="cms-text cms-prose"
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(data.body_html) }}
         />
       ) : (
         <p className="cms-empty">Este contenido no tiene cuerpo.</p>

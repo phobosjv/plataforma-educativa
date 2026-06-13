@@ -28,3 +28,14 @@ class HtmlStorage(Protocol):
 
     def save(self, raw_html: bytes) -> str: ...  # devuelve el hash
     def url_for(self, file_hash: str) -> str: ...
+
+
+class HtmlSanitizer(Protocol):
+    """Sanea el HTML de los artículos de texto (whitelist de etiquetas seguras).
+
+    Se aplica SIEMPRE al ``body_html`` de los contenidos de tipo ``texto`` antes de
+    persistirlos (CLAUDE.md §10: sanitización del HTML de artículos en servidor). El
+    HTML de ejercicios interactivos NO pasa por aquí: se aísla por iframe sandbox.
+    """
+
+    def sanitize(self, html: str) -> str: ...

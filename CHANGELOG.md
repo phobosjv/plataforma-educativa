@@ -6,6 +6,40 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.4.0] - 2026-06-14
+
+### Añadido
+
+#### Creación y edición de artículos de texto (panel admin)
+- Formulario completo para **crear** y **editar** contenidos de tipo `texto` desde el panel:
+  título, descripción, etiquetas, clasificación (ciclo/curso/asignatura) y cuerpo del artículo.
+- **Editor WYSIWYG (Tiptap)** con barra de formato: negrita, cursiva, tachado, encabezados (H2/H3),
+  listas, cita y enlaces.
+- Rutas `/admin/contenidos/nuevo` y `/admin/contenidos/{id}/editar`; botones "+ Nuevo artículo" y
+  "Editar" en la lista de contenidos.
+
+#### Seguridad: sanitización del HTML de artículos (CLAUDE.md §10)
+- **Sanitización en servidor** del `body_html` de los contenidos de tipo `texto`, SIEMPRE, antes de
+  persistir. Nuevo puerto de dominio `HtmlSanitizer` e implementación `Nh3HtmlSanitizer` (librería
+  `nh3`) con allowlist conservadora (sin `script`/`style`/`iframe`, sin atributos `on*`, sin
+  esquemas `javascript:`). Se cablea en los casos de uso de crear y actualizar.
+- **Sanitización en cliente** (segunda capa, sanitización asimétrica) del artículo en la vista
+  pública con **DOMPurify**.
+- 2 tests de integración de sanitización. Suite total: **80 tests**, todos en verde.
+
+### Cambiado
+- Dependencia backend nueva: `nh3` (sanitizador HTML). Dependencias frontend nuevas: `@tiptap/*` y
+  `dompurify`.
+- API version `0.3.0` → `0.4.0` en `main.py`.
+
+### Notas
+- Esta entrega cubre solo el tipo **texto**. Los contenidos **interactivos** (subida de HTML) se
+  abordarán junto con el subdominio sandbox, requisito de seguridad para servirlos (§10).
+- La clasificación (ciclo/curso/asignatura) se asigna al **crear**; el contrato actual de la API no
+  la expone ni edita en actualización (mejora futura).
+
+---
+
 ## [V-0.3.0] - 2026-06-14
 
 ### Añadido

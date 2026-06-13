@@ -15,7 +15,11 @@ from app.contexts.content.application.commands import (
 from app.contexts.content.application.dtos import ContenidoDTO, contenido_to_dto
 from app.contexts.content.application.queries import ListarContenidosQuery, ObtenerContenidoQuery
 from app.contexts.content.domain.model import ContentVersion, Contenido, TipoContenido
-from app.contexts.content.domain.ports import ContenidoRepository, ContentVersionRepository
+from app.contexts.content.domain.ports import (
+    ContenidoRepository,
+    ContentVersionRepository,
+    HtmlSanitizer,
+)
 from app.shared.domain.base import NotFoundError, now
 from app.shared.infrastructure.unit_of_work import UnitOfWork
 
@@ -44,23 +48,30 @@ class CrearContenidoHandler:
         repo: ContenidoRepository,
         version_repo: ContentVersionRepository,
         uow: UnitOfWork,
+        sanitizer: HtmlSanitizer,
     ) -> None:
         self._repo = repo
         self._version_repo = version_repo
         self._uow = uow
+        self._sanitizer = sanitizer
 
     def handle(self, cmd: CrearContenidoCommand) -> UUID:
+        tipo = TipoContenido(cmd.tipo)
+        body_html = cmd.body_html
+        # Artículos de texto: SIEMPRE sanitizar en servidor (CLAUDE.md §10).
+        if tipo is TipoContenido.TEXTO and body_html is not None:
+            body_html = self._sanitizer.sanitize(body_html)
         contenido = Contenido(
             titulo=cmd.titulo,
             descripcion=cmd.descripcion,
             autor_id=cmd.autor_id,
-            tipo=TipoContenido(cmd.tipo),
+            tipo=tipo,
             ciclo_id=cmd.ciclo_id,
             curso_id=cmd.curso_id,
             asignatura_id=cmd.asignatura_id,
             idioma=cmd.idioma,
             etiquetas=list(cmd.etiquetas),
-            body_html=cmd.body_html,
+            body_html=body_html,
         )
         version = _make_version(contenido, version_no=1, created_by=cmd.autor_id)
         self._repo.add(contenido)
@@ -75,10 +86,12 @@ class ActualizarContenidoHandler:
         repo: ContenidoRepository,
         version_repo: ContentVersionRepository,
         uow: UnitOfWork,
+        sanitizer: HtmlSanitizer,
     ) -> None:
         self._repo = repo
         self._version_repo = version_repo
         self._uow = uow
+        self._sanitizer = sanitizer
 
     def handle(self, cmd: ActualizarContenidoCommand) -> ContenidoDTO:
         contenido = self._repo.get(cmd.contenido_id)
@@ -92,7 +105,12 @@ class ActualizarContenidoHandler:
         if cmd.descripcion is not None:
             contenido.descripcion = cmd.descripcion
         if cmd.body_html is not None:
-            contenido.body_html = cmd.body_html
+            # Artículos de texto: SIEMPRE sanitizar en servidor (CLAUDE.md §10).
+            contenido.body_html = (
+                self._sanitizer.sanitize(cmd.body_html)
+                if contenido.tipo is TipoContenido.TEXTO
+                else cmd.body_html
+            )
         if cmd.etiquetas is not None:
             contenido.etiquetas = list(cmd.etiquetas)
         contenido.updated_at = now()

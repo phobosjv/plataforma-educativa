@@ -8,6 +8,7 @@ import { ContenidoPage } from "../pages/ContenidoPage";
 import { LoginPage } from "../pages/LoginPage";
 import { DashboardPage } from "../pages/admin/DashboardPage";
 import { ContenidosPage } from "../pages/admin/ContenidosPage";
+import { ContenidoFormPage } from "../pages/admin/ContenidoFormPage";
 import { TaxonomiaPage } from "../pages/admin/TaxonomiaPage";
 import { UsuariosPage } from "../pages/admin/UsuariosPage";
 import { ConfiguracionPage } from "../pages/admin/ConfiguracionPage";
@@ -41,6 +42,8 @@ function AppRoutes() {
       >
         <Route index element={<DashboardPage />} />
         <Route path="contenidos" element={<ContenidosPage />} />
+        <Route path="contenidos/nuevo" element={<ContenidoFormPage />} />
+        <Route path="contenidos/:id/editar" element={<ContenidoFormPage />} />
         <Route path="taxonomia" element={<TaxonomiaPage />} />
         <Route path="configuracion" element={<ConfiguracionPage />} />
         <Route

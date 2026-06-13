@@ -30,6 +30,7 @@ from app.contexts.content.application.handlers import (
     RestaurarContenidoHandler,
 )
 from app.contexts.content.application.queries import ListarContenidosQuery, ObtenerContenidoQuery
+from app.contexts.content.infrastructure.html_sanitizer import Nh3HtmlSanitizer
 from app.contexts.content.infrastructure.repositories import (
     SqlAlchemyContenidoRepository,
     SqlAlchemyContentVersionRepository,
@@ -95,7 +96,7 @@ def crear_contenido(
     repo = SqlAlchemyContenidoRepository(db)
     version_repo = SqlAlchemyContentVersionRepository(db)
     uow = UnitOfWork(db)
-    handler = CrearContenidoHandler(repo, version_repo, uow)
+    handler = CrearContenidoHandler(repo, version_repo, uow, Nh3HtmlSanitizer())
     try:
         uid = handler.handle(
             CrearContenidoCommand(
@@ -127,7 +128,7 @@ def actualizar_contenido(
     repo = SqlAlchemyContenidoRepository(db)
     version_repo = SqlAlchemyContentVersionRepository(db)
     uow = UnitOfWork(db)
-    handler = ActualizarContenidoHandler(repo, version_repo, uow)
+    handler = ActualizarContenidoHandler(repo, version_repo, uow, Nh3HtmlSanitizer())
     try:
         dto = handler.handle(
             ActualizarContenidoCommand(

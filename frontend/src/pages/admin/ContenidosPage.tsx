@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../../shared/api/client";
 import type { components } from "../../shared/api/schema";
 
@@ -66,6 +67,9 @@ export function ContenidosPage() {
     <>
       <div className="cms-admin-header">
         <h1 className="cms-h1">Contenidos</h1>
+        <Link to="/admin/contenidos/nuevo" className="cms-btn cms-btn-primary">
+          + Nuevo artículo
+        </Link>
       </div>
       {!data?.length ? (
         <p className="cms-empty">No hay contenidos creados todavía.</p>
@@ -92,6 +96,14 @@ export function ContenidosPage() {
                   </span>
                 </td>
                 <td style={{ display: "flex", gap: ".4rem", flexWrap: "wrap" }}>
+                  {!c.borrado && (
+                    <Link
+                      to={`/admin/contenidos/${c.id}/editar`}
+                      className="cms-btn cms-btn-ghost"
+                    >
+                      Editar
+                    </Link>
+                  )}
                   {!c.publicado && !c.borrado && (
                     <button
                       className="cms-btn cms-btn-primary"

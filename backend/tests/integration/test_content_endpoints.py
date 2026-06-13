@@ -158,3 +158,41 @@ class TestAdminEndpoints:
     def test_editor_no_puede_acceder_admin(self, client: TestClient, editor_token: str) -> None:
         r = client.get("/api/v1/admin/contenidos/", headers=_headers(editor_token))
         assert r.status_code == 403
+
+
+class TestSanitizacionArticulos:
+    """El HTML de artículos (tipo=texto) se sanea SIEMPRE en servidor (CLAUDE.md §10)."""
+
+    _MALICIOSO = (
+        '<p>Hola</p><script>alert(1)</script>'
+        '<img src=x onerror="alert(2)">'
+        '<a href="javascript:alert(3)">clic</a>'
+    )
+
+    def test_crear_texto_elimina_script_y_eventos(
+        self, client: TestClient, editor_token: str
+    ) -> None:
+        r = client.post(
+            "/api/v1/contenidos/",
+            json={"titulo": "Articulo", "tipo": "texto", "body_html": self._MALICIOSO},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 201
+        body = r.json()["body_html"]
+        assert "<script>" not in body
+        assert "onerror" not in body
+        assert "javascript:" not in body
+        assert "<p>Hola</p>" in body  # el contenido seguro se conserva
+
+    def test_actualizar_texto_sanitiza(
+        self, client: TestClient, editor_token: str
+    ) -> None:
+        uid = _crear_contenido(client, editor_token)["id"]
+        r = client.put(
+            f"/api/v1/contenidos/{uid}",
+            json={"body_html": self._MALICIOSO},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 200
+        body = r.json()["body_html"]
+        assert "<script>" not in body and "onerror" not in body
