@@ -6,3 +6,4 @@ from __future__ import annotations
 # Deben estar antes de cualquier uso de Base.metadata (migraciones, create_all en tests).
 import app.contexts.identity.infrastructure.models  # noqa: F401
 import app.contexts.content.infrastructure.models  # noqa: F401
+import app.contexts.taxonomy.infrastructure.models  # noqa: F401

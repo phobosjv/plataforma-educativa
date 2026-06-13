@@ -57,6 +57,8 @@ def health() -> dict[str, str]:
 # Routers por contexto
 from app.contexts.identity.api.router import router as identity_router  # noqa: E402
 from app.contexts.content.api.router import router as content_router  # noqa: E402
+from app.contexts.taxonomy.api.router import router as taxonomy_router  # noqa: E402
 
 app.include_router(identity_router, prefix="/api/v1")
 app.include_router(content_router, prefix="/api/v1")
+app.include_router(taxonomy_router, prefix="/api/v1")

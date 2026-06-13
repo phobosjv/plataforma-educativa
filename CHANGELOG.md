@@ -6,6 +6,23 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.1.0] - 2026-06-13
+
+### Añadido
+
+#### Contexto `taxonomy` (ciclos, cursos, asignaturas)
+- Dominio: agregados `Ciclo`, `Curso` y `Asignatura` con validación en `__post_init__` y método `actualizar()`
+- Puertos `CicloRepository`, `CursoRepository`, `AsignaturaRepository` en dominio
+- Casos de uso CRUD completos para las tres entidades (crear, actualizar, eliminar, listar, obtener)
+- `CrearCursoHandler` valida la existencia del ciclo padre antes de persistir
+- Repositorios SQLAlchemy con `list_by_ciclo()` en cursos
+- Migración Alembic `003`: tablas `ciclo`, `curso` (FK → ciclo), `asignatura`
+- API REST bajo `/api/v1/taxonomy/`: endpoints públicos (GET) y protegidos por `require_admin` (POST/PUT/DELETE)
+- `GET /api/v1/taxonomy/cursos/?ciclo_id=...` para filtrar cursos por ciclo
+- 23 tests nuevos (11 unitarios + 12 integración) — 67 tests en total, todos pasan
+
+---
+
 ## [V-0.0.2] - 2026-06-13
 
 ### Corregido

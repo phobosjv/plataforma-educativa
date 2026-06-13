@@ -14,6 +14,7 @@ if config.config_file_name:
 from app.shared.infrastructure.database import Base
 import app.contexts.identity.infrastructure.models  # noqa: F401
 import app.contexts.content.infrastructure.models   # noqa: F401
+import app.contexts.taxonomy.infrastructure.models  # noqa: F401
 
 target_metadata = Base.metadata
 
