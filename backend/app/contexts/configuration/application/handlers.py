@@ -1,0 +1,80 @@
+from __future__ import annotations
+
+from app.contexts.configuration.application.commands import (
+    ActivarPaletaCommand,
+    ActualizarPaletaCommand,
+    AgregarPaletaCommand,
+    EliminarPaletaCommand,
+)
+from app.contexts.configuration.application.dtos import ConfiguracionDTO, config_to_dto
+from app.contexts.configuration.domain.model import PaletaPersonalizada
+from app.contexts.configuration.domain.ports import ConfiguracionRepository
+from app.shared.infrastructure.unit_of_work import UnitOfWork
+
+
+class ObtenerConfiguracionHandler:
+    def __init__(self, repo: ConfiguracionRepository) -> None:
+        self._repo = repo
+
+    def handle(self) -> ConfiguracionDTO:
+        return config_to_dto(self._repo.get())
+
+
+class ActivarPaletaHandler:
+    def __init__(self, repo: ConfiguracionRepository, uow: UnitOfWork) -> None:
+        self._repo = repo
+        self._uow = uow
+
+    def handle(self, cmd: ActivarPaletaCommand) -> ConfiguracionDTO:
+        config = self._repo.get()
+        config.activar_paleta(cmd.paleta_id)
+        self._repo.save(config)
+        self._uow.commit()
+        return config_to_dto(config)
+
+
+class AgregarPaletaHandler:
+    def __init__(self, repo: ConfiguracionRepository, uow: UnitOfWork) -> None:
+        self._repo = repo
+        self._uow = uow
+
+    def handle(self, cmd: AgregarPaletaCommand) -> ConfiguracionDTO:
+        config = self._repo.get()
+        paleta = PaletaPersonalizada(
+            id=cmd.id, nombre=cmd.nombre,
+            bg=cmd.bg, surface=cmd.surface, fg=cmd.fg, primary=cmd.primary,
+        )
+        config.agregar_paleta(paleta)
+        self._repo.save(config)
+        self._uow.commit()
+        return config_to_dto(config)
+
+
+class ActualizarPaletaHandler:
+    def __init__(self, repo: ConfiguracionRepository, uow: UnitOfWork) -> None:
+        self._repo = repo
+        self._uow = uow
+
+    def handle(self, cmd: ActualizarPaletaCommand) -> ConfiguracionDTO:
+        config = self._repo.get()
+        paleta = PaletaPersonalizada(
+            id=cmd.id, nombre=cmd.nombre,
+            bg=cmd.bg, surface=cmd.surface, fg=cmd.fg, primary=cmd.primary,
+        )
+        config.actualizar_paleta(paleta)
+        self._repo.save(config)
+        self._uow.commit()
+        return config_to_dto(config)
+
+
+class EliminarPaletaHandler:
+    def __init__(self, repo: ConfiguracionRepository, uow: UnitOfWork) -> None:
+        self._repo = repo
+        self._uow = uow
+
+    def handle(self, cmd: EliminarPaletaCommand) -> ConfiguracionDTO:
+        config = self._repo.get()
+        config.eliminar_paleta(cmd.paleta_id)
+        self._repo.save(config)
+        self._uow.commit()
+        return config_to_dto(config)

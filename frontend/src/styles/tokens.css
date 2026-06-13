@@ -1,15 +1,153 @@
 /* Design tokens y estilos del ARMAZÓN del CMS.
    IMPORTANTE: todas las clases van PREFIJADAS con cms- para no chocar con los estilos
    propios del HTML de artículos. No usar selectores de elemento desnudos (h1{}, p{}...). */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 :root {
-  --cms-color-bg: #ffffff;
+  --cms-color-bg: #f8fafc;
+  --cms-color-surface: #ffffff;
   --cms-color-fg: #1f2937;
+  --cms-color-muted: #6b7280;
+  --cms-color-border: #e5e7eb;
   --cms-color-primary: #4f46e5;
+  --cms-color-primary-hover: #4338ca;
+  --cms-color-danger: #dc2626;
+  --cms-color-success: #16a34a;
   --cms-radius: 10px;
+  --cms-radius-sm: 6px;
   --cms-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cms-shadow: 0 1px 3px 0 rgb(0 0 0 / .10);
+  --cms-nav-h: 60px;
 }
-.cms-shell { font-family: var(--cms-font); color: var(--cms-color-fg); padding: 24px; }
-.cms-h1 { font-size: 1.8rem; font-weight: 700; }
+
+body { font-family: var(--cms-font); background: var(--cms-color-bg); color: var(--cms-color-fg); min-height: 100vh; }
+
+/* ── Utilidades tipográficas ─────────────────────────── */
+.cms-h1 { font-size: 1.8rem; font-weight: 700; line-height: 1.2; }
+.cms-h2 { font-size: 1.4rem; font-weight: 600; line-height: 1.3; }
+.cms-h3 { font-size: 1.1rem; font-weight: 600; }
 .cms-text { line-height: 1.6; }
-/* El contenedor del ejercicio interactivo: amplio y con opción de pantalla completa. */
+.cms-muted { color: var(--cms-color-muted); font-size: .875rem; }
+
+/* ── Layout público ──────────────────────────────────── */
+.cms-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+.cms-nav {
+  position: sticky; top: 0; z-index: 100;
+  height: var(--cms-nav-h);
+  background: var(--cms-color-surface);
+  border-bottom: 1px solid var(--cms-color-border);
+  box-shadow: var(--cms-shadow);
+  display: flex; align-items: center; gap: 1rem; padding: 0 1.5rem;
+}
+.cms-nav-brand { font-weight: 700; font-size: 1.1rem; color: var(--cms-color-primary); text-decoration: none; }
+.cms-nav-spacer { flex: 1; }
+.cms-nav-link { color: var(--cms-color-fg); text-decoration: none; font-size: .9rem; padding: .4rem .6rem; border-radius: var(--cms-radius-sm); }
+.cms-nav-link:hover { background: var(--cms-color-bg); }
+.cms-nav-link-active { font-weight: 600; color: var(--cms-color-primary); }
+
+.cms-main { flex: 1; padding: 2rem 1.5rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+.cms-footer {
+  border-top: 1px solid var(--cms-color-border);
+  padding: 1rem 1.5rem;
+  text-align: center;
+  font-size: .8rem;
+  color: var(--cms-color-muted);
+}
+
+/* ── Admin layout ────────────────────────────────────── */
+.cms-admin-shell { display: flex; min-height: 100vh; }
+
+.cms-sidebar {
+  width: 220px; flex-shrink: 0;
+  background: var(--cms-color-surface);
+  border-right: 1px solid var(--cms-color-border);
+  display: flex; flex-direction: column;
+  padding: 1rem 0;
+}
+.cms-sidebar-brand { font-weight: 700; color: var(--cms-color-primary); padding: .5rem 1.25rem 1rem; font-size: 1rem; }
+.cms-sidebar-link {
+  display: block; padding: .55rem 1.25rem;
+  text-decoration: none; color: var(--cms-color-fg); font-size: .9rem;
+  border-left: 3px solid transparent;
+}
+.cms-sidebar-link:hover { background: var(--cms-color-bg); }
+.cms-sidebar-link-active { border-left-color: var(--cms-color-primary); font-weight: 600; color: var(--cms-color-primary); background: var(--cms-color-bg); }
+.cms-sidebar-spacer { flex: 1; }
+.cms-sidebar-logout { padding: .55rem 1.25rem; color: var(--cms-color-danger); font-size: .9rem; cursor: pointer; background: none; border: none; text-align: left; width: 100%; }
+.cms-sidebar-logout:hover { background: var(--cms-color-bg); }
+
+.cms-admin-content { flex: 1; padding: 2rem; overflow-y: auto; }
+.cms-admin-header { margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+
+/* ── Componentes ─────────────────────────────────────── */
+.cms-card {
+  background: var(--cms-color-surface);
+  border: 1px solid var(--cms-color-border);
+  border-radius: var(--cms-radius);
+  box-shadow: var(--cms-shadow);
+  padding: 1.25rem;
+  text-decoration: none; color: inherit;
+  display: block;
+  transition: box-shadow .15s;
+}
+.cms-card:hover { box-shadow: 0 4px 12px 0 rgb(0 0 0 / .12); }
+
+.cms-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+.cms-badge {
+  display: inline-block; padding: .2rem .55rem; border-radius: 999px;
+  font-size: .75rem; font-weight: 600;
+}
+.cms-badge-interactivo { background: #dbeafe; color: #1d4ed8; }
+.cms-badge-texto       { background: #d1fae5; color: #065f46; }
+.cms-badge-borrador    { background: #fef9c3; color: #713f12; }
+.cms-badge-publicado   { background: #d1fae5; color: #065f46; }
+.cms-badge-archivado   { background: #f3f4f6; color: #374151; }
+.cms-badge-borrado     { background: #fee2e2; color: #991b1b; }
+
+.cms-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .5rem 1rem; border-radius: var(--cms-radius-sm);
+  border: none; cursor: pointer; font-size: .875rem; font-weight: 500;
+  text-decoration: none; transition: background .15s;
+}
+.cms-btn-primary { background: var(--cms-color-primary); color: #fff; }
+.cms-btn-primary:hover { background: var(--cms-color-primary-hover); }
+.cms-btn-danger  { background: var(--cms-color-danger); color: #fff; }
+.cms-btn-danger:hover  { background: #b91c1c; }
+.cms-btn-ghost   { background: transparent; color: var(--cms-color-fg); border: 1px solid var(--cms-color-border); }
+.cms-btn-ghost:hover { background: var(--cms-color-bg); }
+
+.cms-form-group { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1rem; }
+.cms-label { font-size: .875rem; font-weight: 500; }
+.cms-input, .cms-select, .cms-textarea {
+  padding: .5rem .75rem; border: 1px solid var(--cms-color-border);
+  border-radius: var(--cms-radius-sm); font-size: .9rem; width: 100%;
+  background: var(--cms-color-surface); color: var(--cms-color-fg);
+}
+.cms-input:focus, .cms-select:focus, .cms-textarea:focus {
+  outline: 2px solid var(--cms-color-primary); outline-offset: 1px;
+}
+.cms-textarea { min-height: 120px; resize: vertical; }
+
+.cms-error { color: var(--cms-color-danger); font-size: .85rem; margin-top: .25rem; }
+
+.cms-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.cms-table th { text-align: left; padding: .6rem .75rem; border-bottom: 2px solid var(--cms-color-border); font-weight: 600; color: var(--cms-color-muted); }
+.cms-table td { padding: .6rem .75rem; border-bottom: 1px solid var(--cms-color-border); }
+.cms-table tr:hover td { background: var(--cms-color-bg); }
+
+.cms-spinner {
+  width: 32px; height: 32px; border: 3px solid var(--cms-color-border);
+  border-top-color: var(--cms-color-primary); border-radius: 50%;
+  animation: cms-spin .7s linear infinite; margin: 2rem auto; display: block;
+}
+@keyframes cms-spin { to { transform: rotate(360deg); } }
+
+.cms-empty { text-align: center; color: var(--cms-color-muted); padding: 3rem 1rem; }
+
+/* ── Ejercicio interactivo ───────────────────────────── */
 .cms-exercise-frame { width: 100%; min-height: 70vh; border: 0; border-radius: var(--cms-radius); }

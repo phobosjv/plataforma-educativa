@@ -7,3 +7,4 @@ from __future__ import annotations
 import app.contexts.identity.infrastructure.models  # noqa: F401
 import app.contexts.content.infrastructure.models  # noqa: F401
 import app.contexts.taxonomy.infrastructure.models  # noqa: F401
+import app.contexts.configuration.infrastructure.models  # noqa: F401

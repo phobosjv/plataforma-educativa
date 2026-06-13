@@ -1,0 +1,15 @@
+from __future__ import annotations
+
+from sqlalchemy import String, Text
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.shared.infrastructure.database import Base
+
+
+class ConfiguracionModel(Base):
+    __tablename__ = "site_config"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    nombre_sitio: Mapped[str] = mapped_column(String(255), default="Plataforma Educativa")
+    paleta_activa: Mapped[str] = mapped_column(String(100), default="cielo")
+    paletas_json: Mapped[str] = mapped_column(Text, default="[]")

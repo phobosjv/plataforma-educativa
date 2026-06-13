@@ -6,6 +6,45 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.2.0] - 2026-06-13
+
+### Añadido
+
+#### Contexto `configuration` (apariencia del sitio)
+- Dominio: agregado `ConfiguracionSitio` con patrón singleton (`SINGLETON_ID`), value object `PaletaPersonalizada`
+- Métodos de dominio: `activar_paleta`, `agregar_paleta`, `actualizar_paleta`, `eliminar_paleta` (con invariante: no eliminar paleta activa)
+- Puerto `ConfiguracionRepository` con get-or-create automático
+- Casos de uso: `ObtenerConfiguracionHandler`, `ActivarPaletaHandler`, `AgregarPaletaHandler`, `ActualizarPaletaHandler`, `EliminarPaletaHandler`
+- Repositorio `SqlAlchemyConfiguracionRepository` con patrón get-or-create
+- Migración Alembic `004`: tabla `site_config` con `id`, `nombre_sitio`, `paleta_activa`, `paletas_json`
+- API REST: `GET /api/v1/config/` (público), `PUT /api/v1/config/paleta`, `POST /api/v1/config/paletas`, `PUT /api/v1/config/paletas/{id}`, `DELETE /api/v1/config/paletas/{id}` (solo admin)
+- Validación de colores hexadecimales con `Field(pattern=r"^#[0-9a-fA-F]{6}$")`
+
+#### Frontend MVP completo (React + TypeScript)
+- Sistema de diseño con CSS custom properties (`--cms-color-*`) y clases prefijadas `cms-`
+- `PublicLayout` (nav pública) y `AdminLayout` (sidebar con Inicio, Contenidos, Taxonomía, Apariencia, Usuarios)
+- Páginas públicas: `CatalogoPage`, `ContenidoPage` (iframe sandbox para ejercicios interactivos)
+- Páginas admin: `DashboardPage`, `ContenidosPage`, `TaxonomiaPage`, `UsuariosPage`, `ConfiguracionPage`
+- `AuthContext` con JWT (decodificación `atob`), `RequireAuth` con guarda de rol
+- `useConfig` + `aplicarPaleta` — carga y aplica la paleta activa al arrancar la app
+- 6 paletas predefinidas infantiles (Cielo Azul, Bosque Mágico, Coral Feliz, Sol Brillante, Lavanda Soñadora, Estándar)
+- `ConfiguracionPage` — grid de swatches con preview, badge "Activa", formulario de paleta personalizada con color pickers y preview en vivo
+- Cliente de API generado desde OpenAPI (`openapi-typescript` + `openapi-fetch`)
+- Stack: React 18 + Vite 4 + TypeScript strict + TanStack Query v5 + React Router v6
+
+#### Gestión de taxonomías (CRUD completo en frontend)
+- `TaxonomiaPage` con secciones Ciclos, Cursos y Asignaturas
+- `FilaEditable`: edición inline con Enter/Escape, confirmación de borrado
+- Todas las mutaciones via `useMutation` + invalidación de caché
+
+#### Scripts y despliegue
+- `backend/scripts/seed_admin.py` — CLI para crear el primer usuario administrador
+- `backend/entrypoint.sh` — ejecuta migraciones y crea admin por defecto si no existe ningún usuario
+- `backend/Dockerfile` actualizado con `ENTRYPOINT` al script
+- Variables de entorno `DEFAULT_ADMIN_EMAIL` / `DEFAULT_ADMIN_PASSWORD` documentadas en `.env.example`
+
+---
+
 ## [V-0.1.0] - 2026-06-13
 
 ### Añadido
