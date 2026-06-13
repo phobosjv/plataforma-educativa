@@ -1,0 +1,31 @@
+# Stack de desarrollo. En producción se despliega con imágenes construidas en CI.
+services:
+  api:
+    build: ./backend
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./media:/app/media
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health'); sys.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  sandbox:
+    # Sirve los HTML de ejercicios desde un ORIGEN AISLADO (subdominio distinto).
+    # Imagen ligera de Nginx con cabeceras CSP estrictas (config en backend/deploy).
+    image: nginx:alpine
+    volumes:
+      - ./media:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api

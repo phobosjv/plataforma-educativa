@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+# Datos y secretos
+.env
+*.sqlite3
+*.db
+/data/
+/media/
+# Node / frontend
+node_modules/
+dist/
+# Sistema
+.DS_Store

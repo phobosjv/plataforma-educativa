@@ -1,0 +1,15 @@
+/* Design tokens y estilos del ARMAZÓN del CMS.
+   IMPORTANTE: todas las clases van PREFIJADAS con cms- para no chocar con los estilos
+   propios del HTML de artículos. No usar selectores de elemento desnudos (h1{}, p{}...). */
+:root {
+  --cms-color-bg: #ffffff;
+  --cms-color-fg: #1f2937;
+  --cms-color-primary: #4f46e5;
+  --cms-radius: 10px;
+  --cms-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.cms-shell { font-family: var(--cms-font); color: var(--cms-color-fg); padding: 24px; }
+.cms-h1 { font-size: 1.8rem; font-weight: 700; }
+.cms-text { line-height: 1.6; }
+/* El contenedor del ejercicio interactivo: amplio y con opción de pantalla completa. */
+.cms-exercise-frame { width: 100%; min-height: 70vh; border: 0; border-radius: var(--cms-radius); }
