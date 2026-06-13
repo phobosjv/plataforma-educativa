@@ -217,6 +217,16 @@ function FormNuevaPaleta({ onGuardar }: { onGuardar: (p: Omit<Palette, "predefin
 export function ConfiguracionPage() {
   const { paleta_activa, personalizadas, isLoading } = useConfig();
   const { activarPaleta, agregarPaleta, eliminarPaleta } = useConfigMutations();
+  const [error, setError] = useState<string | null>(null);
+
+  // Envuelve una mutación: limpia el error previo y captura cualquier fallo
+  // para mostrarlo en pantalla en vez de tragárselo en silencio.
+  function ejecutar(accion: () => Promise<void>) {
+    setError(null);
+    accion().catch((e: unknown) =>
+      setError(e instanceof Error ? e.message : "Error inesperado."),
+    );
+  }
 
   if (isLoading) return <div className="cms-spinner" role="status" aria-label="Cargando" />;
 
@@ -225,6 +235,23 @@ export function ConfiguracionPage() {
       <div className="cms-admin-header">
         <h1 className="cms-h1">Apariencia</h1>
       </div>
+
+      {error && (
+        <div
+          role="alert"
+          style={{
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
+            color: "#b91c1c",
+            borderRadius: "var(--cms-radius)",
+            padding: ".75rem 1rem",
+            marginBottom: "1.5rem",
+            fontSize: ".9rem",
+          }}
+        >
+          {error}
+        </div>
+      )}
 
       <h2 className="cms-h2" style={{ marginBottom: "1rem" }}>Paletas predefinidas</h2>
       <div
@@ -240,7 +267,7 @@ export function ConfiguracionPage() {
             key={p.id}
             paleta={p}
             activa={paleta_activa === p.id}
-            onSelect={() => activarPaleta(p.id)}
+            onSelect={() => ejecutar(() => activarPaleta(p.id))}
           />
         ))}
       </div>
@@ -259,13 +286,13 @@ export function ConfiguracionPage() {
             key={p.id}
             paleta={p}
             activa={paleta_activa === p.id}
-            onSelect={() => activarPaleta(p.id)}
-            onDelete={() => eliminarPaleta(p.id)}
+            onSelect={() => ejecutar(() => activarPaleta(p.id))}
+            onDelete={() => ejecutar(() => eliminarPaleta(p.id))}
           />
         ))}
         <FormNuevaPaleta
           onGuardar={(p) =>
-            agregarPaleta({ id: p.id, nombre: p.nombre, colores: p.colores })
+            ejecutar(() => agregarPaleta({ id: p.id, nombre: p.nombre, colores: p.colores }))
           }
         />
       </div>

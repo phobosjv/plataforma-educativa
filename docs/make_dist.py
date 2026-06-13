@@ -1,9 +1,9 @@
-"""Script de uso unico: crea dist/plataforma-educativa-v0.1.0.zip."""
+"""Script: crea dist/plataforma-educativa-v{VERSION}.zip."""
 
 import os
 import zipfile
 
-VERSION = "v0.1.0"
+VERSION = "v0.2.1"
 SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST_DIR = os.path.join(SRC, "dist")
 ZIP_NAME = f"plataforma-educativa-{VERSION}.zip"

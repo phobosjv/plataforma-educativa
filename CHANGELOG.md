@@ -6,6 +6,31 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.2.1] - 2026-06-14
+
+### Corregido
+- **Error 500 al aplicar o guardar paletas de color** (contexto `configuration`). Cuando la fila
+  singleton `site_config` aún no existía, el flujo `get()` + `save()` insertaba **dos** filas con
+  la misma clave primaria, provocando `IntegrityError: UNIQUE constraint failed: site_config.id`.
+  La causa de fondo es que `SessionLocal` usa `autoflush=False`, por lo que `session.get()` no
+  encontraba el modelo recién añadido (pendiente de flush) y `save()` creaba uno nuevo duplicado.
+- Unificada la lógica de acceso al singleton en `SqlAlchemyConfiguracionRepository._get_or_create_model()`
+  con `flush()` explícito: el modelo pasa a *persistent* y queda en el *identity map*, de modo que
+  `get` y `save` dentro del mismo caso de uso operan sobre la **misma** instancia.
+
+### Cambiado
+- Frontend: las mutaciones de paletas (`useConfigMutations`) ahora **propagan** los errores de la API
+  en lugar de tragárselos en silencio; `ConfiguracionPage` muestra un banner de error accesible (`role="alert"`).
+- Frontend: el cliente de API usa `baseUrl` relativo y Vite reenvía `/api` al backend mediante proxy
+  (`vite.config.ts`), eliminando los problemas de CORS en desarrollo. `strictPort` fija el puerto 5173.
+
+### Añadido
+- Tests de integración del contexto `configuration` (`tests/integration/test_configuration_endpoints.py`,
+  7 tests). El fixture replica `autoflush=False` de producción para que el caso de regresión sea válido.
+  Suite total: **74 tests**, todos en verde.
+
+---
+
 ## [V-0.2.0] - 2026-06-13
 
 ### Añadido

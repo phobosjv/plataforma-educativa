@@ -57,32 +57,42 @@ export function useConfig() {
   };
 }
 
+// Extrae un mensaje legible del error que devuelve openapi-fetch.
+function mensajeError(error: unknown): string {
+  if (error && typeof error === "object" && "detail" in error) {
+    const d = (error as { detail: unknown }).detail;
+    if (typeof d === "string") return d;
+  }
+  return "No se pudo completar la operación. Inténtalo de nuevo.";
+}
+
 export function useConfigMutations() {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["site-config"] });
 
   async function activarPaleta(paleta_id: string) {
-    const { data } = await api.PUT("/api/v1/config/paleta", {
+    const { data, error } = await api.PUT("/api/v1/config/paleta", {
       body: { paleta_id },
     });
-    if (data) {
-      const personalizadas = data.paletas_personalizadas.map(toFrontendPalette);
-      aplicarPaleta(resolverPaleta(data.paleta_activa, personalizadas));
-    }
+    if (error || !data) throw new Error(mensajeError(error));
+    const personalizadas = data.paletas_personalizadas.map(toFrontendPalette);
+    aplicarPaleta(resolverPaleta(data.paleta_activa, personalizadas));
     invalidate();
   }
 
   async function agregarPaleta(p: Omit<Palette, "predefinida" | "emoji">) {
-    await api.POST("/api/v1/config/paletas", {
+    const { error } = await api.POST("/api/v1/config/paletas", {
       body: { id: p.id, nombre: p.nombre, ...p.colores },
     });
+    if (error) throw new Error(mensajeError(error));
     invalidate();
   }
 
   async function eliminarPaleta(paleta_id: string) {
-    await api.DELETE("/api/v1/config/paletas/{paleta_id}", {
+    const { error } = await api.DELETE("/api/v1/config/paletas/{paleta_id}", {
       params: { path: { paleta_id } },
     });
+    if (error) throw new Error(mensajeError(error));
     invalidate();
   }
 

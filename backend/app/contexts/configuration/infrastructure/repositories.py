@@ -14,6 +14,24 @@ class SqlAlchemyConfiguracionRepository:
         self._session = session
 
     def get(self) -> ConfiguracionSitio:
+        model = self._get_or_create_model()
+        return self._to_domain(model)
+
+    def save(self, config: ConfiguracionSitio) -> None:
+        model = self._get_or_create_model()
+        model.nombre_sitio = config.nombre_sitio
+        model.paleta_activa = config.paleta_activa
+        model.paletas_json = config.paletas_json
+
+    def _get_or_create_model(self) -> ConfiguracionModel:
+        """Obtiene la fila singleton, creándola si no existe.
+
+        El ``flush`` tras el ``add`` es imprescindible: convierte el objeto de
+        pending a persistent y lo registra en el identity map, de modo que una
+        segunda llamada (p. ej. ``get`` seguido de ``save`` en el mismo caso de
+        uso) recupere la MISMA instancia en lugar de insertar un duplicado con
+        el mismo id (lo que violaría la PK del singleton).
+        """
         model = self._session.get(ConfiguracionModel, str(SINGLETON_ID))
         if model is None:
             model = ConfiguracionModel(
@@ -23,16 +41,8 @@ class SqlAlchemyConfiguracionRepository:
                 paletas_json="[]",
             )
             self._session.add(model)
-        return self._to_domain(model)
-
-    def save(self, config: ConfiguracionSitio) -> None:
-        model = self._session.get(ConfiguracionModel, str(config.id))
-        if model is None:
-            model = ConfiguracionModel(id=str(config.id))
-            self._session.add(model)
-        model.nombre_sitio = config.nombre_sitio
-        model.paleta_activa = config.paleta_activa
-        model.paletas_json = config.paletas_json
+            self._session.flush()
+        return model
 
     @staticmethod
     def _to_domain(m: ConfiguracionModel) -> ConfiguracionSitio:
