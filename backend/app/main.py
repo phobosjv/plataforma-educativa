@@ -19,7 +19,7 @@ from app.shared.domain.base import (
 
 logging.basicConfig(level=settings.log_level)
 
-app = FastAPI(title="Plataforma Educativa API", version="0.1.0")
+app = FastAPI(title="Plataforma Educativa API", version="0.0.1")
 
 app.add_middleware(
     CORSMiddleware,

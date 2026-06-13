@@ -1,5 +1,5 @@
 # -*- coding: latin-1 -*-
-"""Script de uso unico: genera docs/manual-v0.0.1.pdf usando fpdf."""
+"""Script de uso unico: genera docs/manual-v0.0.2.pdf usando fpdf."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ class ManualPDF(FPDF):
     def header(self) -> None:
         self.set_font("Helvetica", "B", 8)
         self.set_text_color(*INDIGO)
-        self.cell(0, 8, "Plataforma Educativa - Manual Tecnico y de Usuario  V-0.0.1", align="L")
+        self.cell(0, 8, "Plataforma Educativa - Manual Tecnico y de Usuario  V-0.0.2", align="L")
         self.set_text_color(*BLACK)
         self.ln(0)
         self.set_draw_color(*INDIGO)
@@ -49,7 +49,7 @@ class ManualPDF(FPDF):
                   new_x="LMARGIN", new_y="NEXT")
         self.set_font("Helvetica", "B", 18)
         self.set_y(60)
-        self.cell(0, 10, "Manual Tecnico y de Usuario - V-0.0.1", align="C",
+        self.cell(0, 10, "Manual Tecnico y de Usuario - V-0.0.2", align="C",
                   new_x="LMARGIN", new_y="NEXT")
         self.set_text_color(*BLACK)
         self.set_y(90)
@@ -60,7 +60,7 @@ class ManualPDF(FPDF):
             INNER_W, 6,
             "Este documento describe la arquitectura, los endpoints de la API, el modelo "
             "de datos y las instrucciones de instalacion y uso de la plataforma educativa "
-            "en su version inicial (V-0.0.1). Esta dirigido tanto al equipo tecnico "
+            "en su version inicial (V-0.0.2). Esta dirigido tanto al equipo tecnico "
             "(administradores de sistema, desarrolladores) como a los editores de contenido.",
             border=0, fill=True,
         )
@@ -68,7 +68,7 @@ class ManualPDF(FPDF):
         self.set_font("Helvetica", "", 10)
         self.set_text_color(100, 100, 100)
         self.cell(0, 6, "Fecha: 2026-06-13", align="C", new_x="LMARGIN", new_y="NEXT")
-        self.cell(0, 6, "Version del software: V-0.0.1", align="C", new_x="LMARGIN", new_y="NEXT")
+        self.cell(0, 6, "Version del software: V-0.0.2", align="C", new_x="LMARGIN", new_y="NEXT")
         self.cell(0, 6, "Licencia: MIT (open source)", align="C")
         self.set_text_color(*BLACK)
 
@@ -209,7 +209,7 @@ def build_pdf(output_path: str) -> None:
         "Las dependencias siempre apuntan hacia dentro: infrastructure -> application -> domain. "
         "El dominio no conoce FastAPI, SQLAlchemy, ni Pydantic de request. Jamas."
     )
-    pdf.section("Contextos acotados (V-0.0.1 implementados)")
+    pdf.section("Contextos acotados (V-0.0.2 implementados)")
     pdf.kv_table([
         ("identity", "Autenticacion JWT + gestion de usuarios (admin/editor)"),
         ("content", "CRUD de contenidos educativos, versionado e historial, papelera"),
@@ -266,8 +266,8 @@ def build_pdf(output_path: str) -> None:
     pdf.section("Despliegue rapido con Docker Compose")
     pdf.code(
         "# 1. Descomprimir el zip de distribucion\n"
-        "unzip plataforma-educativa-v0.0.1.zip\n"
-        "cd plataforma-educativa-v0.0.1\n\n"
+        "unzip plataforma-educativa-v0.0.2.zip\n"
+        "cd plataforma-educativa-v0.0.2\n\n"
         "# 2. Copiar y configurar variables de entorno\n"
         "cp .env.example .env\n"
         "nano .env   # editar SECRET_KEY y demas valores\n\n"
@@ -290,7 +290,7 @@ def build_pdf(output_path: str) -> None:
     ])
     pdf.section("Crear el primer usuario administrador")
     pdf.body(
-        "En V-0.0.1 no existe interfaz de administracion web. El primer usuario admin se crea "
+        "En V-0.0.2 no existe interfaz de administracion web. El primer usuario admin se crea "
         "llamando directamente al endpoint POST /api/v1/users/. Para arrancar el sistema desde "
         "cero use el script de semilla incluido:"
     )
@@ -300,7 +300,7 @@ def build_pdf(output_path: str) -> None:
     )
 
     # 5. API
-    pdf.chapter_title("5", "Referencia de la API (V-0.0.1)")
+    pdf.chapter_title("5", "Referencia de la API (V-0.0.2)")
     pdf.body(
         "La API sigue principios REST con prefijo /api/v1. "
         "La autenticacion utiliza el flujo OAuth2 Password Bearer (JWT HS256). "
@@ -409,11 +409,11 @@ def build_pdf(output_path: str) -> None:
     ])
 
     # 8. Tests
-    pdf.chapter_title("8", "Tests (V-0.0.1)")
+    pdf.chapter_title("8", "Tests (V-0.0.2)")
     pdf.kv_table([
         ("Tests unitarios", "27 tests - dominio identity + content, handlers con MagicMock"),
         ("Tests de integracion", "19 tests - endpoints REST con SQLite en memoria (StaticPool)"),
-        ("Total", "46 tests - todos pasan en V-0.0.1"),
+        ("Total", "46 tests - todos pasan en V-0.0.2"),
     ])
     pdf.section("Ejecutar los tests")
     pdf.code(
@@ -570,5 +570,5 @@ def build_pdf(output_path: str) -> None:
 
 if __name__ == "__main__":
     import os
-    output = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manual-v0.0.1.pdf")
+    output = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manual-v0.0.2.pdf")
     build_pdf(output)

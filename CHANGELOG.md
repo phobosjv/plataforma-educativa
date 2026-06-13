@@ -6,6 +6,16 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.0.2] - 2026-06-13
+
+### Corregido
+- Eliminado `test_contenido.py` del esqueleto inicial (sustituido por `test_contenido_lifecycle.py`).
+- Eliminado `shared/application/buses.py` del esqueleto (CommandBus/QueryBus no usado).
+- Corregida versión de la API en `main.py`: `"0.1.0"` → `"0.0.1"`.
+- Eliminados `data/` raíz y `.env` raíz creados accidentalmente al arrancar el servidor.
+
+---
+
 ## [V-0.0.1] - 2026-06-13
 
 ### Añadido
