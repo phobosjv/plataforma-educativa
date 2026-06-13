@@ -23,6 +23,26 @@
 
 body { font-family: var(--cms-font); background: var(--cms-color-bg); color: var(--cms-color-fg); min-height: 100vh; }
 
+/* Fondo/estampado temático: patrón SVG recoloreado con la paleta activa mediante
+   máscara CSS. Las variables las gobierna app/config/backgrounds.ts (aplicarFondo).
+   Va detrás del contenido (z-index -1) y a baja opacidad: no afecta la legibilidad. */
+:root { --cms-bg-pattern: none; --cms-bg-opacity: 0; }
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--cms-color-primary);
+  opacity: var(--cms-bg-opacity);
+  -webkit-mask-image: var(--cms-bg-pattern);
+  mask-image: var(--cms-bg-pattern);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  -webkit-mask-size: 240px 240px;
+  mask-size: 240px 240px;
+}
+
 /* ── Utilidades tipográficas ─────────────────────────── */
 .cms-h1 { font-size: 1.8rem; font-weight: 700; line-height: 1.2; }
 .cms-h2 { font-size: 1.4rem; font-weight: 600; line-height: 1.3; }

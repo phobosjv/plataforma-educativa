@@ -7,6 +7,7 @@ from dataclasses import dataclass
 class ActualizarAjustesGeneralesCommand:
     nombre_sitio: str
     fuente_activa: str
+    fondo_activo: str = "ninguno"
 
 
 @dataclass(frozen=True)

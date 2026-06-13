@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- pino -->
+    <g transform="translate(36 34)">
+      <path d="M28 0 L48 32 L8 32 Z"/>
+      <path d="M28 20 L54 56 L2 56 Z"/>
+      <line x1="28" y1="56" x2="28" y2="72"/>
+    </g>
+    <!-- hoja -->
+    <g transform="translate(150 44) rotate(18)">
+      <path d="M0 42 C0 12 30 0 52 0 C52 30 30 50 0 42 Z"/>
+      <path d="M8 40 L46 8"/>
+    </g>
+    <!-- seta -->
+    <g transform="translate(44 154)">
+      <path d="M2 26 C2 8 18 0 30 0 C42 0 58 8 58 26 Z"/>
+      <path d="M18 26 C18 44 14 52 22 58 L38 58 C46 52 42 44 42 26"/>
+    </g>
+    <!-- bellota -->
+    <g transform="translate(158 160)">
+      <path d="M6 14 C6 6 14 2 26 2 C38 2 46 6 46 14 Z"/>
+      <path d="M10 14 C10 34 18 46 26 46 C34 46 42 34 42 14"/>
+      <line x1="26" y1="2" x2="26" y2="-6"/>
+    </g>
+  </g>
+</svg>

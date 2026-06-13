@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- lápiz -->
+    <g transform="translate(40 36) rotate(-40)">
+      <rect x="0" y="0" width="20" height="58" rx="3"/>
+      <path d="M0 58 L10 76 L20 58"/>
+      <line x1="0" y1="14" x2="20" y2="14"/>
+    </g>
+    <!-- libro abierto -->
+    <g transform="translate(146 46)">
+      <path d="M0 8 C12 0 28 0 38 6 C48 0 64 0 76 8 L76 50 C64 42 48 42 38 48 C28 42 12 42 0 50 Z"/>
+      <line x1="38" y1="6" x2="38" y2="48"/>
+    </g>
+    <!-- reloj -->
+    <g transform="translate(40 150)">
+      <circle cx="28" cy="28" r="26"/>
+      <path d="M28 12 L28 28 L40 36"/>
+    </g>
+    <!-- regla -->
+    <g transform="translate(150 154) rotate(18)">
+      <rect x="0" y="0" width="64" height="22" rx="3"/>
+      <line x1="12" y1="0" x2="12" y2="10"/>
+      <line x1="24" y1="0" x2="24" y2="10"/>
+      <line x1="36" y1="0" x2="36" y2="10"/>
+      <line x1="48" y1="0" x2="48" y2="10"/>
+    </g>
+  </g>
+</svg>

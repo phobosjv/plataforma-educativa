@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- granero -->
+    <g transform="translate(34 48)">
+      <path d="M4 24 L4 64 L60 64 L60 24"/>
+      <path d="M0 24 L32 2 L64 24"/>
+      <rect x="24" y="40" width="16" height="24"/>
+    </g>
+    <!-- trigo -->
+    <g transform="translate(164 44)">
+      <line x1="14" y1="22" x2="14" y2="66"/>
+      <path d="M14 22 C5 24 3 13 8 6 C15 9 17 16 14 22 Z"/>
+      <path d="M14 22 C23 24 25 13 20 6 C13 9 11 16 14 22 Z"/>
+      <path d="M14 38 C6 40 4 30 8 24 M14 38 C22 40 24 30 20 24"/>
+    </g>
+    <!-- valla -->
+    <g transform="translate(34 162)">
+      <path d="M6 8 L6 50 M22 8 L22 50 M38 8 L38 50 M54 8 L54 50"/>
+      <path d="M0 20 L60 20 M0 36 L60 36"/>
+      <path d="M6 8 L6 2 M22 8 L22 2 M38 8 L38 2 M54 8 L54 2"/>
+    </g>
+    <!-- sol -->
+    <g transform="translate(158 158)">
+      <circle cx="28" cy="28" r="15"/>
+      <path d="M28 2 L28 -5 M28 53 L28 60 M2 28 L-5 28 M53 28 L60 28 M11 11 L5 5 M45 45 L51 51 M45 11 L51 5 M11 45 L5 51"/>
+    </g>
+  </g>
+</svg>

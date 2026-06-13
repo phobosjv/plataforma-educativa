@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- círculo -->
+    <circle cx="52" cy="52" r="24"/>
+    <!-- triángulo -->
+    <path d="M156 28 L186 78 L126 78 Z"/>
+    <!-- onda -->
+    <path d="M18 150 C36 130 56 170 76 150 C96 130 116 170 136 150"/>
+    <!-- cuadrado redondeado -->
+    <rect x="150" y="150" width="36" height="36" rx="8" transform="rotate(15 168 168)"/>
+    <!-- lunares -->
+    <circle cx="118" cy="118" r="5" fill="#000"/>
+    <circle cx="100" cy="40" r="5" fill="#000"/>
+    <circle cx="40" cy="180" r="5" fill="#000"/>
+  </g>
+</svg>

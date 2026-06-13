@@ -388,6 +388,11 @@ export interface components {
             nombre_sitio: string;
             /** Fuente Activa */
             fuente_activa: string;
+            /**
+             * Fondo Activo
+             * @default ninguno
+             */
+            fondo_activo: string;
         };
         /** AsignaturaResponse */
         AsignaturaResponse: {
@@ -445,6 +450,8 @@ export interface components {
             paleta_activa: string;
             /** Fuente Activa */
             fuente_activa: string;
+            /** Fondo Activo */
+            fondo_activo: string;
             /** Paletas Personalizadas */
             paletas_personalizadas: components["schemas"]["PaletaResponse"][];
         };

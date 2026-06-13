@@ -23,6 +23,7 @@ class SqlAlchemyConfiguracionRepository:
         model.paleta_activa = config.paleta_activa
         model.paletas_json = config.paletas_json
         model.fuente_activa = config.fuente_activa
+        model.fondo_activo = config.fondo_activo
 
     def _get_or_create_model(self) -> ConfiguracionModel:
         """Obtiene la fila singleton, creándola si no existe.
@@ -41,6 +42,7 @@ class SqlAlchemyConfiguracionRepository:
                 paleta_activa="cielo",
                 paletas_json="[]",
                 fuente_activa="sistema",
+                fondo_activo="ninguno",
             )
             self._session.add(model)
             self._session.flush()
@@ -54,4 +56,5 @@ class SqlAlchemyConfiguracionRepository:
             paleta_activa=m.paleta_activa,
             paletas_json=m.paletas_json,
             fuente_activa=m.fuente_activa,
+            fondo_activo=m.fondo_activo,
         )

@@ -9,6 +9,7 @@ import {
   type Palette,
 } from "./palettes";
 import { aplicarFuente } from "./fonts";
+import { aplicarFondo } from "./backgrounds";
 
 type ConfigDTO = components["schemas"]["ConfiguracionResponse"];
 type PaletaDTO = components["schemas"]["PaletaResponse"];
@@ -45,6 +46,7 @@ export function useConfig() {
     const colores = resolverPaleta(data.paleta_activa, personalizadas);
     aplicarPaleta(colores);
     aplicarFuente(data.fuente_activa);
+    aplicarFondo(data.fondo_activo);
   }, [data]);
 
   const personalizadas = (data?.paletas_personalizadas ?? []).map(toFrontendPalette);
@@ -56,6 +58,7 @@ export function useConfig() {
     nombre_sitio: data?.nombre_sitio ?? "Plataforma Educativa",
     paleta_activa: data?.paleta_activa ?? "cielo",
     fuente_activa: data?.fuente_activa ?? "sistema",
+    fondo_activo: data?.fondo_activo ?? "ninguno",
     todasLasPaletas,
     personalizadas,
   };
@@ -74,12 +77,17 @@ export function useConfigMutations() {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["site-config"] });
 
-  async function guardarAjustesGenerales(nombre_sitio: string, fuente_activa: string) {
+  async function guardarAjustesGenerales(
+    nombre_sitio: string,
+    fuente_activa: string,
+    fondo_activo: string,
+  ) {
     const { data, error } = await api.PUT("/api/v1/config/general", {
-      body: { nombre_sitio, fuente_activa },
+      body: { nombre_sitio, fuente_activa, fondo_activo },
     });
     if (error || !data) throw new Error(mensajeError(error));
     aplicarFuente(data.fuente_activa);
+    aplicarFondo(data.fondo_activo);
     invalidate();
   }
 

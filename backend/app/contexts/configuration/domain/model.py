@@ -19,6 +19,13 @@ FUENTES_PERMITIDAS: frozenset[str] = frozenset(
     {"sistema", "nunito", "quicksand", "lexend", "atkinson", "andika"}
 )
 
+# Catálogo de fondos/estampados temáticos. "ninguno" deja el fondo liso. El resto
+# son patrones SVG self-hosted (servidos por la app) que se recolorean con la paleta
+# activa a baja opacidad. El dominio solo conoce los IDs válidos.
+FONDOS_PERMITIDOS: frozenset[str] = frozenset(
+    {"ninguno", "classroom", "naturaleza", "espacio", "oceano", "geometrico", "granja"}
+)
+
 LONGITUD_MAX_NOMBRE = 80
 
 
@@ -48,6 +55,7 @@ class ConfiguracionSitio(Entity):
     paleta_activa: str = "cielo"
     paletas_json: str = "[]"
     fuente_activa: str = "sistema"
+    fondo_activo: str = "ninguno"
 
     @classmethod
     def singleton(cls) -> "ConfiguracionSitio":
@@ -71,6 +79,11 @@ class ConfiguracionSitio(Entity):
         if fuente_id not in FUENTES_PERMITIDAS:
             raise DomainError(f"Fuente '{fuente_id}' no permitida.")
         self.fuente_activa = fuente_id
+
+    def cambiar_fondo(self, fondo_id: str) -> None:
+        if fondo_id not in FONDOS_PERMITIDOS:
+            raise DomainError(f"Fondo '{fondo_id}' no permitido.")
+        self.fondo_activo = fondo_id
 
     def activar_paleta(self, paleta_id: str) -> None:
         self.paleta_activa = paleta_id

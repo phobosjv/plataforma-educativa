@@ -6,6 +6,30 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.5.0] - 2026-06-14
+
+### Añadido
+
+#### Fondos / estampados temáticos del sitio
+- Nuevo ajuste para elegir un **fondo tipo estampado** desde el panel **Apariencia y ajustes**,
+  con **6 temáticas** y la opción **Ninguno** (por defecto):
+  - **Aula** (pizarra, lápiz, reloj, regla), **Naturaleza** (pino, hoja, seta, bellota),
+    **Espacio** (cohete, planeta, estrella, luna), **Océano** (pez, concha, burbujas, estrella de
+    mar), **Geométrico** (formas y lunares) y **Granja** (granero, trigo, valla, sol).
+- Los estampados son **patrones SVG self-hosted** (`frontend/public/patterns/*.svg`) que se
+  **recolorean con la paleta activa** mediante una máscara CSS, a baja opacidad y detrás del
+  contenido, de modo que no afectan la legibilidad. Selector con previsualización en vivo.
+- **Backend:** campo `fondo_activo` en el dominio, método `cambiar_fondo` con validación
+  (`FONDOS_PERMITIDOS`), endpoint `PUT /api/v1/config/general` extendido y migración Alembic **006**.
+- **Tests:** 3 de integración nuevos (fondo por defecto, guardado, fondo inválido → 400). Suite
+  total: **83 tests**, todos en verde.
+
+### Cambiado
+- `GET /api/v1/config/` ahora incluye `fondo_activo`; cliente OpenAPI del frontend regenerado.
+- API version `0.4.0` → `0.5.0` en `main.py`.
+
+---
+
 ## [V-0.4.0] - 2026-06-14
 
 ### Añadido
