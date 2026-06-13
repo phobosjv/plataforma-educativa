@@ -209,7 +209,7 @@ Seguir semver estricto (`V-MAJOR.MINOR.PATCH`):
 | `MINOR` (segundo) | Nueva funcionalidad compatible con versiones anteriores | **Preguntar** antes de avanzar |
 | `MAJOR` (primero) | Cambio disruptivo (breaking change, rediseño) | Solo si se pide explícitamente |
 
-La versión actual se lee de `CHANGELOG.md` (última entrada) o se inicializa en `V-1.0.0`.
+La versión actual se lee de `CHANGELOG.md` (última entrada) o se inicializa en `V-0.0.1`.
 
 ### 19.2 Actualizar CHANGELOG.md
 

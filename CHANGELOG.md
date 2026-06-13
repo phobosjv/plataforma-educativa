@@ -6,7 +6,7 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
-## [V-1.0.0] - 2026-06-13
+## [V-0.0.1] - 2026-06-13
 
 ### Añadido
 
