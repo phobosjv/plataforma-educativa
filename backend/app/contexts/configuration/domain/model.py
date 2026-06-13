@@ -10,6 +10,17 @@ from app.shared.domain.base import DomainError, Entity
 
 SINGLETON_ID = UUID("00000000-0000-0000-0000-000000000001")
 
+# Catálogo de fuentes seleccionables. El identificador "sistema" usa la pila de
+# fuentes nativa del dispositivo (sin descarga); el resto son fuentes self-hosted
+# servidas por la propia app (no desde un CDN externo) para no exponer la IP de
+# los menores a terceros (CLAUDE.md §10). El dominio solo conoce los IDs válidos;
+# los ficheros y la familia CSS concreta viven en el frontend.
+FUENTES_PERMITIDAS: frozenset[str] = frozenset(
+    {"sistema", "nunito", "quicksand", "lexend", "atkinson", "andika"}
+)
+
+LONGITUD_MAX_NOMBRE = 80
+
 
 @dataclass
 class PaletaPersonalizada:
@@ -36,6 +47,7 @@ class ConfiguracionSitio(Entity):
     nombre_sitio: str = "Plataforma Educativa"
     paleta_activa: str = "cielo"
     paletas_json: str = "[]"
+    fuente_activa: str = "sistema"
 
     @classmethod
     def singleton(cls) -> "ConfiguracionSitio":
@@ -44,6 +56,21 @@ class ConfiguracionSitio(Entity):
     @property
     def paletas_personalizadas(self) -> list[PaletaPersonalizada]:
         return [PaletaPersonalizada(**p) for p in json.loads(self.paletas_json)]
+
+    def cambiar_nombre(self, nombre: str) -> None:
+        nombre = nombre.strip()
+        if not nombre:
+            raise DomainError("El nombre del sitio no puede estar vacío.")
+        if len(nombre) > LONGITUD_MAX_NOMBRE:
+            raise DomainError(
+                f"El nombre del sitio no puede superar {LONGITUD_MAX_NOMBRE} caracteres."
+            )
+        self.nombre_sitio = nombre
+
+    def cambiar_fuente(self, fuente_id: str) -> None:
+        if fuente_id not in FUENTES_PERMITIDAS:
+            raise DomainError(f"Fuente '{fuente_id}' no permitida.")
+        self.fuente_activa = fuente_id
 
     def activar_paleta(self, paleta_id: str) -> None:
         self.paleta_activa = paleta_id

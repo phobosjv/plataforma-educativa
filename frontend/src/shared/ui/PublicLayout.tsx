@@ -1,14 +1,16 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../app/auth/AuthContext";
+import { useConfig } from "../../app/config/useConfig";
 
 export function PublicLayout() {
   const { user } = useAuth();
+  const { nombre_sitio } = useConfig();
 
   return (
     <div className="cms-shell">
       <nav className="cms-nav">
         <NavLink to="/" className="cms-nav-brand">
-          Plataforma Educativa
+          {nombre_sitio}
         </NavLink>
         <span className="cms-nav-spacer" />
         <NavLink
@@ -39,7 +41,7 @@ export function PublicLayout() {
         <Outlet />
       </main>
       <footer className="cms-footer">
-        Plataforma Educativa — contenidos para infantil y primaria
+        {nombre_sitio} — contenidos para infantil y primaria
       </footer>
     </div>
   );

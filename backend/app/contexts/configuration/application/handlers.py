@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from app.contexts.configuration.application.commands import (
     ActivarPaletaCommand,
+    ActualizarAjustesGeneralesCommand,
     ActualizarPaletaCommand,
     AgregarPaletaCommand,
     EliminarPaletaCommand,
@@ -18,6 +19,20 @@ class ObtenerConfiguracionHandler:
 
     def handle(self) -> ConfiguracionDTO:
         return config_to_dto(self._repo.get())
+
+
+class ActualizarAjustesGeneralesHandler:
+    def __init__(self, repo: ConfiguracionRepository, uow: UnitOfWork) -> None:
+        self._repo = repo
+        self._uow = uow
+
+    def handle(self, cmd: ActualizarAjustesGeneralesCommand) -> ConfiguracionDTO:
+        config = self._repo.get()
+        config.cambiar_nombre(cmd.nombre_sitio)
+        config.cambiar_fuente(cmd.fuente_activa)
+        self._repo.save(config)
+        self._uow.commit()
+        return config_to_dto(config)
 
 
 class ActivarPaletaHandler:

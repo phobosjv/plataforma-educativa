@@ -272,6 +272,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/config/general": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Actualizar ajustes generales (nombre del sitio y fuente) */
+        put: operations["actualizar_ajustes_generales_api_v1_config_general_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/config/paleta": {
         parameters: {
             query?: never;
@@ -365,6 +382,13 @@ export interface components {
             /** Orden */
             orden?: number | null;
         };
+        /** AjustesGeneralesRequest */
+        AjustesGeneralesRequest: {
+            /** Nombre Sitio */
+            nombre_sitio: string;
+            /** Fuente Activa */
+            fuente_activa: string;
+        };
         /** AsignaturaResponse */
         AsignaturaResponse: {
             /**
@@ -419,6 +443,8 @@ export interface components {
             nombre_sitio: string;
             /** Paleta Activa */
             paleta_activa: string;
+            /** Fuente Activa */
+            fuente_activa: string;
             /** Paletas Personalizadas */
             paletas_personalizadas: components["schemas"]["PaletaResponse"][];
         };
@@ -1460,6 +1486,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConfiguracionResponse"];
+                };
+            };
+        };
+    };
+    actualizar_ajustes_generales_api_v1_config_general_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AjustesGeneralesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfiguracionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

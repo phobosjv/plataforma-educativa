@@ -13,3 +13,4 @@ class ConfiguracionModel(Base):
     nombre_sitio: Mapped[str] = mapped_column(String(255), default="Plataforma Educativa")
     paleta_activa: Mapped[str] = mapped_column(String(100), default="cielo")
     paletas_json: Mapped[str] = mapped_column(Text, default="[]")
+    fuente_activa: Mapped[str] = mapped_column(String(100), default="sistema")

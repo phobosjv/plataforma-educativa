@@ -1,0 +1,79 @@
+/* Fuentes self-hosted (servidas por la propia app, NO desde un CDN externo) para
+   no exponer la IP de los menores a terceros (RGPD/DSA, CLAUDE.md §10).
+   Subset latino, pesos 400 y 700. Los .woff2 viven en public/fonts/ y los descarga
+   frontend/scripts/download_fonts.py. font-display: swap para no bloquear el render. */
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/nunito-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/nunito-700.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Quicksand";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/quicksand-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Quicksand";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/quicksand-700.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Lexend";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/lexend-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Lexend";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/lexend-700.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/atkinson-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/atkinson-700.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Andika";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/andika-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Andika";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/andika-700.woff2") format("woff2");
+}

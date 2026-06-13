@@ -1,6 +1,118 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useConfig, useConfigMutations } from "../../app/config/useConfig";
 import { PALETAS_PREDEFINIDAS, type Palette } from "../../app/config/palettes";
+import { FUENTES } from "../../app/config/fonts";
+
+// ── Ajustes generales: nombre del sitio + fuente ──────────────────────────────
+
+function AjustesGenerales({
+  nombreInicial,
+  fuenteInicial,
+  onGuardar,
+}: {
+  nombreInicial: string;
+  fuenteInicial: string;
+  onGuardar: (nombre: string, fuente: string) => Promise<void>;
+}) {
+  const [nombre, setNombre] = useState(nombreInicial);
+  const [fuente, setFuente] = useState(fuenteInicial);
+  const [guardando, setGuardando] = useState(false);
+  const [guardado, setGuardado] = useState(false);
+
+  // Sincroniza si la config llega/actualiza desde el servidor.
+  useEffect(() => setNombre(nombreInicial), [nombreInicial]);
+  useEffect(() => setFuente(fuenteInicial), [fuenteInicial]);
+
+  const sucio = nombre.trim() !== nombreInicial || fuente !== fuenteInicial;
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!nombre.trim() || guardando) return;
+    setGuardando(true);
+    setGuardado(false);
+    onGuardar(nombre.trim(), fuente)
+      .then(() => setGuardado(true))
+      .catch(() => setGuardado(false)) // el error se muestra a nivel de página
+      .finally(() => setGuardando(false));
+  }
+
+  return (
+    <form onSubmit={handleSubmit} style={{ marginBottom: "2.5rem" }}>
+      <div className="cms-form-group" style={{ maxWidth: 420 }}>
+        <label className="cms-label" htmlFor="cms-nombre-sitio">Nombre del sitio</label>
+        <input
+          id="cms-nombre-sitio"
+          className="cms-input"
+          value={nombre}
+          maxLength={80}
+          onChange={(e) => { setNombre(e.target.value); setGuardado(false); }}
+          placeholder="Plataforma Educativa"
+          required
+        />
+      </div>
+
+      <label className="cms-label" style={{ display: "block", marginBottom: ".6rem" }}>
+        Fuente de letra
+      </label>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gap: ".75rem",
+          marginBottom: "1.25rem",
+        }}
+      >
+        {FUENTES.map((f) => {
+          const activa = fuente === f.id;
+          return (
+            <button
+              type="button"
+              key={f.id}
+              onClick={() => { setFuente(f.id); setGuardado(false); }}
+              aria-pressed={activa}
+              style={{
+                textAlign: "left",
+                cursor: "pointer",
+                background: "var(--cms-color-surface)",
+                border: activa
+                  ? "2px solid var(--cms-color-primary)"
+                  : "1px solid var(--cms-color-border)",
+                borderRadius: "var(--cms-radius)",
+                padding: ".75rem .9rem",
+                boxShadow: activa ? "0 0 0 2px var(--cms-color-primary)" : "none",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 6 }}>
+                <span style={{ fontFamily: f.stack, fontSize: "1.25rem", fontWeight: 700, color: "var(--cms-color-fg)" }}>
+                  {f.nombre}
+                </span>
+                <span className="cms-badge" style={{ background: "var(--cms-color-bg)", color: "var(--cms-color-muted)" }}>
+                  {f.categoria}
+                </span>
+              </div>
+              {/* Muestra del alfabeto en la propia fuente */}
+              <div style={{ fontFamily: f.stack, fontSize: "1rem", color: "var(--cms-color-fg)", marginTop: 4 }}>
+                Hola, ¡a leer! AaBbCc 123
+              </div>
+              <div className="cms-muted" style={{ marginTop: 4 }}>{f.descripcion}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
+        <button type="submit" className="cms-btn cms-btn-primary" disabled={!sucio || guardando}>
+          {guardando ? "Guardando…" : "Guardar cambios"}
+        </button>
+        {guardado && !sucio && (
+          <span style={{ color: "var(--cms-color-success)", fontSize: ".85rem" }} role="status">
+            ✓ Guardado
+          </span>
+        )}
+      </div>
+    </form>
+  );
+}
 
 // ── Swatch de paleta ──────────────────────────────────────────────────────────
 
@@ -215,8 +327,9 @@ function FormNuevaPaleta({ onGuardar }: { onGuardar: (p: Omit<Palette, "predefin
 // ── Página principal ──────────────────────────────────────────────────────────
 
 export function ConfiguracionPage() {
-  const { paleta_activa, personalizadas, isLoading } = useConfig();
-  const { activarPaleta, agregarPaleta, eliminarPaleta } = useConfigMutations();
+  const { nombre_sitio, fuente_activa, paleta_activa, personalizadas, isLoading } = useConfig();
+  const { guardarAjustesGenerales, activarPaleta, agregarPaleta, eliminarPaleta } =
+    useConfigMutations();
   const [error, setError] = useState<string | null>(null);
 
   // Envuelve una mutación: limpia el error previo y captura cualquier fallo
@@ -233,7 +346,7 @@ export function ConfiguracionPage() {
   return (
     <>
       <div className="cms-admin-header">
-        <h1 className="cms-h1">Apariencia</h1>
+        <h1 className="cms-h1">Apariencia y ajustes</h1>
       </div>
 
       {error && (
@@ -252,6 +365,19 @@ export function ConfiguracionPage() {
           {error}
         </div>
       )}
+
+      <h2 className="cms-h2" style={{ marginBottom: "1rem" }}>Ajustes generales</h2>
+      <AjustesGenerales
+        nombreInicial={nombre_sitio}
+        fuenteInicial={fuente_activa}
+        onGuardar={(nombre, fuente) => {
+          setError(null);
+          return guardarAjustesGenerales(nombre, fuente).catch((e: unknown) => {
+            setError(e instanceof Error ? e.message : "Error inesperado.");
+            throw e;
+          });
+        }}
+      />
 
       <h2 className="cms-h2" style={{ marginBottom: "1rem" }}>Paletas predefinidas</h2>
       <div

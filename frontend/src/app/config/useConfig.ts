@@ -8,6 +8,7 @@ import {
   resolverPaleta,
   type Palette,
 } from "./palettes";
+import { aplicarFuente } from "./fonts";
 
 type ConfigDTO = components["schemas"]["ConfiguracionResponse"];
 type PaletaDTO = components["schemas"]["PaletaResponse"];
@@ -43,6 +44,7 @@ export function useConfig() {
     const personalizadas = data.paletas_personalizadas.map(toFrontendPalette);
     const colores = resolverPaleta(data.paleta_activa, personalizadas);
     aplicarPaleta(colores);
+    aplicarFuente(data.fuente_activa);
   }, [data]);
 
   const personalizadas = (data?.paletas_personalizadas ?? []).map(toFrontendPalette);
@@ -51,7 +53,9 @@ export function useConfig() {
   return {
     config: data,
     isLoading,
+    nombre_sitio: data?.nombre_sitio ?? "Plataforma Educativa",
     paleta_activa: data?.paleta_activa ?? "cielo",
+    fuente_activa: data?.fuente_activa ?? "sistema",
     todasLasPaletas,
     personalizadas,
   };
@@ -69,6 +73,15 @@ function mensajeError(error: unknown): string {
 export function useConfigMutations() {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["site-config"] });
+
+  async function guardarAjustesGenerales(nombre_sitio: string, fuente_activa: string) {
+    const { data, error } = await api.PUT("/api/v1/config/general", {
+      body: { nombre_sitio, fuente_activa },
+    });
+    if (error || !data) throw new Error(mensajeError(error));
+    aplicarFuente(data.fuente_activa);
+    invalidate();
+  }
 
   async function activarPaleta(paleta_id: string) {
     const { data, error } = await api.PUT("/api/v1/config/paleta", {
@@ -96,5 +109,5 @@ export function useConfigMutations() {
     invalidate();
   }
 
-  return { activarPaleta, agregarPaleta, eliminarPaleta };
+  return { guardarAjustesGenerales, activarPaleta, agregarPaleta, eliminarPaleta };
 }

@@ -4,6 +4,12 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class ActualizarAjustesGeneralesCommand:
+    nombre_sitio: str
+    fuente_activa: str
+
+
+@dataclass(frozen=True)
 class ActivarPaletaCommand:
     paleta_id: str
 

@@ -6,6 +6,38 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.3.0] - 2026-06-14
+
+### Añadido
+
+#### Ajustes generales del sitio (nombre + tipografía)
+- El **nombre del sitio** es editable desde el panel **Apariencia y ajustes** y se refleja en la
+  barra pública, el pie de página y el sidebar de administración.
+- **Selector de fuente de letra** con un catálogo curado para un portal infantil/primaria:
+  - Amigables/redondeadas: **Nunito**, **Quicksand**.
+  - Alta legibilidad / lectores principiantes: **Lexend**, **Atkinson Hyperlegible**, **Andika**.
+  - **Sistema** (pila nativa, sin descarga) como opción por defecto.
+- La fuente se aplica en tiempo real a todo el sitio (variable CSS `--cms-font`).
+- **Fuentes self-hosted** (subset latino, pesos 400/700) servidas por la propia app, **no desde un
+  CDN externo**: no se expone la IP de los menores a terceros (RGPD/DSA, CLAUDE.md §10). Los `.woff2`
+  viven en `frontend/public/fonts/` y los descarga `frontend/scripts/download_fonts.py`.
+
+#### Backend
+- Dominio `ConfiguracionSitio`: campo `fuente_activa`, métodos `cambiar_nombre` y `cambiar_fuente`
+  con validación (nombre no vacío ≤ 80 caracteres; fuente ∈ `FUENTES_PERMITIDAS`).
+- Caso de uso `ActualizarAjustesGeneralesHandler` y endpoint `PUT /api/v1/config/general` (solo admin).
+- Migración Alembic **005**: columna `fuente_activa` en `site_config` (default `sistema`).
+
+#### Tests
+- 4 tests de integración nuevos (guardado, guarda de admin, fuente no permitida → 400,
+  nombre vacío → 400). Suite total: **78 tests**, todos en verde.
+
+### Cambiado
+- `GET /api/v1/config/` ahora incluye `fuente_activa`; cliente OpenAPI del frontend regenerado.
+- API version `0.2.1` → `0.3.0` en `main.py`.
+
+---
+
 ## [V-0.2.1] - 2026-06-14
 
 ### Corregido

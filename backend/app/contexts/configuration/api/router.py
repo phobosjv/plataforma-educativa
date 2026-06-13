@@ -5,18 +5,21 @@ from sqlalchemy.orm import Session
 
 from app.contexts.configuration.api.schemas import (
     ActivarPaletaRequest,
+    AjustesGeneralesRequest,
     ConfiguracionResponse,
     PaletaRequest,
     PaletaResponse,
 )
 from app.contexts.configuration.application.commands import (
     ActivarPaletaCommand,
+    ActualizarAjustesGeneralesCommand,
     ActualizarPaletaCommand,
     AgregarPaletaCommand,
     EliminarPaletaCommand,
 )
 from app.contexts.configuration.application.handlers import (
     ActivarPaletaHandler,
+    ActualizarAjustesGeneralesHandler,
     ActualizarPaletaHandler,
     AgregarPaletaHandler,
     EliminarPaletaHandler,
@@ -46,6 +49,7 @@ def _dto_to_response(dto: object) -> ConfiguracionResponse:
     return ConfiguracionResponse(
         nombre_sitio=dto.nombre_sitio,
         paleta_activa=dto.paleta_activa,
+        fuente_activa=dto.fuente_activa,
         paletas_personalizadas=[
             PaletaResponse(**p.__dict__) for p in dto.paletas_personalizadas
         ],
@@ -55,6 +59,24 @@ def _dto_to_response(dto: object) -> ConfiguracionResponse:
 @router.get("/", response_model=ConfiguracionResponse, summary="Obtener configuración del sitio")
 def obtener_configuracion(repo: SqlAlchemyConfiguracionRepository = Depends(_repo)) -> ConfiguracionResponse:
     return _dto_to_response(ObtenerConfiguracionHandler(repo).handle())
+
+
+@router.put("/general", response_model=ConfiguracionResponse,
+            summary="Actualizar ajustes generales (nombre del sitio y fuente)",
+            dependencies=[Depends(require_admin)])
+def actualizar_ajustes_generales(
+    body: AjustesGeneralesRequest,
+    repo: SqlAlchemyConfiguracionRepository = Depends(_repo),
+    uow: UnitOfWork = Depends(_uow),
+) -> ConfiguracionResponse:
+    return _dto_to_response(
+        ActualizarAjustesGeneralesHandler(repo, uow).handle(
+            ActualizarAjustesGeneralesCommand(
+                nombre_sitio=body.nombre_sitio,
+                fuente_activa=body.fuente_activa,
+            )
+        )
+    )
 
 
 @router.put("/paleta", response_model=ConfiguracionResponse, summary="Activar paleta",

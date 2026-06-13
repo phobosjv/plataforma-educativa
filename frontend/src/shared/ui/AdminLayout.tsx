@@ -1,8 +1,10 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/auth/AuthContext";
+import { useConfig } from "../../app/config/useConfig";
 
 export function AdminLayout() {
   const { user, logout } = useAuth();
+  const { nombre_sitio } = useConfig();
   const navigate = useNavigate();
 
   function handleLogout() {
@@ -13,7 +15,7 @@ export function AdminLayout() {
   return (
     <div className="cms-admin-shell">
       <aside className="cms-sidebar">
-        <div className="cms-sidebar-brand">Panel Admin</div>
+        <div className="cms-sidebar-brand">{nombre_sitio}</div>
         <NavLink
           to="/admin"
           end

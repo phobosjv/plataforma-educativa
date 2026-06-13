@@ -83,7 +83,55 @@ def test_obtener_configuracion_crea_singleton_con_defaults(client: TestClient) -
     assert resp.status_code == 200
     body = resp.json()
     assert body["paleta_activa"] == "cielo"
+    assert body["fuente_activa"] == "sistema"
     assert body["paletas_personalizadas"] == []
+
+
+# ── Ajustes generales: nombre del sitio + fuente ────────────────────────────────
+
+
+def test_actualizar_ajustes_generales(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={"nombre_sitio": "Cole San José", "fuente_activa": "nunito"},
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["nombre_sitio"] == "Cole San José"
+    assert body["fuente_activa"] == "nunito"
+
+    # Persiste y se ve en una segunda lectura pública.
+    publico = client.get("/api/v1/config/").json()
+    assert publico["nombre_sitio"] == "Cole San José"
+    assert publico["fuente_activa"] == "nunito"
+
+
+def test_ajustes_generales_requiere_admin(client: TestClient) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={"nombre_sitio": "Sin permiso", "fuente_activa": "lexend"},
+    )
+    assert resp.status_code == 401
+
+
+def test_fuente_no_permitida_devuelve_error(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={"nombre_sitio": "Mi Cole", "fuente_activa": "comic-sans-pirata"},
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 400
+
+
+def test_nombre_vacio_devuelve_error(client: TestClient, admin_token: str) -> None:
+    # Cadena no vacía para Pydantic pero vacía tras strip => DomainError (400).
+    resp = client.put(
+        "/api/v1/config/general",
+        json={"nombre_sitio": "   ", "fuente_activa": "sistema"},
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 400
 
 
 # ── Activar paleta (regresión del 500) ──────────────────────────────────────────
