@@ -1,0 +1,38 @@
+# Origen SANDBOX para Docker (CLAUDE.md §10 / ARCHITECTURE AD-3).
+#
+# PLANTILLA: la imagen nginx la renderiza con envsubst al arrancar, sustituyendo
+# ${APP_ORIGINS} por el valor del entorno (frame-ancestors = origen del frontend,
+# p. ej. http://<servidor>:5173). Las variables de nginx ($h2, $rest, $uri) NO se
+# sustituyen porque no son variables de entorno.
+#
+# Espejo de `app/sandbox.py`: la CSP de AMBOS debe mantenerse sincronizada.
+# Los ficheros viven en  media/<hash[:2]>/<hash>.html  y se piden como  /ejercicio/<hash>.
+
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;          # volumen ./media montado en read-only
+    default_type text/html;
+    charset utf-8;
+
+    # frame-ancestors lista los orígenes de la app autorizados a embeber el iframe.
+    add_header Content-Security-Policy "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; media-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors ${APP_ORIGINS}" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Cache-Control "public, max-age=31536000, immutable" always;
+
+    # /ejercicio/<hash> -> /<hash[:2]>/<hash>.html
+    location ~ "^/ejercicio/(?<h2>[0-9a-f]{2})(?<rest>[0-9a-f]{62})$" {
+        try_files /$h2/$h2$rest.html =404;
+    }
+
+    location = /health {
+        default_type application/json;
+        return 200 '{"status":"ok","service":"sandbox"}';
+    }
+
+    location / {
+        return 404;
+    }
+}

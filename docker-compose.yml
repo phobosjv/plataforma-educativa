@@ -1,4 +1,12 @@
-# Stack de desarrollo. En producción se despliega con imágenes construidas en CI.
+# Stack para SERVIDOR DE PRUEBAS con Docker.
+#
+# Puertos PUBLICADOS (host -> contenedor):
+#   - frontend : 5173 -> 5173   (la web; punto de entrada del navegador)
+#   - api      : 5070 -> 8000   (API/Swagger directos; el flujo normal va por el proxy de Vite)
+#   - sandbox  : 5071 -> 80     (origen aislado de los ejercicios interactivos, §10)
+#
+# Antes de levantar: copia .env.example a .env y ajusta SANDBOX_BASE_URL / APP_ORIGINS /
+# CORS_ALLOW_ORIGINS con la IP o el dominio real del servidor de pruebas.
 services:
   api:
     build: ./backend
@@ -7,27 +15,38 @@ services:
       - ./data:/app/data
       - ./media:/app/media
     ports:
-      - "8000:8000"
+      - "5070:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health'); sys.exit(0)"]
       interval: 30s
       timeout: 5s
       retries: 3
+    restart: unless-stopped
 
   sandbox:
-    # Sirve los HTML de ejercicios desde un ORIGEN AISLADO (subdominio distinto), con
-    # CSP estricta (nginx/sandbox.conf). En dev SIN Docker se usa la app Python
-    # equivalente: `uvicorn app.sandbox:sandbox_app --port 8002` (misma CSP).
+    # Sirve los HTML de ejercicios desde un ORIGEN AISLADO (puerto distinto), con CSP estricta.
+    # La plantilla nginx/sandbox.conf.template se renderiza con envsubst usando APP_ORIGINS
+    # (frame-ancestors): debe ser el origen del frontend, p. ej. http://<servidor>:5173.
     image: nginx:alpine
+    environment:
+      - APP_ORIGINS=${APP_ORIGINS}
+      # envsubst sustituye SOLO APP_ORIGINS; nunca las variables internas de nginx ($h2, $rest…).
+      - NGINX_ENVSUBST_FILTER=APP_ORIGINS
     volumes:
       - ./media:/usr/share/nginx/html:ro
-      - ./nginx/sandbox.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/sandbox.conf.template:/etc/nginx/templates/default.conf.template:ro
     ports:
-      - "8080:80"
+      - "5071:80"
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
+    # El cliente hace peticiones relativas (/api, /media); Vite las proxya al servicio api
+    # por la red interna de Docker. Por eso el target es el nombre de servicio, no el host.
+    environment:
+      - VITE_API_TARGET=http://api:8000
     ports:
       - "5173:5173"
     depends_on:
       - api
+    restart: unless-stopped

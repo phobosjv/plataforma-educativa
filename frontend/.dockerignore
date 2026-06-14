@@ -1,0 +1,7 @@
+# Evita copiar al contexto de build artefactos del host.
+# node_modules es CRÍTICO: los binarios nativos del host (Windows) romperían la imagen Linux.
+node_modules
+dist
+.git
+*.log
+npm-debug.log*

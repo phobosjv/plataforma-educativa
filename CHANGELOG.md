@@ -6,6 +6,29 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.8.3] - 2026-06-14
+
+### Cambiado
+
+#### Despliegue Docker para servidor de pruebas
+- **Puertos publicados** del `docker-compose.yml`: **frontend 5173 · api 5070 · sandbox 5071**
+  (antes 5173 · 8000 · 8080). Los puertos internos no cambian (api 8000, sandbox 80).
+- El **frontend** (Vite) proxya `/api` y `/media` al servicio `api` por la red interna de Docker
+  (`VITE_API_TARGET=http://api:8000`); el cliente usa rutas relativas, así que el navegador solo
+  necesita el puerto 5173.
+- **Sandbox por plantilla:** `nginx/sandbox.conf.template` con `frame-ancestors ${APP_ORIGINS}`,
+  renderizada con envsubst (`NGINX_ENVSUBST_FILTER=APP_ORIGINS`). Permite configurar el origen del
+  frontend sin editar la config de nginx.
+- `restart: unless-stopped` en los tres servicios.
+
+### Añadido
+- **`.dockerignore`** en `frontend/` y `backend/`: evitan copiar `node_modules` del host (binarios
+  nativos que romperían la imagen Linux) y hornear secretos (`.env`), la BD y cachés en la imagen.
+- `.env.example` con los valores del servidor de pruebas (`SANDBOX_BASE_URL`, `APP_ORIGINS`,
+  `CORS_ALLOW_ORIGINS` apuntando a `http://TU_SERVIDOR:<puerto>`) y el admin inicial.
+
+---
+
 ## [V-0.8.2] - 2026-06-14
 
 ### Añadido
