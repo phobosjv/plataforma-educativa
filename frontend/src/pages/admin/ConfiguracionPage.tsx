@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useConfig, useConfigMutations } from "../../app/config/useConfig";
 import { PALETAS_PREDEFINIDAS, type Palette } from "../../app/config/palettes";
 import { FUENTES } from "../../app/config/fonts";
-import { FONDOS, urlPatron } from "../../app/config/backgrounds";
+import { ESTILOS_FONDO, FONDOS, patronFondo } from "../../app/config/backgrounds";
 
 // ── Ajustes generales: nombre del sitio + fuente + fondo ──────────────────────
 
@@ -10,16 +10,19 @@ function AjustesGenerales({
   nombreInicial,
   fuenteInicial,
   fondoInicial,
+  estiloInicial,
   onGuardar,
 }: {
   nombreInicial: string;
   fuenteInicial: string;
   fondoInicial: string;
-  onGuardar: (nombre: string, fuente: string, fondo: string) => Promise<void>;
+  estiloInicial: string;
+  onGuardar: (nombre: string, fuente: string, fondo: string, estilo: string) => Promise<void>;
 }) {
   const [nombre, setNombre] = useState(nombreInicial);
   const [fuente, setFuente] = useState(fuenteInicial);
   const [fondo, setFondo] = useState(fondoInicial);
+  const [estilo, setEstilo] = useState(estiloInicial);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
 
@@ -27,16 +30,20 @@ function AjustesGenerales({
   useEffect(() => setNombre(nombreInicial), [nombreInicial]);
   useEffect(() => setFuente(fuenteInicial), [fuenteInicial]);
   useEffect(() => setFondo(fondoInicial), [fondoInicial]);
+  useEffect(() => setEstilo(estiloInicial), [estiloInicial]);
 
   const sucio =
-    nombre.trim() !== nombreInicial || fuente !== fuenteInicial || fondo !== fondoInicial;
+    nombre.trim() !== nombreInicial ||
+    fuente !== fuenteInicial ||
+    fondo !== fondoInicial ||
+    estilo !== estiloInicial;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!nombre.trim() || guardando) return;
     setGuardando(true);
     setGuardado(false);
-    onGuardar(nombre.trim(), fuente, fondo)
+    onGuardar(nombre.trim(), fuente, fondo, estilo)
       .then(() => setGuardado(true))
       .catch(() => setGuardado(false)) // el error se muestra a nivel de página
       .finally(() => setGuardando(false));
@@ -119,7 +126,9 @@ function AjustesGenerales({
       >
         {FONDOS.map((f) => {
           const activo = fondo === f.id;
-          const patron = urlPatron(f.id);
+          const { url: patron, tile } = patronFondo(f.id, estilo);
+          // En el preview (64px) mostramos ~la mitad del tile para que se aprecie el patrón.
+          const maskSize = `${Math.round(tile / 2)}px ${Math.round(tile / 2)}px`;
           return (
             <button
               type="button"
@@ -162,8 +171,8 @@ function AjustesGenerales({
                       maskImage: `url("${patron}")`,
                       WebkitMaskRepeat: "repeat",
                       maskRepeat: "repeat",
-                      WebkitMaskSize: "120px 120px",
-                      maskSize: "120px 120px",
+                      WebkitMaskSize: maskSize,
+                      maskSize: maskSize,
                     }}
                   />
                 ) : (
@@ -182,6 +191,56 @@ function AjustesGenerales({
                 )}
               </div>
               <div style={{ fontWeight: 600, marginTop: ".4rem", fontSize: ".9rem" }}>{f.nombre}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      <label className="cms-label" style={{ display: "block", marginBottom: ".6rem" }}>
+        Disposición del estampado
+      </label>
+      <div
+        style={{ display: "flex", gap: ".5rem", marginBottom: "1.5rem", flexWrap: "wrap" }}
+        role="radiogroup"
+        aria-label="Disposición del estampado"
+      >
+        {ESTILOS_FONDO.map((e) => {
+          const activo = estilo === e.id;
+          const deshabilitado = fondo === "ninguno";
+          return (
+            <button
+              type="button"
+              key={e.id}
+              role="radio"
+              aria-checked={activo}
+              disabled={deshabilitado}
+              onClick={() => { setEstilo(e.id); setGuardado(false); }}
+              title={e.descripcion}
+              style={{
+                cursor: deshabilitado ? "not-allowed" : "pointer",
+                opacity: deshabilitado ? 0.5 : 1,
+                background: activo ? "var(--cms-color-primary)" : "var(--cms-color-surface)",
+                color: activo ? "#fff" : "var(--cms-color-fg)",
+                border: activo
+                  ? "2px solid var(--cms-color-primary)"
+                  : "1px solid var(--cms-color-border)",
+                borderRadius: "var(--cms-radius)",
+                padding: ".5rem .9rem",
+                fontWeight: 600,
+                fontSize: ".9rem",
+              }}
+            >
+              {e.nombre}
+              <span
+                style={{
+                  display: "block",
+                  fontWeight: 400,
+                  fontSize: ".75rem",
+                  opacity: 0.85,
+                }}
+              >
+                {e.descripcion}
+              </span>
             </button>
           );
         })}
@@ -414,8 +473,15 @@ function FormNuevaPaleta({ onGuardar }: { onGuardar: (p: Omit<Palette, "predefin
 // ── Página principal ──────────────────────────────────────────────────────────
 
 export function ConfiguracionPage() {
-  const { nombre_sitio, fuente_activa, fondo_activo, paleta_activa, personalizadas, isLoading } =
-    useConfig();
+  const {
+    nombre_sitio,
+    fuente_activa,
+    fondo_activo,
+    fondo_estilo,
+    paleta_activa,
+    personalizadas,
+    isLoading,
+  } = useConfig();
   const { guardarAjustesGenerales, activarPaleta, agregarPaleta, eliminarPaleta } =
     useConfigMutations();
   const [error, setError] = useState<string | null>(null);
@@ -459,9 +525,10 @@ export function ConfiguracionPage() {
         nombreInicial={nombre_sitio}
         fuenteInicial={fuente_activa}
         fondoInicial={fondo_activo}
-        onGuardar={(nombre, fuente, fondo) => {
+        estiloInicial={fondo_estilo}
+        onGuardar={(nombre, fuente, fondo, estilo) => {
           setError(null);
-          return guardarAjustesGenerales(nombre, fuente, fondo).catch((e: unknown) => {
+          return guardarAjustesGenerales(nombre, fuente, fondo, estilo).catch((e: unknown) => {
             setError(e instanceof Error ? e.message : "Error inesperado.");
             throw e;
           });

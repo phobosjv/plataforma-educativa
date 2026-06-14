@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import logging
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.staticfiles import StaticFiles
 
 import app.bootstrap  # noqa: F401 — registra modelos ORM con Base.metadata
 from app.config import settings
@@ -19,7 +21,7 @@ from app.shared.domain.base import (
 
 logging.basicConfig(level=settings.log_level)
 
-app = FastAPI(title="Plataforma Educativa API", version="0.7.0")
+app = FastAPI(title="Plataforma Educativa API", version="0.8.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,13 +56,34 @@ def health() -> dict[str, str]:
     return {"status": "ok", "environment": settings.environment}
 
 
+class _NoSniffStaticFiles(StaticFiles):
+    """Sirve ficheros estáticos forzando ``X-Content-Type-Options: nosniff``.
+
+    Las imágenes subidas son raster (SVG está prohibido en la subida); el nosniff
+    evita que el navegador interprete un fichero como un tipo distinto al declarado.
+    """
+
+    def file_response(self, *args: object, **kwargs: object) -> object:
+        resp = super().file_response(*args, **kwargs)  # type: ignore[arg-type]
+        resp.headers["X-Content-Type-Options"] = "nosniff"
+        return resp
+
+
+# Imágenes de artículos: servidas desde el origen de la app (contenido seguro).
+_images_dir = os.path.join(settings.media_dir, "images")
+os.makedirs(_images_dir, exist_ok=True)
+app.mount("/media/images", _NoSniffStaticFiles(directory=_images_dir), name="media-images")
+
+
 # Routers por contexto
 from app.contexts.identity.api.router import router as identity_router  # noqa: E402
 from app.contexts.content.api.router import router as content_router  # noqa: E402
 from app.contexts.taxonomy.api.router import router as taxonomy_router  # noqa: E402
 from app.contexts.configuration.api.router import router as config_router  # noqa: E402
+from app.contexts.media.api.router import router as media_router  # noqa: E402
 
 app.include_router(identity_router, prefix="/api/v1")
 app.include_router(content_router, prefix="/api/v1")
 app.include_router(taxonomy_router, prefix="/api/v1")
 app.include_router(config_router, prefix="/api/v1")
+app.include_router(media_router, prefix="/api/v1")

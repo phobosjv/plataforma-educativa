@@ -8,6 +8,7 @@ class ActualizarAjustesGeneralesCommand:
     nombre_sitio: str
     fuente_activa: str
     fondo_activo: str = "ninguno"
+    fondo_estilo: str = "ordenado"
 
 
 @dataclass(frozen=True)

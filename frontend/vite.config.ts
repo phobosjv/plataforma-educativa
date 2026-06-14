@@ -19,6 +19,11 @@ export default defineConfig({
         target: API_TARGET,
         changeOrigin: true,
       },
+      // Imágenes de artículos servidas por el backend (origen de la app).
+      "/media": {
+        target: API_TARGET,
+        changeOrigin: true,
+      },
     },
   },
 });

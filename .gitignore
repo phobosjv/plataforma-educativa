@@ -11,8 +11,12 @@ __pycache__/
 *.sqlite3-shm
 *.sqlite3-wal
 *.db
-data/
-media/
+# Carpetas RUNTIME de subidas, ANCLADAS a su ubicación para no ignorar el código
+# fuente del contexto backend/app/contexts/media/ (un "media/" sin anclar lo tapaba).
+/data/
+/media/
+/backend/data/
+/backend/media/
 # Node / frontend
 node_modules/
 dist/

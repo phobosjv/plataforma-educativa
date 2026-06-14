@@ -132,6 +132,40 @@ def test_fondo_no_permitido_devuelve_error(client: TestClient, admin_token: str)
     assert resp.status_code == 400
 
 
+def test_fondo_estilo_por_defecto_es_ordenado(client: TestClient) -> None:
+    assert client.get("/api/v1/config/").json()["fondo_estilo"] == "ordenado"
+
+
+def test_actualizar_fondo_estilo_desordenado(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "fondo_activo": "naturaleza",
+            "fondo_estilo": "desordenado",
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 200
+    assert resp.json()["fondo_estilo"] == "desordenado"
+    assert client.get("/api/v1/config/").json()["fondo_estilo"] == "desordenado"
+
+
+def test_fondo_estilo_no_permitido_devuelve_error(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "fondo_activo": "naturaleza",
+            "fondo_estilo": "caotico-total",
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 400
+
+
 def test_ajustes_generales_requiere_admin(client: TestClient) -> None:
     resp = client.put(
         "/api/v1/config/general",

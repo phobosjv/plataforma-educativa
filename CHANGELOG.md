@@ -6,6 +6,38 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.8.0] - 2026-06-14
+
+### Añadido
+
+#### Estampados de fondo "desordenados" (configurables)
+- Nueva opción **Disposición del estampado: Ordenada / Desordenada** en *Apariencia y ajustes*.
+- En **Desordenada**, el patrón se **genera proceduralmente** a partir de los mismos iconos del tema:
+  cada icono se coloca con **posición, rotación y escala variables**, y la selección garantiza que
+  **dos iconos iguales nunca queden adyacentes** — ni dentro del tile ni al repetirse (vecindad
+  **toroidal**; con respaldo determinista por backtracking si el azar no lo logra). Patrón estable
+  (PRNG con semilla por tema) y servido como máscara CSS recoloreada con la paleta activa.
+- **Backend:** campo `fondo_estilo` en el dominio `ConfiguracionSitio` (`ordenado`/`desordenado`),
+  método `cambiar_estilo_fondo` con validación, migración Alembic **007**, expuesto en
+  `GET /config/` y `PUT /config/general`. 3 tests nuevos.
+
+#### Imágenes con formato en el editor de artículos
+- El editor WYSIWYG permite **subir imágenes** (PNG/JPG/GIF/WebP, máx. 5 MB) y darles formato:
+  **alineación** (izquierda/centro/derecha), **tamaño** (S/M/L/100%) y **pie de imagen** (figcaption).
+- Se guardan como `<figure class="cms-fig …"><img><figcaption></figure>` (etiquetas/clases que el
+  sanitizador nh3 ya permite); el HTML se sanea igual en servidor y cliente (CLAUDE.md §10).
+- **Nuevo contexto `media`:** `POST /api/v1/media/imagenes` (multipart, editor/admin) almacena la
+  imagen content-addressed (SHA-256) y devuelve su URL; **SVG rechazado** (vector XSS). Las imágenes
+  (raster, seguras) se sirven desde el **origen de la app** con `X-Content-Type-Options: nosniff`
+  (a diferencia de los ejercicios, que van aislados en el sandbox). 4 tests nuevos.
+
+### Cambiado
+- `body::before` usa `--cms-bg-size` (variable) para soportar tiles de distinto tamaño.
+- Vite proxya `/media` al backend en desarrollo. Cliente OpenAPI del frontend regenerado.
+- **Tests:** suite total **111**, todos en verde. API version `0.7.0` → `0.8.0`.
+
+---
+
 ## [V-0.7.0] - 2026-06-14
 
 ### Añadido

@@ -51,6 +51,7 @@ def _dto_to_response(dto: object) -> ConfiguracionResponse:
         paleta_activa=dto.paleta_activa,
         fuente_activa=dto.fuente_activa,
         fondo_activo=dto.fondo_activo,
+        fondo_estilo=dto.fondo_estilo,
         paletas_personalizadas=[
             PaletaResponse(**p.__dict__) for p in dto.paletas_personalizadas
         ],
@@ -76,6 +77,7 @@ def actualizar_ajustes_generales(
                 nombre_sitio=body.nombre_sitio,
                 fuente_activa=body.fuente_activa,
                 fondo_activo=body.fondo_activo,
+                fondo_estilo=body.fondo_estilo,
             )
         )
     )

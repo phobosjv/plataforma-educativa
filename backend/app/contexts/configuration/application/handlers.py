@@ -31,6 +31,7 @@ class ActualizarAjustesGeneralesHandler:
         config.cambiar_nombre(cmd.nombre_sitio)
         config.cambiar_fuente(cmd.fuente_activa)
         config.cambiar_fondo(cmd.fondo_activo)
+        config.cambiar_estilo_fondo(cmd.fondo_estilo)
         self._repo.save(config)
         self._uow.commit()
         return config_to_dto(config)

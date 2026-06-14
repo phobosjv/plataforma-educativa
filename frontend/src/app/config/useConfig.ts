@@ -46,7 +46,7 @@ export function useConfig() {
     const colores = resolverPaleta(data.paleta_activa, personalizadas);
     aplicarPaleta(colores);
     aplicarFuente(data.fuente_activa);
-    aplicarFondo(data.fondo_activo);
+    aplicarFondo(data.fondo_activo, data.fondo_estilo);
   }, [data]);
 
   const personalizadas = (data?.paletas_personalizadas ?? []).map(toFrontendPalette);
@@ -59,6 +59,7 @@ export function useConfig() {
     paleta_activa: data?.paleta_activa ?? "cielo",
     fuente_activa: data?.fuente_activa ?? "sistema",
     fondo_activo: data?.fondo_activo ?? "ninguno",
+    fondo_estilo: data?.fondo_estilo ?? "ordenado",
     todasLasPaletas,
     personalizadas,
   };
@@ -81,13 +82,14 @@ export function useConfigMutations() {
     nombre_sitio: string,
     fuente_activa: string,
     fondo_activo: string,
+    fondo_estilo: string,
   ) {
     const { data, error } = await api.PUT("/api/v1/config/general", {
-      body: { nombre_sitio, fuente_activa, fondo_activo },
+      body: { nombre_sitio, fuente_activa, fondo_activo, fondo_estilo },
     });
     if (error || !data) throw new Error(mensajeError(error));
     aplicarFuente(data.fuente_activa);
-    aplicarFondo(data.fondo_activo);
+    aplicarFondo(data.fondo_activo, data.fondo_estilo);
     invalidate();
   }
 

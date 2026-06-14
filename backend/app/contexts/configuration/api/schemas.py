@@ -17,6 +17,7 @@ class ConfiguracionResponse(BaseModel):
     paleta_activa: str
     fuente_activa: str
     fondo_activo: str
+    fondo_estilo: str
     paletas_personalizadas: list[PaletaResponse]
 
 
@@ -24,6 +25,7 @@ class AjustesGeneralesRequest(BaseModel):
     nombre_sitio: str = Field(min_length=1, max_length=80)
     fuente_activa: str
     fondo_activo: str = "ninguno"
+    fondo_estilo: str = "ordenado"
 
 
 class ActivarPaletaRequest(BaseModel):

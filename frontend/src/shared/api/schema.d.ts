@@ -381,6 +381,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/media/imagenes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Subir Imagen */
+        post: operations["subir_imagen_api_v1_media_imagenes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -439,6 +456,11 @@ export interface components {
              * @default ninguno
              */
             fondo_activo: string;
+            /**
+             * Fondo Estilo
+             * @default ordenado
+             */
+            fondo_estilo: string;
         };
         /** AsignaturaResponse */
         AsignaturaResponse: {
@@ -481,6 +503,11 @@ export interface components {
             /** Fichero */
             fichero: string;
         };
+        /** Body_subir_imagen_api_v1_media_imagenes_post */
+        Body_subir_imagen_api_v1_media_imagenes_post: {
+            /** Fichero */
+            fichero: string;
+        };
         /** CicloResponse */
         CicloResponse: {
             /**
@@ -503,6 +530,8 @@ export interface components {
             fuente_activa: string;
             /** Fondo Activo */
             fondo_activo: string;
+            /** Fondo Estilo */
+            fondo_estilo: string;
             /** Paletas Personalizadas */
             paletas_personalizadas: components["schemas"]["PaletaResponse"][];
         };
@@ -653,6 +682,11 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** ImagenSubidaResponse */
+        ImagenSubidaResponse: {
+            /** Url */
+            url: string;
         };
         /** PaletaRequest */
         PaletaRequest: {
@@ -1772,6 +1806,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConfiguracionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subir_imagen_api_v1_media_imagenes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_subir_imagen_api_v1_media_imagenes_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImagenSubidaResponse"];
                 };
             };
             /** @description Validation Error */

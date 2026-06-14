@@ -26,7 +26,7 @@ body { font-family: var(--cms-font); background: var(--cms-color-bg); color: var
 /* Fondo/estampado temático: patrón SVG recoloreado con la paleta activa mediante
    máscara CSS. Las variables las gobierna app/config/backgrounds.ts (aplicarFondo).
    Va detrás del contenido (z-index -1) y a baja opacidad: no afecta la legibilidad. */
-:root { --cms-bg-pattern: none; --cms-bg-opacity: 0; }
+:root { --cms-bg-pattern: none; --cms-bg-opacity: 0; --cms-bg-size: 240px 240px; }
 body::before {
   content: "";
   position: fixed;
@@ -39,8 +39,8 @@ body::before {
   mask-image: var(--cms-bg-pattern);
   -webkit-mask-repeat: repeat;
   mask-repeat: repeat;
-  -webkit-mask-size: 240px 240px;
-  mask-size: 240px 240px;
+  -webkit-mask-size: var(--cms-bg-size);
+  mask-size: var(--cms-bg-size);
 }
 
 /* ── Utilidades tipográficas ─────────────────────────── */
@@ -281,3 +281,26 @@ body::before {
   background: var(--cms-color-bg); padding: .1rem .35rem; border-radius: 4px;
   font-size: .9em;
 }
+
+/* ── Imágenes con figura/pie en artículos (editor y vista pública) ── */
+.cms-prose .cms-fig { margin: 1rem 0; }
+.cms-prose .cms-fig img { display: block; width: 100%; height: auto; border-radius: var(--cms-radius-sm); }
+.cms-prose .cms-fig figcaption {
+  margin-top: .4rem; text-align: center; font-size: .85rem;
+  color: var(--cms-color-muted); font-style: italic;
+}
+/* Alineación */
+.cms-prose .cms-fig-centro { margin-left: auto; margin-right: auto; }
+.cms-prose .cms-fig-izquierda { float: left; margin: .3rem 1.2rem .8rem 0; }
+.cms-prose .cms-fig-derecha { float: right; margin: .3rem 0 .8rem 1.2rem; }
+/* Tamaño (ancho de la figura respecto al contenedor) */
+.cms-prose .cms-fig-sm { width: 30%; }
+.cms-prose .cms-fig-md { width: 50%; }
+.cms-prose .cms-fig-lg { width: 75%; }
+.cms-prose .cms-fig-full { width: 100%; }
+@media (max-width: 640px) {
+  /* En móvil, las imágenes ocupan todo el ancho y no flotan (legibilidad para niños) */
+  .cms-prose .cms-fig { float: none; width: 100%; margin-left: 0; margin-right: 0; }
+}
+/* Resalte de la figura seleccionada dentro del editor */
+.cms-editor-area .ProseMirror-selectednode { outline: 3px solid var(--cms-color-primary); outline-offset: 2px; border-radius: var(--cms-radius-sm); }

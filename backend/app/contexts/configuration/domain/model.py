@@ -26,6 +26,11 @@ FONDOS_PERMITIDOS: frozenset[str] = frozenset(
     {"ninguno", "classroom", "naturaleza", "espacio", "oceano", "geometrico", "granja"}
 )
 
+# Disposición del estampado: "ordenado" repite el tile fijo; "desordenado" genera un
+# patrón disperso (posición/rotación/escala variables) en el que dos iconos iguales nunca
+# quedan adyacentes. El dominio solo conoce los IDs válidos; la generación vive en el frontend.
+ESTILOS_FONDO_PERMITIDOS: frozenset[str] = frozenset({"ordenado", "desordenado"})
+
 LONGITUD_MAX_NOMBRE = 80
 
 
@@ -56,6 +61,7 @@ class ConfiguracionSitio(Entity):
     paletas_json: str = "[]"
     fuente_activa: str = "sistema"
     fondo_activo: str = "ninguno"
+    fondo_estilo: str = "ordenado"
 
     @classmethod
     def singleton(cls) -> "ConfiguracionSitio":
@@ -84,6 +90,11 @@ class ConfiguracionSitio(Entity):
         if fondo_id not in FONDOS_PERMITIDOS:
             raise DomainError(f"Fondo '{fondo_id}' no permitido.")
         self.fondo_activo = fondo_id
+
+    def cambiar_estilo_fondo(self, estilo: str) -> None:
+        if estilo not in ESTILOS_FONDO_PERMITIDOS:
+            raise DomainError(f"Estilo de fondo '{estilo}' no permitido.")
+        self.fondo_estilo = estilo
 
     def activar_paleta(self, paleta_id: str) -> None:
         self.paleta_activa = paleta_id

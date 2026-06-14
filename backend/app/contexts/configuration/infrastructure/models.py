@@ -15,3 +15,4 @@ class ConfiguracionModel(Base):
     paletas_json: Mapped[str] = mapped_column(Text, default="[]")
     fuente_activa: Mapped[str] = mapped_column(String(100), default="sistema")
     fondo_activo: Mapped[str] = mapped_column(String(100), default="ninguno")
+    fondo_estilo: Mapped[str] = mapped_column(String(100), default="ordenado")
