@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.contexts.content.api.schemas import (
     ActualizarContenidoRequest,
     ContenidoResponse,
@@ -18,6 +19,7 @@ from app.contexts.content.application.commands import (
     CrearContenidoCommand,
     PublicarContenidoCommand,
     RestaurarContenidoCommand,
+    SubirHtmlContenidoCommand,
 )
 from app.contexts.content.application.dtos import ContenidoDTO
 from app.contexts.content.application.handlers import (
@@ -28,9 +30,11 @@ from app.contexts.content.application.handlers import (
     ObtenerContenidoHandler,
     PublicarContenidoHandler,
     RestaurarContenidoHandler,
+    SubirHtmlContenidoHandler,
 )
 from app.contexts.content.application.queries import ListarContenidosQuery, ObtenerContenidoQuery
 from app.contexts.content.infrastructure.html_sanitizer import Nh3HtmlSanitizer
+from app.contexts.content.infrastructure.html_storage import FileSystemHtmlStorage
 from app.contexts.content.infrastructure.repositories import (
     SqlAlchemyContenidoRepository,
     SqlAlchemyContentVersionRepository,
@@ -43,8 +47,14 @@ from app.shared.infrastructure.unit_of_work import UnitOfWork
 
 router = APIRouter(tags=["content"])
 
+# Tamaño máximo del HTML de un ejercicio interactivo (defensa contra subidas abusivas).
+MAX_HTML_BYTES = 2 * 1024 * 1024
+
 
 def _dto_to_response(dto: ContenidoDTO) -> ContenidoResponse:
+    sandbox_url: str | None = None
+    if dto.tipo == "interactivo" and dto.hash_html:
+        sandbox_url = f"{settings.sandbox_base_url}/ejercicio/{dto.hash_html}"
     return ContenidoResponse(
         id=dto.id,
         titulo=dto.titulo,
@@ -57,6 +67,7 @@ def _dto_to_response(dto: ContenidoDTO) -> ContenidoResponse:
         etiquetas=list(dto.etiquetas),
         hash_html=dto.hash_html,
         body_html=dto.body_html,
+        sandbox_url=sandbox_url,
         created_at=dto.created_at,
         updated_at=dto.updated_at,
     )
@@ -138,6 +149,40 @@ def actualizar_contenido(
                 descripcion=body.descripcion,
                 body_html=body.body_html,
                 etiquetas=tuple(body.etiquetas) if body.etiquetas is not None else None,
+            )
+        )
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except DomainError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return _dto_to_response(dto)
+
+
+@router.post("/contenidos/{contenido_id}/html", response_model=ContenidoResponse)
+def subir_html_interactivo(
+    contenido_id: UUID,
+    fichero: UploadFile = File(...),
+    current: UsuarioDTO = Depends(require_editor_or_admin),
+    db: Session = Depends(get_db),
+) -> ContenidoResponse:
+    """Sube el fichero HTML de un ejercicio interactivo (NO se sanea, §10)."""
+    raw_html = fichero.file.read()
+    if not raw_html:
+        raise HTTPException(status_code=400, detail="El fichero HTML está vacío.")
+    if len(raw_html) > MAX_HTML_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"El fichero supera el máximo de {MAX_HTML_BYTES // (1024 * 1024)} MB.",
+        )
+    repo = SqlAlchemyContenidoRepository(db)
+    version_repo = SqlAlchemyContentVersionRepository(db)
+    uow = UnitOfWork(db)
+    storage = FileSystemHtmlStorage(settings.media_dir)
+    handler = SubirHtmlContenidoHandler(repo, version_repo, uow, storage)
+    try:
+        dto = handler.handle(
+            SubirHtmlContenidoCommand(
+                contenido_id=contenido_id, editor_id=current.id, raw_html=raw_html
             )
         )
     except NotFoundError as e:

@@ -93,6 +93,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contenidos/{contenido_id}/html": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Subir Html Interactivo
+         * @description Sube el fichero HTML de un ejercicio interactivo (NO se sanea, §10).
+         */
+        post: operations["subir_html_interactivo_api_v1_contenidos__contenido_id__html_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contenidos/{contenido_id}/publicar": {
         parameters: {
             query?: never;
@@ -430,6 +450,11 @@ export interface components {
              */
             client_secret?: string | null;
         };
+        /** Body_subir_html_interactivo_api_v1_contenidos__contenido_id__html_post */
+        Body_subir_html_interactivo_api_v1_contenidos__contenido_id__html_post: {
+            /** Fichero */
+            fichero: string;
+        };
         /** CicloResponse */
         CicloResponse: {
             /**
@@ -482,6 +507,8 @@ export interface components {
             hash_html: string | null;
             /** Body Html */
             body_html: string | null;
+            /** Sandbox Url */
+            sandbox_url?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -922,6 +949,41 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subir_html_interactivo_api_v1_contenidos__contenido_id__html_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contenido_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_subir_html_interactivo_api_v1_contenidos__contenido_id__html_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContenidoResponse"];
+                };
             };
             /** @description Validation Error */
             422: {

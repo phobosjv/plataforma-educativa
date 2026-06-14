@@ -15,11 +15,13 @@ services:
       retries: 3
 
   sandbox:
-    # Sirve los HTML de ejercicios desde un ORIGEN AISLADO (subdominio distinto).
-    # Imagen ligera de Nginx con cabeceras CSP estrictas (config en backend/deploy).
+    # Sirve los HTML de ejercicios desde un ORIGEN AISLADO (subdominio distinto), con
+    # CSP estricta (nginx/sandbox.conf). En dev SIN Docker se usa la app Python
+    # equivalente: `uvicorn app.sandbox:sandbox_app --port 8002` (misma CSP).
     image: nginx:alpine
     volumes:
       - ./media:/usr/share/nginx/html:ro
+      - ./nginx/sandbox.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
       - "8080:80"
 

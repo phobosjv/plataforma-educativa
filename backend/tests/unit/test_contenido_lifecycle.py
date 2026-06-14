@@ -61,6 +61,25 @@ def test_restaurar_contenido() -> None:
     assert evento.contenido_id == c.id
 
 
+def test_adjuntar_html_a_interactivo_fija_hash() -> None:
+    c = Contenido(titulo="Juego", tipo=TipoContenido.INTERACTIVO)
+    c.adjuntar_html_interactivo("a" * 64)
+    assert c.hash_html == "a" * 64
+
+
+def test_adjuntar_html_a_texto_lanza_error() -> None:
+    c = _contenido()  # tipo TEXTO
+    with pytest.raises(DomainError):
+        c.adjuntar_html_interactivo("a" * 64)
+
+
+def test_adjuntar_html_a_borrado_lanza_error() -> None:
+    c = Contenido(titulo="Juego", tipo=TipoContenido.INTERACTIVO)
+    c.borrar()
+    with pytest.raises(DomainError):
+        c.adjuntar_html_interactivo("a" * 64)
+
+
 def test_content_version_es_inmutable() -> None:
     uid = uuid4()
     v = ContentVersion(

@@ -11,6 +11,7 @@ from app.contexts.content.application.commands import (
     CrearContenidoCommand,
     PublicarContenidoCommand,
     RestaurarContenidoCommand,
+    SubirHtmlContenidoCommand,
 )
 from app.contexts.content.application.dtos import ContenidoDTO, contenido_to_dto
 from app.contexts.content.application.queries import ListarContenidosQuery, ObtenerContenidoQuery
@@ -19,6 +20,7 @@ from app.contexts.content.domain.ports import (
     ContenidoRepository,
     ContentVersionRepository,
     HtmlSanitizer,
+    HtmlStorage,
 )
 from app.shared.domain.base import NotFoundError, now
 from app.shared.infrastructure.unit_of_work import UnitOfWork
@@ -113,6 +115,42 @@ class ActualizarContenidoHandler:
             )
         if cmd.etiquetas is not None:
             contenido.etiquetas = list(cmd.etiquetas)
+        contenido.updated_at = now()
+
+        versiones = self._version_repo.list_for_contenido(cmd.contenido_id)
+        version = _make_version(contenido, version_no=len(versiones) + 1, created_by=cmd.editor_id)
+        self._repo.save(contenido)
+        self._version_repo.add(version)
+        self._uow.commit()
+        return contenido_to_dto(contenido)
+
+
+class SubirHtmlContenidoHandler:
+    """Sube el fichero HTML de un ejercicio interactivo y lo asocia por hash.
+
+    El HTML de ejercicios NO se sanea (CLAUDE.md §10): su aislamiento lo garantiza el
+    iframe sandbox servido desde un origen distinto. Cada subida crea una versión nueva.
+    """
+
+    def __init__(
+        self,
+        repo: ContenidoRepository,
+        version_repo: ContentVersionRepository,
+        uow: UnitOfWork,
+        storage: HtmlStorage,
+    ) -> None:
+        self._repo = repo
+        self._version_repo = version_repo
+        self._uow = uow
+        self._storage = storage
+
+    def handle(self, cmd: SubirHtmlContenidoCommand) -> ContenidoDTO:
+        contenido = self._repo.get(cmd.contenido_id)
+        if contenido is None or contenido.borrado:
+            raise NotFoundError(f"Contenido {cmd.contenido_id} no encontrado.")
+
+        file_hash = self._storage.save(cmd.raw_html)  # content-addressed, sin sanear
+        contenido.adjuntar_html_interactivo(file_hash)
         contenido.updated_at = now()
 
         versiones = self._version_repo.list_for_contenido(cmd.contenido_id)

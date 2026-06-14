@@ -21,6 +21,8 @@ class ContenidoResponse(BaseModel):
     etiquetas: list[str]
     hash_html: str | None
     body_html: str | None
+    # URL absoluta del ejercicio en el origen sandbox (solo tipo interactivo con HTML subido).
+    sandbox_url: str | None = None
     created_at: datetime
     updated_at: datetime
 

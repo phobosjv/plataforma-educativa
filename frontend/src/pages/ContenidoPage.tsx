@@ -6,8 +6,6 @@ import type { components } from "../shared/api/schema";
 
 type Contenido = components["schemas"]["ContenidoResponse"];
 
-const SANDBOX_ORIGIN = import.meta.env.VITE_SANDBOX_ORIGIN ?? "http://sandbox.localhost:8001";
-
 function fetchContenido(id: string): Promise<Contenido> {
   return api
     .GET("/api/v1/contenidos/{contenido_id}", { params: { path: { contenido_id: id } } })
@@ -41,14 +39,20 @@ export function ContenidoPage() {
         <p className="cms-text cms-muted" style={{ marginBottom: "1.5rem" }}>{data.descripcion}</p>
       )}
 
-      {data.tipo === "interactivo" && data.hash_html ? (
-        <iframe
-          className="cms-exercise-frame"
-          src={`${SANDBOX_ORIGIN}/ejercicio/${data.hash_html}`}
-          title={data.titulo}
-          sandbox="allow-scripts"
-          loading="lazy"
-        />
+      {data.tipo === "interactivo" ? (
+        data.sandbox_url ? (
+          // Aislamiento del ejercicio (CLAUDE.md §10): origen sandbox distinto +
+          // sandbox="allow-scripts" SIN allow-same-origin (no accede al origen padre).
+          <iframe
+            className="cms-exercise-frame"
+            src={data.sandbox_url}
+            title={data.titulo}
+            sandbox="allow-scripts"
+            loading="lazy"
+          />
+        ) : (
+          <p className="cms-empty">Este ejercicio todavía no tiene fichero.</p>
+        )
       ) : data.body_html ? (
         // El HTML ya se saneó en el servidor (nh3); DOMPurify es la 2ª capa
         // en cliente exigida por la sanitización asimétrica (CLAUDE.md §10).

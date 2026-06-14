@@ -6,6 +6,41 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.6.0] - 2026-06-14
+
+### Añadido
+
+#### Ejercicios interactivos: subida de HTML + origen sandbox aislado
+- Se cierra el circuito del tipo de contenido **`interactivo`** (hasta ahora solo existía `texto`):
+  un editor/admin puede **crear un ejercicio interactivo y subir su fichero HTML autocontenido**.
+- **Aislamiento de seguridad (CLAUDE.md §10 / AD-3):** el HTML del ejercicio **no se sanea** (debe
+  ejecutar su JS) y se sirve desde un **origen sandbox distinto** al de la app, dentro de un iframe
+  con `sandbox="allow-scripts"` **sin** `allow-same-origin`, con **CSP estricta**
+  (`default-src 'none'; connect-src 'none'; frame-ancestors <orígenes de la app>; …`).
+- **Servidor sandbox:** nueva app ASGI independiente `app/sandbox.py` (`GET /ejercicio/{hash}`) para
+  desarrollo (`uvicorn app.sandbox:sandbox_app --port 8002`) y `nginx/sandbox.conf` para producción
+  (`sandbox.<dominio>`), ambos con la **misma CSP** (a mantener sincronizada).
+- **Backend:**
+  - Invariante de dominio `Contenido.adjuntar_html_interactivo()` (solo tipo interactivo).
+  - Caso de uso `SubirHtmlContenidoHandler` (almacena por hash SHA-256 content-addressed, sin sanear,
+    y crea una **versión inmutable** nueva).
+  - Endpoint `POST /api/v1/contenidos/{id}/html` (multipart, guarda de rol editor/admin, límite 2 MB).
+  - `ContenidoResponse` expone `sandbox_url` (URL absoluta del ejercicio en el origen sandbox).
+- **Frontend:** selector de tipo (texto/interactivo) al crear; sección de **subida del fichero HTML**
+  al editar un interactivo, con previsualización; render público del ejercicio en iframe sandbox
+  usando `sandbox_url`.
+- **Tests:** +14 (dominio, handler de subida, endpoint de subida y seguridad del sandbox: CSP,
+  hash inválido → 400, inexistente → 404). Suite total: **97 tests**, todos en verde.
+
+### Cambiado
+- `FileSystemHtmlStorage.url_for` ahora devuelve la ruta canónica `/ejercicio/{hash}` (unifica
+  backend, servidor sandbox y frontend, que estaban desalineados).
+- `docker-compose.yml`: el servicio `sandbox` monta `nginx/sandbox.conf`.
+- Nuevas variables de entorno: `SANDBOX_BASE_URL`, `APP_ORIGINS` (ver `.env.example`).
+- API version `0.5.0` → `0.6.0` en `main.py`; cliente OpenAPI del frontend regenerado.
+
+---
+
 ## [V-0.5.0] - 2026-06-14
 
 ### Añadido

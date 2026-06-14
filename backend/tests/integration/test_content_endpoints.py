@@ -160,6 +160,76 @@ class TestAdminEndpoints:
         assert r.status_code == 403
 
 
+class TestSubirHtmlInteractivo:
+    """Subida del fichero HTML de un ejercicio interactivo (CLAUDE.md §10)."""
+
+    _HTML = b"<html><body><script>document.body.textContent='hola'</script></body></html>"
+
+    def _crear_interactivo(self, client: TestClient, token: str) -> str:
+        r = client.post(
+            "/api/v1/contenidos/",
+            json={"titulo": "Juego", "tipo": "interactivo"},
+            headers=_headers(token),
+        )
+        assert r.status_code == 201
+        return str(r.json()["id"])
+
+    def test_subir_html_fija_hash_y_sandbox_url(
+        self, client: TestClient, editor_token: str, tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+    ) -> None:
+        from app.config import settings
+
+        monkeypatch.setattr(settings, "media_dir", str(tmp_path))
+        uid = self._crear_interactivo(client, editor_token)
+        r = client.post(
+            f"/api/v1/contenidos/{uid}/html",
+            files={"fichero": ("ej.html", self._HTML, "text/html")},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["hash_html"] is not None
+        assert body["sandbox_url"].endswith(f"/ejercicio/{body['hash_html']}")
+        # El fichero se escribió content-addressed (sin sanear).
+        h = body["hash_html"]
+        assert (tmp_path / h[:2] / f"{h}.html").read_bytes() == self._HTML
+
+    def test_subir_html_a_tipo_texto_devuelve_400(
+        self, client: TestClient, editor_token: str, tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+    ) -> None:
+        from app.config import settings
+
+        monkeypatch.setattr(settings, "media_dir", str(tmp_path))
+        uid = _crear_contenido(client, editor_token)["id"]  # tipo texto
+        r = client.post(
+            f"/api/v1/contenidos/{uid}/html",
+            files={"fichero": ("ej.html", self._HTML, "text/html")},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 400
+
+    def test_subir_html_sin_auth_devuelve_401(self, client: TestClient) -> None:
+        r = client.post(
+            "/api/v1/contenidos/00000000-0000-0000-0000-000000000000/html",
+            files={"fichero": ("ej.html", self._HTML, "text/html")},
+        )
+        assert r.status_code == 401
+
+    def test_subir_html_vacio_devuelve_400(
+        self, client: TestClient, editor_token: str, tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+    ) -> None:
+        from app.config import settings
+
+        monkeypatch.setattr(settings, "media_dir", str(tmp_path))
+        uid = self._crear_interactivo(client, editor_token)
+        r = client.post(
+            f"/api/v1/contenidos/{uid}/html",
+            files={"fichero": ("ej.html", b"", "text/html")},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 400
+
+
 class TestSanitizacionArticulos:
     """El HTML de artículos (tipo=texto) se sanea SIEMPRE en servidor (CLAUDE.md §10)."""
 

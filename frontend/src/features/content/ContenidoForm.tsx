@@ -8,9 +8,12 @@ type Ciclo = components["schemas"]["CicloResponse"];
 type Curso = components["schemas"]["CursoResponse"];
 type Asignatura = components["schemas"]["AsignaturaResponse"];
 
+export type TipoContenido = "texto" | "interactivo";
+
 export interface ContenidoFormValues {
   titulo: string;
   descripcion: string;
+  tipo: TipoContenido;
   etiquetas: string[];
   body_html: string;
   ciclo_id: string | null;
@@ -21,6 +24,7 @@ export interface ContenidoFormValues {
 const VACIO: ContenidoFormValues = {
   titulo: "",
   descripcion: "",
+  tipo: "texto",
   etiquetas: [],
   body_html: "",
   ciclo_id: null,
@@ -92,6 +96,26 @@ export function ContenidoForm({
         />
       </div>
 
+      {modo === "crear" && (
+        <div className="cms-form-group">
+          <label className="cms-label" htmlFor="c-tipo">Tipo de contenido</label>
+          <select
+            id="c-tipo"
+            className="cms-select"
+            value={v.tipo}
+            onChange={(e) => set("tipo", e.target.value as TipoContenido)}
+          >
+            <option value="texto">Artículo de texto</option>
+            <option value="interactivo">Ejercicio interactivo (HTML)</option>
+          </select>
+          {v.tipo === "interactivo" && (
+            <p className="cms-muted" style={{ marginTop: ".4rem" }}>
+              Tras crearlo podrás subir el fichero HTML del ejercicio desde la edición.
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="cms-form-group">
         <label className="cms-label" htmlFor="c-desc">Descripción breve</label>
         <input
@@ -155,17 +179,25 @@ export function ContenidoForm({
         />
       </div>
 
-      <div className="cms-form-group">
-        <label className="cms-label">Cuerpo del artículo</label>
-        <RichTextEditor value={v.body_html} onChange={(html) => set("body_html", html)} />
-        <p className="cms-muted" style={{ marginTop: ".4rem" }}>
-          El contenido se sanea automáticamente al guardar por seguridad.
-        </p>
-      </div>
+      {v.tipo === "texto" && (
+        <div className="cms-form-group">
+          <label className="cms-label">Cuerpo del artículo</label>
+          <RichTextEditor value={v.body_html} onChange={(html) => set("body_html", html)} />
+          <p className="cms-muted" style={{ marginTop: ".4rem" }}>
+            El contenido se sanea automáticamente al guardar por seguridad.
+          </p>
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: ".5rem", marginTop: "1rem" }}>
         <button type="submit" className="cms-btn cms-btn-primary" disabled={enviando || !v.titulo.trim()}>
-          {enviando ? "Guardando…" : modo === "crear" ? "Crear artículo" : "Guardar cambios"}
+          {enviando
+            ? "Guardando…"
+            : modo === "crear"
+              ? v.tipo === "interactivo"
+                ? "Crear ejercicio"
+                : "Crear artículo"
+              : "Guardar cambios"}
         </button>
         <button type="button" className="cms-btn cms-btn-ghost" onClick={onCancelar}>
           Cancelar

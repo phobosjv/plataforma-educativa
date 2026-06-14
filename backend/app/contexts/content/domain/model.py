@@ -84,6 +84,18 @@ class Contenido(Entity):
         if not self.titulo.strip():
             raise DomainError("El contenido requiere un título.")
 
+    def adjuntar_html_interactivo(self, file_hash: str) -> None:
+        """Asocia el fichero HTML (por hash) a un ejercicio interactivo.
+
+        Invariante de dominio: solo los contenidos de tipo ``interactivo`` referencian
+        un fichero HTML; el de tipo ``texto`` guarda su cuerpo sanitizado en ``body_html``.
+        """
+        if self.tipo is not TipoContenido.INTERACTIVO:
+            raise DomainError("Solo los contenidos interactivos admiten un fichero HTML.")
+        if self.borrado:
+            raise DomainError("No se puede adjuntar HTML a un contenido en la papelera.")
+        self.hash_html = file_hash
+
     def publicar(self) -> ContenidoPublicado:
         if self.borrado:
             raise DomainError("No se puede publicar un contenido borrado.")

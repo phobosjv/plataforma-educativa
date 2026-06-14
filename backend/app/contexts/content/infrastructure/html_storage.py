@@ -29,4 +29,6 @@ class FileSystemHtmlStorage:
         return file_hash
 
     def url_for(self, file_hash: str) -> str:
-        return f"/{file_hash[:2]}/{file_hash}.html"
+        # Ruta canónica del ejercicio, relativa al origen sandbox. El servidor sandbox
+        # (app.sandbox / nginx/sandbox.conf) la resuelve al fichero content-addressed.
+        return f"/ejercicio/{file_hash}"

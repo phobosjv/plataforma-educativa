@@ -31,6 +31,13 @@ class ActualizarContenidoCommand:
 
 
 @dataclass(frozen=True)
+class SubirHtmlContenidoCommand:
+    contenido_id: UUID
+    editor_id: UUID
+    raw_html: bytes
+
+
+@dataclass(frozen=True)
 class PublicarContenidoCommand:
     contenido_id: UUID
     published_by: UUID
