@@ -23,6 +23,7 @@ function emojiTipo(tipo: string): string {
 
 export function CatalogoPage() {
   const [params, setParams] = useSearchParams();
+  const cicloSel = params.get("ciclo");
   const cursoSel = params.get("curso");
   const asigSel = params.get("asignatura");
   const verTodo = params.get("todo") === "1";
@@ -59,6 +60,7 @@ export function CatalogoPage() {
   const asignaturas = asigQ.data ?? [];
   const contenidos = contQ.data ?? [];
 
+  const cicloActual = ciclos.find((c) => c.id === cicloSel) ?? null;
   const curso = cursos.find((c) => c.id === cursoSel) ?? null;
   const asignatura = asignaturas.find((a) => a.id === asigSel) ?? null;
   const colorCurso = (id: string) =>
@@ -73,6 +75,12 @@ export function CatalogoPage() {
   const crumbs = (
     <nav className="cms-cat-crumbs" aria-label="Dónde estás">
       <button type="button" className="cms-cat-crumb" onClick={irInicio}>🏠 Inicio</button>
+      {cicloSel && !curso && cicloActual && (
+        <>
+          <span className="cms-cat-crumb-sep" aria-hidden>›</span>
+          <span className="cms-cat-crumb" aria-current="page">{cicloActual.nombre}</span>
+        </>
+      )}
       {verTodo && (
         <>
           <span className="cms-cat-crumb-sep" aria-hidden>›</span>
@@ -217,26 +225,33 @@ export function CatalogoPage() {
       cursos: cursos.filter((cu) => cu.ciclo_id === ci.id && cursosConContenido.has(cu.id)),
     }))
     .filter((g) => g.cursos.length > 0);
+  // Si venimos de un enlace de ciclo (?ciclo=), mostrar solo ese ciclo.
+  const ciclosVisibles = cicloSel
+    ? ciclosConCursos.filter((g) => g.ciclo.id === cicloSel)
+    : ciclosConCursos;
   const hayContenido = contenidos.length > 0;
 
   return (
     <>
+      {cicloSel && crumbs}
       <div className="cms-cat-head">
         <p className="cms-cat-title">¿En qué curso estás?</p>
-        <p className="cms-cat-sub">Toca tu curso para ver las actividades</p>
+        <p className="cms-cat-sub">
+          {cicloActual ? `Cursos de ${cicloActual.nombre}` : "Toca tu curso para ver las actividades"}
+        </p>
       </div>
 
       {!hayContenido ? (
         <p className="cms-empty">Aún no hay contenidos publicados.</p>
-      ) : ciclosConCursos.length === 0 ? (
-        // Hay contenido pero sin curso asignado: ofrecer ver todo directamente.
+      ) : ciclosVisibles.length === 0 ? (
+        // Hay contenido pero sin curso asignado (o el ciclo pedido no tiene cursos con contenido).
         <>
           <p className="cms-empty">Las actividades todavía no están organizadas por curso.</p>
           {verTodoBtn}
         </>
       ) : (
         <>
-          {ciclosConCursos.map(({ ciclo, cursos: cs }) => (
+          {ciclosVisibles.map(({ ciclo, cursos: cs }) => (
             <section key={ciclo.id} className="cms-cat-section">
               <p className="cms-cat-section-title">{ciclo.nombre}</p>
               <div className="cms-cat-grid">

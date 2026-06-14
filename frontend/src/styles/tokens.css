@@ -252,17 +252,36 @@ body::before {
 }
 .cms-exercise-bar {
   flex: 0 0 auto;
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  display: flex; align-items: center; gap: .75rem;
   padding: .5rem .9rem;
   background: var(--cms-color-surface);
   border-bottom: 1px solid var(--cms-color-border);
   box-shadow: var(--cms-shadow);
 }
-.cms-exercise-path {
-  font-size: .9rem; font-weight: 600; color: var(--cms-color-fg);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+/* Título del sitio: enlace al inicio, separado del path por un divisor. */
+.cms-exercise-home {
+  flex: 0 0 auto;
+  font-weight: 800; font-size: .95rem; color: var(--cms-color-primary);
+  text-decoration: none; white-space: nowrap;
+  padding-right: .75rem; border-right: 1px solid var(--cms-color-border);
 }
-.cms-exercise-min { flex: 0 0 auto; }
+.cms-exercise-home:hover { text-decoration: underline; }
+/* Path navegable: cada tramo es un enlace; el actual (título) va en negrita. */
+.cms-exercise-path {
+  display: flex; align-items: center; gap: .4rem; min-width: 0; overflow: hidden;
+  font-size: .9rem;
+}
+.cms-exercise-crumb {
+  color: var(--cms-color-primary); text-decoration: none; font-weight: 600;
+  white-space: nowrap;
+}
+.cms-exercise-crumb:hover { text-decoration: underline; }
+.cms-exercise-crumb-actual {
+  color: var(--cms-color-fg); font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.cms-exercise-sep { color: var(--cms-color-muted); flex: 0 0 auto; }
+.cms-exercise-min { margin-left: auto; flex: 0 0 auto; }
 
 /* ── Alerta de error ─────────────────────────────────── */
 .cms-alert-error {

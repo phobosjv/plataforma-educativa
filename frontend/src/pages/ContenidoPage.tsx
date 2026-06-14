@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import DOMPurify from "dompurify";
 import { api } from "../shared/api/client";
+import { useConfig } from "../app/config/useConfig";
 import type { components } from "../shared/api/schema";
 
 type Contenido = components["schemas"]["ContenidoResponse"];
@@ -21,6 +22,7 @@ function fetchContenido(id: string): Promise<Contenido> {
 
 export function ContenidoPage() {
   const { id } = useParams<{ id: string }>();
+  const { nombre_sitio } = useConfig();
   const [maximizado, setMaximizado] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
@@ -67,14 +69,20 @@ export function ContenidoPage() {
   if (isLoading) return <div className="cms-spinner" role="status" aria-label="Cargando" />;
   if (isError || !data) return <p className="cms-error">Contenido no encontrado.</p>;
 
-  // path tipo "primaria / 3º / conocimiento del medio / mapa españa"
+  // Path navegable "primaria › 3º › conocimiento del medio › mapa españa": cada tramo
+  // enlaza al catálogo filtrado por esa taxonomía (el título es el tramo actual, sin enlace).
   const curso = cursosQ.data?.find((c) => c.id === data.curso_id) ?? null;
   const ciclo = ciclosQ.data?.find((c) => c.id === (curso?.ciclo_id ?? data.ciclo_id)) ?? null;
   const asignatura = asigQ.data?.find((a) => a.id === data.asignatura_id) ?? null;
-  const pathPartes = [ciclo?.nombre, curso?.nombre, asignatura?.nombre, data.titulo].filter(
-    (p): p is string => !!p,
-  );
-  const pathTexto = pathPartes.join(" / ");
+  const segmentos: { label: string; to: string | null }[] = [];
+  if (ciclo) segmentos.push({ label: ciclo.nombre, to: `/?ciclo=${ciclo.id}` });
+  if (curso) segmentos.push({ label: curso.nombre, to: `/?curso=${curso.id}` });
+  if (asignatura && curso)
+    segmentos.push({
+      label: asignatura.nombre,
+      to: `/?curso=${curso.id}&asignatura=${asignatura.id}`,
+    });
+  segmentos.push({ label: data.titulo, to: null });
 
   return (
     <>
@@ -99,7 +107,23 @@ export function ContenidoPage() {
           >
             {maximizado && (
               <div className="cms-exercise-bar">
-                <span className="cms-exercise-path" title={pathTexto}>{pathTexto}</span>
+                <Link to="/" className="cms-exercise-home" title="Ir al inicio">
+                  {nombre_sitio}
+                </Link>
+                <nav className="cms-exercise-path" aria-label="Ubicación del ejercicio">
+                  {segmentos.map((seg, i) => (
+                    <Fragment key={i}>
+                      {i > 0 && <span className="cms-exercise-sep" aria-hidden>›</span>}
+                      {seg.to ? (
+                        <Link to={seg.to} className="cms-exercise-crumb">{seg.label}</Link>
+                      ) : (
+                        <span className="cms-exercise-crumb cms-exercise-crumb-actual" aria-current="page">
+                          {seg.label}
+                        </span>
+                      )}
+                    </Fragment>
+                  ))}
+                </nav>
                 <button
                   type="button"
                   className="cms-btn cms-btn-ghost cms-exercise-min"

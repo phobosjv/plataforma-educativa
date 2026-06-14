@@ -6,6 +6,25 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.8.2] - 2026-06-14
+
+### Añadido
+
+#### Path navegable en el ejercicio maximizado
+- En la barra superior del ejercicio interactivo maximizado, cada tramo del **path** es ahora un
+  **enlace** que lleva al catálogo filtrado por esa taxonomía:
+  - **ciclo** (p. ej. *primaria*) → catálogo del ciclo (`/?ciclo=<id>`).
+  - **curso** (p. ej. *3º*) → cursos/asignaturas de ese curso (`/?curso=<id>`).
+  - **asignatura** (p. ej. *conocimiento del medio*) → ejercicios de esa asignatura y curso
+    (`/?curso=<id>&asignatura=<id>`).
+  - **título** → tramo actual (sin enlace).
+- A la izquierda del path, separado por un divisor, se muestra el **título del sitio** como
+  **enlace al inicio** (`/`).
+- **Catálogo:** nuevo soporte de `?ciclo=<id>` que filtra la pantalla de inicio a los cursos de
+  ese ciclo, con su miga de pan. (Navegación 100% en cliente, sin cambios de API.)
+
+---
+
 ## [V-0.8.1] - 2026-06-14
 
 ### Añadido
