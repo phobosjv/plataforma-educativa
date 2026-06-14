@@ -6,6 +6,30 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.6.1] - 2026-06-14
+
+### Añadido
+- **Asignar y editar la clasificación (ciclo / curso / asignatura) de un contenido** desde el panel,
+  tanto al **crear** como al **editar** (antes los selectores solo aparecían al crear). Se puede
+  reclasificar y **desasignar** (dejar en blanco).
+- `ContenidoResponse` ahora expone `ciclo_id`, `curso_id` y `asignatura_id` (antes eran write-only:
+  se enviaban al crear pero el contrato nunca los devolvía, por lo que no se veían al editar).
+
+### Corregido
+- **La taxonomía no se persistía al editar:** `SqlAlchemyContenidoRepository.save()` no copiaba
+  `ciclo_id/curso_id/asignatura_id` al modelo, así que un `PUT` con clasificación se reflejaba en la
+  respuesta pero **no se guardaba** en la base de datos. Ahora se persiste correctamente.
+
+### Cambiado
+- `PUT /api/v1/contenidos/{id}` acepta `ciclo_id/curso_id/asignatura_id`. Semántica segura: solo se
+  reasigna si el cliente envía esos campos (un `PUT` parcial que los omite no borra la clasificación;
+  enviar `null` sí la desasigna), usando `model_fields_set`.
+- **Tests:** +4 de integración (asignar al crear, reasignar con verificación de persistencia vía GET,
+  conservar al no enviarla, desasignar con `null`). Suite total: **101 tests**, todos en verde.
+- API version `0.6.0` → `0.6.1` en `main.py`; cliente OpenAPI del frontend regenerado.
+
+---
+
 ## [V-0.6.0] - 2026-06-14
 
 ### Añadido

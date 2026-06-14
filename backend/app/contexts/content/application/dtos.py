@@ -20,6 +20,9 @@ class ContenidoDTO:
     borrado: bool
     idioma: str
     etiquetas: tuple[str, ...]
+    ciclo_id: UUID | None
+    curso_id: UUID | None
+    asignatura_id: UUID | None
     hash_html: str | None
     body_html: str | None
     created_at: datetime
@@ -37,6 +40,9 @@ def contenido_to_dto(c: Contenido) -> ContenidoDTO:
         borrado=c.borrado,
         idioma=c.idioma,
         etiquetas=tuple(c.etiquetas),
+        ciclo_id=c.ciclo_id,
+        curso_id=c.curso_id,
+        asignatura_id=c.asignatura_id,
         hash_html=c.hash_html,
         body_html=c.body_html,
         created_at=c.created_at,

@@ -394,6 +394,12 @@ export interface components {
             body_html?: string | null;
             /** Etiquetas */
             etiquetas?: string[] | null;
+            /** Ciclo Id */
+            ciclo_id?: string | null;
+            /** Curso Id */
+            curso_id?: string | null;
+            /** Asignatura Id */
+            asignatura_id?: string | null;
         };
         /** ActualizarCursoRequest */
         ActualizarCursoRequest: {
@@ -503,6 +509,12 @@ export interface components {
             idioma: string;
             /** Etiquetas */
             etiquetas: string[];
+            /** Ciclo Id */
+            ciclo_id: string | null;
+            /** Curso Id */
+            curso_id: string | null;
+            /** Asignatura Id */
+            asignatura_id: string | null;
             /** Hash Html */
             hash_html: string | null;
             /** Body Html */

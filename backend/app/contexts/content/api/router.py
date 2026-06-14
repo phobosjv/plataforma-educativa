@@ -65,6 +65,9 @@ def _dto_to_response(dto: ContenidoDTO) -> ContenidoResponse:
         borrado=dto.borrado,
         idioma=dto.idioma,
         etiquetas=list(dto.etiquetas),
+        ciclo_id=dto.ciclo_id,
+        curso_id=dto.curso_id,
+        asignatura_id=dto.asignatura_id,
         hash_html=dto.hash_html,
         body_html=dto.body_html,
         sandbox_url=sandbox_url,
@@ -140,6 +143,10 @@ def actualizar_contenido(
     version_repo = SqlAlchemyContentVersionRepository(db)
     uow = UnitOfWork(db)
     handler = ActualizarContenidoHandler(repo, version_repo, uow, Nh3HtmlSanitizer())
+    # La taxonomía solo se reasigna si el cliente envió alguno de sus campos (así un PUT
+    # parcial que no la incluye no la borra; e incluir null sí permite desasignar).
+    campos = body.model_fields_set
+    actualizar_taxonomia = bool(campos & {"ciclo_id", "curso_id", "asignatura_id"})
     try:
         dto = handler.handle(
             ActualizarContenidoCommand(
@@ -149,6 +156,10 @@ def actualizar_contenido(
                 descripcion=body.descripcion,
                 body_html=body.body_html,
                 etiquetas=tuple(body.etiquetas) if body.etiquetas is not None else None,
+                actualizar_taxonomia=actualizar_taxonomia,
+                ciclo_id=body.ciclo_id,
+                curso_id=body.curso_id,
+                asignatura_id=body.asignatura_id,
             )
         )
     except NotFoundError as e:

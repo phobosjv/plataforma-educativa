@@ -160,6 +160,78 @@ class TestAdminEndpoints:
         assert r.status_code == 403
 
 
+class TestTaxonomiaDeContenido:
+    """La clasificación se expone en el contrato y puede asignarse/editarse (V-0.6.1)."""
+
+    _CICLO = "11111111-1111-1111-1111-111111111111"
+    _CURSO = "22222222-2222-2222-2222-222222222222"
+    _ASIG = "33333333-3333-3333-3333-333333333333"
+
+    def test_crear_con_taxonomia_se_devuelve(self, client: TestClient, editor_token: str) -> None:
+        r = client.post(
+            "/api/v1/contenidos/",
+            json={
+                "titulo": "Con taxonomia",
+                "tipo": "texto",
+                "ciclo_id": self._CICLO,
+                "curso_id": self._CURSO,
+                "asignatura_id": self._ASIG,
+            },
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 201
+        body = r.json()
+        assert body["ciclo_id"] == self._CICLO
+        assert body["curso_id"] == self._CURSO
+        assert body["asignatura_id"] == self._ASIG
+
+    def test_editar_reasigna_taxonomia(self, client: TestClient, editor_token: str) -> None:
+        uid = _crear_contenido(client, editor_token)["id"]  # sin taxonomia
+        r = client.put(
+            f"/api/v1/contenidos/{uid}",
+            json={"ciclo_id": self._CICLO, "curso_id": self._CURSO, "asignatura_id": self._ASIG},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 200
+        assert r.json()["ciclo_id"] == self._CICLO
+        # Verificar PERSISTENCIA con un GET posterior (no solo la respuesta del PUT).
+        g = client.get(f"/api/v1/contenidos/{uid}")
+        assert g.json()["ciclo_id"] == self._CICLO
+        assert g.json()["curso_id"] == self._CURSO
+        assert g.json()["asignatura_id"] == self._ASIG
+
+    def test_editar_sin_taxonomia_no_la_borra(self, client: TestClient, editor_token: str) -> None:
+        # Crear con taxonomia, luego PUT que NO incluye campos de taxonomia.
+        uid = client.post(
+            "/api/v1/contenidos/",
+            json={"titulo": "X", "tipo": "texto", "ciclo_id": self._CICLO},
+            headers=_headers(editor_token),
+        ).json()["id"]
+        r = client.put(
+            f"/api/v1/contenidos/{uid}",
+            json={"titulo": "X2"},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 200
+        assert r.json()["ciclo_id"] == self._CICLO  # se conserva
+
+    def test_editar_desasigna_taxonomia_con_null(
+        self, client: TestClient, editor_token: str
+    ) -> None:
+        uid = client.post(
+            "/api/v1/contenidos/",
+            json={"titulo": "X", "tipo": "texto", "ciclo_id": self._CICLO},
+            headers=_headers(editor_token),
+        ).json()["id"]
+        r = client.put(
+            f"/api/v1/contenidos/{uid}",
+            json={"ciclo_id": None},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 200
+        assert r.json()["ciclo_id"] is None  # desasignado explícitamente
+
+
 class TestSubirHtmlInteractivo:
     """Subida del fichero HTML de un ejercicio interactivo (CLAUDE.md §10)."""
 

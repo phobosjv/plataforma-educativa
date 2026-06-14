@@ -48,22 +48,18 @@ export function ContenidoForm({
   const [v, setV] = useState<ContenidoFormValues>({ ...VACIO, ...inicial });
   const [etiquetasTexto, setEtiquetasTexto] = useState((inicial?.etiquetas ?? []).join(", "));
 
-  // La clasificación solo se asigna al crear (el API no la edita todavía).
-  const taxonomiaVisible = modo === "crear";
+  // La clasificación puede asignarse y editarse en ambos modos (crear y editar).
   const { data: ciclos = [] } = useQuery<Ciclo[]>({
     queryKey: ["ciclos"],
     queryFn: () => api.GET("/api/v1/taxonomy/ciclos/").then(({ data }) => data ?? []),
-    enabled: taxonomiaVisible,
   });
   const { data: cursos = [] } = useQuery<Curso[]>({
     queryKey: ["cursos"],
     queryFn: () => api.GET("/api/v1/taxonomy/cursos/").then(({ data }) => data ?? []),
-    enabled: taxonomiaVisible,
   });
   const { data: asignaturas = [] } = useQuery<Asignatura[]>({
     queryKey: ["asignaturas"],
     queryFn: () => api.GET("/api/v1/taxonomy/asignaturas/").then(({ data }) => data ?? []),
-    enabled: taxonomiaVisible,
   });
 
   const cursosDelCiclo = v.ciclo_id ? cursos.filter((c) => c.ciclo_id === v.ciclo_id) : cursos;
@@ -127,8 +123,7 @@ export function ContenidoForm({
         />
       </div>
 
-      {taxonomiaVisible && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
           <div className="cms-form-group">
             <label className="cms-label" htmlFor="c-ciclo">Ciclo</label>
             <select
@@ -165,8 +160,7 @@ export function ContenidoForm({
               {asignaturas.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
             </select>
           </div>
-        </div>
-      )}
+      </div>
 
       <div className="cms-form-group">
         <label className="cms-label" htmlFor="c-tags">Etiquetas</label>

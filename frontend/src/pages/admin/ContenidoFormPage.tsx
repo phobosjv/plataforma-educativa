@@ -65,6 +65,9 @@ export function ContenidoFormPage() {
           descripcion: v.descripcion,
           etiquetas: v.etiquetas,
           body_html: v.tipo === "texto" ? v.body_html : null,
+          ciclo_id: v.ciclo_id,
+          curso_id: v.curso_id,
+          asignatura_id: v.asignatura_id,
         },
       });
       if (error || !data) throw new Error(mensajeError(error));
@@ -141,6 +144,9 @@ export function ContenidoFormPage() {
                 tipo: existente.tipo as "texto" | "interactivo",
                 etiquetas: existente.etiquetas,
                 body_html: existente.body_html ?? "",
+                ciclo_id: existente.ciclo_id ?? null,
+                curso_id: existente.curso_id ?? null,
+                asignatura_id: existente.asignatura_id ?? null,
               }
             : undefined
         }

@@ -31,6 +31,9 @@ class SqlAlchemyContenidoRepository:
         model.descripcion = contenido.descripcion
         model.is_published = contenido.publicado
         model.is_deleted = contenido.borrado
+        model.ciclo_id = str(contenido.ciclo_id) if contenido.ciclo_id else None
+        model.curso_id = str(contenido.curso_id) if contenido.curso_id else None
+        model.asignatura_id = str(contenido.asignatura_id) if contenido.asignatura_id else None
         model.body_html = contenido.body_html
         model.hash_html = contenido.hash_html
         model.tags_json = json.dumps(contenido.etiquetas, ensure_ascii=False)

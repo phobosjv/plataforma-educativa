@@ -115,6 +115,10 @@ class ActualizarContenidoHandler:
             )
         if cmd.etiquetas is not None:
             contenido.etiquetas = list(cmd.etiquetas)
+        if cmd.actualizar_taxonomia:
+            contenido.ciclo_id = cmd.ciclo_id
+            contenido.curso_id = cmd.curso_id
+            contenido.asignatura_id = cmd.asignatura_id
         contenido.updated_at = now()
 
         versiones = self._version_repo.list_for_contenido(cmd.contenido_id)

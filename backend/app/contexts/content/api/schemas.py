@@ -19,6 +19,9 @@ class ContenidoResponse(BaseModel):
     borrado: bool
     idioma: str
     etiquetas: list[str]
+    ciclo_id: UUID | None
+    curso_id: UUID | None
+    asignatura_id: UUID | None
     hash_html: str | None
     body_html: str | None
     # URL absoluta del ejercicio en el origen sandbox (solo tipo interactivo con HTML subido).
@@ -44,3 +47,8 @@ class ActualizarContenidoRequest(BaseModel):
     descripcion: str | None = None
     body_html: str | None = None
     etiquetas: list[str] | None = None
+    # La clasificación puede reasignarse al editar. Para poder DESasignar (null) sin que
+    # ello se confunda con "no tocar", el router usa model_fields_set (ver router.py).
+    ciclo_id: UUID | None = None
+    curso_id: UUID | None = None
+    asignatura_id: UUID | None = None
