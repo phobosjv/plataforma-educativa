@@ -6,6 +6,41 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.7.0] - 2026-06-14
+
+### Añadido
+
+#### Catálogo público navegable por taxonomías (pensado para niños)
+- El catálogo deja de ser una lista plana y pasa a una **navegación guiada por pasos**:
+  **¿En qué curso estás?** → **elige asignatura** → **ejercicios**. Diseñado para que alumnado de
+  infantil/primaria llegue solo a su contenido.
+- Tarjetas grandes y coloridas: cursos agrupados por **ciclo** (con nº de actividades y emoji 🎒),
+  asignaturas con **su color** y la inicial en un círculo, y badges de tipo (🎮 interactivo / 📖 texto).
+- **Migas de pan grandes y clicables** (🏠 Inicio › Curso › Asignatura) para retroceder. El estado va
+  en la URL (`?curso=&asignatura=`), así funciona el botón "atrás" del navegador y es compartible.
+- Nunca se llega a callejones vacíos: solo se muestran cursos/asignaturas **con actividades**. Botón
+  **"Ver todo el catálogo"** como alternativa (incluye el contenido sin clasificar).
+
+#### Eliminación definitiva desde la papelera
+- Nuevo botón **"Eliminar definitivamente"** (con confirmación) en la papelera del panel. Borra el
+  contenido y sus versiones de forma **irreversible** (solo **admin**).
+- Backend: caso de uso `PurgarContenidoHandler` (solo purga lo que ya está en la papelera, CLAUDE.md §7)
+  y endpoint `DELETE /api/v1/contenidos/{id}/purgar`. Las versiones se borran en cascada.
+
+#### Crear ejercicios interactivos más visible
+- En **Contenidos** ahora hay **dos botones**: "+ Artículo de texto" y "+ Ejercicio interactivo"
+  (antes solo "+ Nuevo artículo", que ocultaba que se podían crear ejercicios). El formulario llega
+  con el tipo preseleccionado (`?tipo=`).
+
+### Cambiado
+- `ContenidoResponse` (sin cambios de campos respecto a V-0.6.1); el catálogo usa `curso_id`,
+  `asignatura_id` ya expuestos. Cliente OpenAPI del frontend regenerado (nuevo endpoint de purga).
+- **Tests:** +3 de integración (purga desde papelera, purga de no-borrado → 400, purga requiere admin).
+  Suite total: **104 tests**, todos en verde.
+- API version `0.6.1` → `0.7.0` en `main.py`.
+
+---
+
 ## [V-0.6.1] - 2026-06-14
 
 ### Añadido

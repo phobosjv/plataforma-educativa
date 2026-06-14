@@ -18,6 +18,7 @@ from app.contexts.content.application.commands import (
     BorrarContenidoCommand,
     CrearContenidoCommand,
     PublicarContenidoCommand,
+    PurgarContenidoCommand,
     RestaurarContenidoCommand,
     SubirHtmlContenidoCommand,
 )
@@ -29,6 +30,7 @@ from app.contexts.content.application.handlers import (
     ListarContenidosHandler,
     ObtenerContenidoHandler,
     PublicarContenidoHandler,
+    PurgarContenidoHandler,
     RestaurarContenidoHandler,
     SubirHtmlContenidoHandler,
 )
@@ -257,6 +259,24 @@ def restaurar_contenido(
 
 
 # --- Endpoints de admin ---
+
+
+@router.delete("/contenidos/{contenido_id}/purgar", status_code=status.HTTP_204_NO_CONTENT)
+def purgar_contenido(
+    contenido_id: UUID,
+    current: UsuarioDTO = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> None:
+    """Elimina DEFINITIVAMENTE un contenido de la papelera (irreversible, solo admin)."""
+    repo = SqlAlchemyContenidoRepository(db)
+    uow = UnitOfWork(db)
+    handler = PurgarContenidoHandler(repo, uow)
+    try:
+        handler.handle(PurgarContenidoCommand(contenido_id=contenido_id, purged_by=current.id))
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except DomainError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/admin/contenidos/", response_model=list[ContenidoResponse])

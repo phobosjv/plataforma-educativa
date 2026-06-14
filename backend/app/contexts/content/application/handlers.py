@@ -10,6 +10,7 @@ from app.contexts.content.application.commands import (
     BorrarContenidoCommand,
     CrearContenidoCommand,
     PublicarContenidoCommand,
+    PurgarContenidoCommand,
     RestaurarContenidoCommand,
     SubirHtmlContenidoCommand,
 )
@@ -22,7 +23,7 @@ from app.contexts.content.domain.ports import (
     HtmlSanitizer,
     HtmlStorage,
 )
-from app.shared.domain.base import NotFoundError, now
+from app.shared.domain.base import DomainError, NotFoundError, now
 from app.shared.infrastructure.unit_of_work import UnitOfWork
 
 
@@ -225,6 +226,28 @@ class RestaurarContenidoHandler:
         self._repo.save(contenido)
         self._uow.commit()
         return contenido_to_dto(contenido)
+
+
+class PurgarContenidoHandler:
+    """Elimina DEFINITIVAMENTE un contenido (y sus versiones por cascada) de la papelera.
+
+    Solo se permite purgar contenido que ya está en la papelera (borrado lógico previo),
+    para que la eliminación irreversible sea siempre un acto deliberado en dos pasos
+    (CLAUDE.md §7: borrar es lógico; la purga es una operación explícita).
+    """
+
+    def __init__(self, repo: ContenidoRepository, uow: UnitOfWork) -> None:
+        self._repo = repo
+        self._uow = uow
+
+    def handle(self, cmd: PurgarContenidoCommand) -> None:
+        contenido = self._repo.get(cmd.contenido_id)
+        if contenido is None:
+            raise NotFoundError(f"Contenido {cmd.contenido_id} no encontrado.")
+        if not contenido.borrado:
+            raise DomainError("Solo se puede eliminar definitivamente un contenido de la papelera.")
+        self._repo.delete_permanent(cmd.contenido_id)
+        self._uow.commit()
 
 
 class ObtenerContenidoHandler:

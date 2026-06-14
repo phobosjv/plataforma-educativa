@@ -160,6 +160,34 @@ class TestAdminEndpoints:
         assert r.status_code == 403
 
 
+class TestPurgaDefinitiva:
+    """Eliminación definitiva de contenido desde la papelera (solo admin, irreversible)."""
+
+    def test_purgar_desde_papelera_elimina(
+        self, client: TestClient, editor_token: str, admin_token: str
+    ) -> None:
+        uid = _crear_contenido(client, editor_token)["id"]
+        client.delete(f"/api/v1/contenidos/{uid}", headers=_headers(editor_token))  # a papelera
+        r = client.delete(f"/api/v1/contenidos/{uid}/purgar", headers=_headers(admin_token))
+        assert r.status_code == 204
+        # Ya no aparece ni en la vista admin (que incluye papelera).
+        admin = client.get("/api/v1/admin/contenidos/", headers=_headers(admin_token))
+        assert uid not in [c["id"] for c in admin.json()]
+
+    def test_purgar_no_borrado_devuelve_400(
+        self, client: TestClient, editor_token: str, admin_token: str
+    ) -> None:
+        uid = _crear_contenido(client, editor_token)["id"]  # NO está en la papelera
+        r = client.delete(f"/api/v1/contenidos/{uid}/purgar", headers=_headers(admin_token))
+        assert r.status_code == 400
+
+    def test_purgar_requiere_admin(self, client: TestClient, editor_token: str) -> None:
+        uid = _crear_contenido(client, editor_token)["id"]
+        client.delete(f"/api/v1/contenidos/{uid}", headers=_headers(editor_token))
+        r = client.delete(f"/api/v1/contenidos/{uid}/purgar", headers=_headers(editor_token))
+        assert r.status_code == 403
+
+
 class TestTaxonomiaDeContenido:
     """La clasificación se expone en el contrato y puede asignarse/editarse (V-0.6.1)."""
 

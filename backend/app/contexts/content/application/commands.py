@@ -64,3 +64,11 @@ class BorrarContenidoCommand:
 class RestaurarContenidoCommand:
     contenido_id: UUID
     restored_by: UUID
+
+
+@dataclass(frozen=True)
+class PurgarContenidoCommand:
+    """Eliminación DEFINITIVA de un contenido de la papelera (irreversible)."""
+
+    contenido_id: UUID
+    purged_by: UUID

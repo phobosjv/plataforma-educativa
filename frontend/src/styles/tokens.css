@@ -169,6 +169,65 @@ body::before {
 
 .cms-empty { text-align: center; color: var(--cms-color-muted); padding: 3rem 1rem; }
 
+/* ── Catálogo navegable (público, pensado para niños) ── */
+.cms-cat-head { text-align: center; margin: .5rem 0 2rem; }
+.cms-cat-title { font-size: 2rem; font-weight: 800; line-height: 1.15; }
+.cms-cat-sub { color: var(--cms-color-muted); font-size: 1.05rem; margin-top: .5rem; }
+
+/* Migas de pan grandes y clicables */
+.cms-cat-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-bottom: 1.5rem; }
+.cms-cat-crumb {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .45rem .9rem; border-radius: 999px;
+  background: var(--cms-color-surface); border: 2px solid var(--cms-color-border);
+  color: var(--cms-color-fg); font-size: 1rem; font-weight: 600;
+  cursor: pointer; text-decoration: none; transition: border-color .15s, background .15s;
+}
+.cms-cat-crumb:hover { border-color: var(--cms-color-primary); }
+.cms-cat-crumb[aria-current="page"] { background: var(--cms-color-primary); color: #fff; border-color: var(--cms-color-primary); cursor: default; }
+.cms-cat-crumb-sep { color: var(--cms-color-muted); font-size: 1.2rem; font-weight: 700; }
+
+/* Secciones (agrupación por ciclo) */
+.cms-cat-section { margin-bottom: 2rem; }
+.cms-cat-section-title { font-size: 1.25rem; font-weight: 700; color: var(--cms-color-muted); margin-bottom: 1rem; }
+
+/* Rejilla de tarjetas grandes */
+.cms-cat-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+.cms-cat-card {
+  --cms-accent: var(--cms-color-primary);
+  position: relative;
+  background: var(--cms-color-surface);
+  border: 1px solid var(--cms-color-border);
+  border-top: 7px solid var(--cms-accent);
+  border-radius: var(--cms-radius);
+  box-shadow: var(--cms-shadow);
+  padding: 1.5rem 1.25rem;
+  min-height: 160px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem;
+  text-align: center; text-decoration: none; color: inherit; cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+}
+.cms-cat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px 0 rgb(0 0 0 / .14); }
+.cms-cat-card:focus-visible { outline: 3px solid var(--cms-accent); outline-offset: 2px; }
+
+.cms-cat-emoji { font-size: 2.6rem; line-height: 1; }
+.cms-cat-letra {
+  width: 58px; height: 58px; border-radius: 50%;
+  background: var(--cms-accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.7rem; font-weight: 800;
+}
+.cms-cat-name { font-size: 1.2rem; font-weight: 700; }
+.cms-cat-count {
+  display: inline-block; padding: .2rem .7rem; border-radius: 999px;
+  background: var(--cms-color-bg); color: var(--cms-color-muted);
+  font-size: .8rem; font-weight: 600;
+}
+
+/* Botón grande "Ver todo" / acciones del catálogo */
+.cms-cat-actions { display: flex; justify-content: center; margin-top: 1.5rem; }
+
 /* ── Ejercicio interactivo ───────────────────────────── */
 .cms-exercise-frame { width: 100%; min-height: 70vh; border: 0; border-radius: var(--cms-radius); }
 

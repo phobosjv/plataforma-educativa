@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../shared/api/client";
 import type { components } from "../../shared/api/schema";
@@ -21,6 +21,9 @@ export function ContenidoFormPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  // Tipo preseleccionado al crear (?tipo=interactivo desde el botón de la lista).
+  const [searchParams] = useSearchParams();
+  const tipoInicial = searchParams.get("tipo") === "interactivo" ? "interactivo" : "texto";
 
   // En edición, cargar el contenido para precargar el formulario.
   const { data: existente, isLoading } = useQuery<Contenido>({
@@ -116,7 +119,9 @@ export function ContenidoFormPage() {
   const esInteractivo = existente?.tipo === "interactivo";
   const titulo =
     modo === "crear"
-      ? "Nuevo contenido"
+      ? tipoInicial === "interactivo"
+        ? "Nuevo ejercicio interactivo"
+        : "Nuevo artículo"
       : esInteractivo
         ? "Editar ejercicio interactivo"
         : "Editar artículo";
@@ -148,7 +153,7 @@ export function ContenidoFormPage() {
                 curso_id: existente.curso_id ?? null,
                 asignatura_id: existente.asignatura_id ?? null,
               }
-            : undefined
+            : { tipo: tipoInicial }
         }
         onSubmit={(v) => { setError(null); guardar.mutate(v); }}
         onCancelar={volver}

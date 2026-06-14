@@ -58,7 +58,16 @@ export function ContenidosPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-contenidos"] }),
   });
 
+  const purgar = useMutation({
+    mutationFn: (id: string) =>
+      api.DELETE("/api/v1/contenidos/{contenido_id}/purgar", {
+        params: { path: { contenido_id: id } },
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-contenidos"] }),
+  });
+
   const [confirmar, setConfirmar] = useState<string | null>(null);
+  const [confirmarPurga, setConfirmarPurga] = useState<string | null>(null);
 
   if (isLoading) return <div className="cms-spinner" role="status" aria-label="Cargando" />;
   if (isError) return <p className="cms-error">No se pudo cargar la lista de contenidos.</p>;
@@ -67,9 +76,14 @@ export function ContenidosPage() {
     <>
       <div className="cms-admin-header">
         <h1 className="cms-h1">Contenidos</h1>
-        <Link to="/admin/contenidos/nuevo" className="cms-btn cms-btn-primary">
-          + Nuevo artículo
-        </Link>
+        <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+          <Link to="/admin/contenidos/nuevo?tipo=texto" className="cms-btn cms-btn-ghost">
+            + Artículo de texto
+          </Link>
+          <Link to="/admin/contenidos/nuevo?tipo=interactivo" className="cms-btn cms-btn-primary">
+            + Ejercicio interactivo
+          </Link>
+        </div>
       </div>
       {!data?.length ? (
         <p className="cms-empty">No hay contenidos creados todavía.</p>
@@ -113,12 +127,37 @@ export function ContenidosPage() {
                     </button>
                   )}
                   {c.borrado ? (
-                    <button
-                      className="cms-btn cms-btn-ghost"
-                      onClick={() => restaurar.mutate(c.id)}
-                    >
-                      Restaurar
-                    </button>
+                    confirmarPurga === c.id ? (
+                      <>
+                        <button
+                          className="cms-btn cms-btn-danger"
+                          onClick={() => { purgar.mutate(c.id); setConfirmarPurga(null); }}
+                        >
+                          Confirmar eliminación
+                        </button>
+                        <button
+                          className="cms-btn cms-btn-ghost"
+                          onClick={() => setConfirmarPurga(null)}
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          className="cms-btn cms-btn-ghost"
+                          onClick={() => restaurar.mutate(c.id)}
+                        >
+                          Restaurar
+                        </button>
+                        <button
+                          className="cms-btn cms-btn-danger"
+                          onClick={() => setConfirmarPurga(c.id)}
+                        >
+                          Eliminar definitivamente
+                        </button>
+                      </>
+                    )
                   ) : (
                     confirmar === c.id ? (
                       <>
