@@ -6,6 +6,31 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.8.1] - 2026-06-14
+
+### Añadido
+
+#### Maximizar el contenedor de ejercicios interactivos
+- Nuevo botón **"⤢ Maximizar"** en el contenedor de un ejercicio interactivo (esquina superior
+  derecha). Al pulsarlo, el ejercicio pasa a ocupar **casi toda la pantalla** (`position: fixed`),
+  dejando arriba una **barra fina** con:
+  - El **path** del ejercicio construido desde las taxonomías
+    (`ciclo / curso / asignatura / título`, p. ej. *primaria / 3º / conocimiento del medio / mapa españa*).
+  - El botón **"⤡ Minimizar"** para volver a la vista normal.
+- El **mismo iframe se reutiliza** en ambos modos: maximizar/minimizar **no recarga** el ejercicio
+  (no se pierde el progreso del alumno).
+- UX: se puede salir con la tecla **Escape** y el scroll del fondo se bloquea mientras está maximizado.
+
+### Cambiado
+- Las taxonomías del path se cargan con las mismas `queryKey` que el catálogo (`ciclos`/`cursos`/
+  `asignaturas`), reutilizando la caché de React Query (sin peticiones extra en la navegación habitual).
+
+### Seguridad
+- Se mantiene el **aislamiento del sandbox** (CLAUDE.md §10) en ambos modos: `sandbox="allow-scripts"`
+  sin `allow-same-origin` y servido desde el origen sandbox. Clases CSS todas prefijadas `cms-`.
+
+---
+
 ## [V-0.8.0] - 2026-06-14
 
 ### Añadido

@@ -229,7 +229,40 @@ body::before {
 .cms-cat-actions { display: flex; justify-content: center; margin-top: 1.5rem; }
 
 /* ── Ejercicio interactivo ───────────────────────────── */
-.cms-exercise-frame { width: 100%; min-height: 70vh; border: 0; border-radius: var(--cms-radius); }
+.cms-exercise-wrap { position: relative; }
+.cms-exercise-frame {
+  display: block; width: 100%; min-height: 70vh;
+  border: 0; border-radius: var(--cms-radius);
+}
+
+/* Botón flotante para maximizar (esquina superior derecha del frame). */
+.cms-exercise-max-btn {
+  position: absolute; top: .6rem; right: .6rem; z-index: 1;
+  background: var(--cms-color-surface); box-shadow: var(--cms-shadow);
+}
+
+/* Modo maximizado: ocupa casi toda la pantalla con una barra superior fina. */
+.cms-exercise-wrap--max {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; flex-direction: column;
+  background: var(--cms-color-bg);
+}
+.cms-exercise-wrap--max .cms-exercise-frame {
+  flex: 1; width: 100%; height: 100%; min-height: 0; border-radius: 0;
+}
+.cms-exercise-bar {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .5rem .9rem;
+  background: var(--cms-color-surface);
+  border-bottom: 1px solid var(--cms-color-border);
+  box-shadow: var(--cms-shadow);
+}
+.cms-exercise-path {
+  font-size: .9rem; font-weight: 600; color: var(--cms-color-fg);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cms-exercise-min { flex: 0 0 auto; }
 
 /* ── Alerta de error ─────────────────────────────────── */
 .cms-alert-error {
