@@ -6,6 +6,33 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.9.0] - 2026-06-15
+
+### Añadido (producción / HTTPS)
+- **Proxy inverso Caddy con HTTPS automático (Let's Encrypt).** Nuevo servicio `caddy` y
+  `caddy/Caddyfile`. Es el **único** servicio expuesto a internet (80/443); obtiene y **renueva los
+  certificados solos** y aplica **HSTS** + cabeceras de seguridad en el origen de la app.
+  - `https://${APP_DOMAIN}` → frontend (SPA + `/api` + `/media`).
+  - `https://${SANDBOX_DOMAIN}` → sandbox (ejercicios), **origen aislado en su propio subdominio**
+    (CLAUDE.md §10), todo sobre 443.
+
+### Cambiado
+- **`frontend`, `api` y `sandbox` pasan a ser internos** (ya no publican puertos). Solo Caddy
+  escucha de cara a internet.
+- `SANDBOX_BASE_URL`, `APP_ORIGINS` y `CORS_ALLOW_ORIGINS` se **derivan automáticamente** de
+  `APP_DOMAIN`/`SANDBOX_DOMAIN` en `docker-compose.yml` (`https://…`).
+- `.env.example` simplificado al modelo de dominios: `APP_DOMAIN`, `SANDBOX_DOMAIN`, `ACME_EMAIL`
+  (+ secreto y admin). `ENVIRONMENT=production`.
+- Volúmenes `caddy_data`/`caddy_config` para **persistir los certificados** (evitar el rate limit
+  de Let's Encrypt).
+
+### Notas de despliegue
+- Requiere: registros **DNS A** de ambos dominios → IP del servidor, y **puertos 80/443**
+  redirigidos. Luego `docker compose up -d --build`. El acceso pasa a ser solo por
+  `https://${APP_DOMAIN}` (no por IP:puerto).
+
+---
+
 ## [V-0.8.9] - 2026-06-15
 
 ### Cambiado (robustez / producción)

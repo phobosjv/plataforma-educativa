@@ -1,0 +1,30 @@
+# Proxy inverso con HTTPS automático (Let's Encrypt). Caddy obtiene y RENUEVA los
+# certificados solo (necesita los puertos 80 y 443 accesibles desde internet y que los
+# dominios resuelvan a este servidor). Dominios y email salen del .env.
+#
+#   APP_DOMAIN      -> la web pública (SPA + /api + /media, vía el nginx del frontend)
+#   SANDBOX_DOMAIN  -> origen AISLADO de los ejercicios (subdominio distinto, CLAUDE.md §10)
+
+{
+	email {$ACME_EMAIL}
+}
+
+# --- Web pública ---
+{$APP_DOMAIN} {
+	encode zstd gzip
+	header {
+		# HSTS y cabeceras de seguridad para el origen de la app.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	reverse_proxy frontend:80
+}
+
+# --- Origen sandbox (ejercicios interactivos) ---
+# El nginx del sandbox define su propia CSP estricta; aquí solo se proxya, sin tocarla.
+{$SANDBOX_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy sandbox:80
+}
