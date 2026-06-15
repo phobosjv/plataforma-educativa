@@ -11,6 +11,10 @@ services:
   api:
     build: ./backend
     env_file: .env
+    # PYTHONPATH=/app: necesario para que alembic/uvicorn importen el paquete `app`.
+    # Aquí (además del Dockerfile) permite aplicar el arreglo sin reconstruir la imagen.
+    environment:
+      - PYTHONPATH=/app
     volumes:
       - ./data:/app/data
       - ./media:/app/media

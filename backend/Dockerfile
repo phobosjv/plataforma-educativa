@@ -1,6 +1,9 @@
 FROM python:3.12-slim
 WORKDIR /app
-ENV PYTHONUNBUFFERED=1
+# PYTHONPATH=/app hace importable el paquete `app` para alembic, uvicorn y el entrypoint
+# (el layout plano no instala `app` en site-packages con `pip install .`).
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 COPY pyproject.toml .
 RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir .
 COPY . .

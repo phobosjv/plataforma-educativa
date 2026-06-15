@@ -48,16 +48,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     setState((s) => ({ ...s, isLoading: true }));
 
-    const { data, error } = await api.POST("/api/v1/auth/token", {
-      body: { username: email, password, scope: "" },
-      bodySerializer: (body) =>
-        new URLSearchParams(body as Record<string, string>),
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    });
+    let result;
+    try {
+      result = await api.POST("/api/v1/auth/token", {
+        body: { username: email, password, scope: "" },
+        bodySerializer: (body) =>
+          new URLSearchParams(body as Record<string, string>),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      });
+    } catch {
+      // fetch rechazó: el servidor no responde (caído, sin red, proxy sin destino).
+      setState((s) => ({ ...s, isLoading: false }));
+      throw new Error(
+        "No se pudo conectar con el servidor. Comprueba que el servicio está activo e inténtalo de nuevo.",
+      );
+    }
+
+    const { data, error, response } = result;
 
     if (error || !data) {
       setState((s) => ({ ...s, isLoading: false }));
-      throw new Error("Credenciales incorrectas");
+      if (response && response.status >= 500) {
+        // El backend está caído/reiniciándose (p. ej. error de arranque) o el proxy no llega.
+        throw new Error(
+          "El servidor no está disponible en este momento. Inténtalo de nuevo en unos segundos.",
+        );
+      }
+      if (response && response.status === 401) {
+        throw new Error("Credenciales incorrectas. Comprueba tu email y contraseña.");
+      }
+      throw new Error("No se pudo iniciar sesión. Inténtalo de nuevo.");
     }
 
     const token = data.access_token;

@@ -18,8 +18,12 @@ export function LoginPage() {
     try {
       await login(email, password);
       navigate(from, { replace: true });
-    } catch {
-      setError("Credenciales incorrectas. Comprueba tu email y contraseña.");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No se pudo iniciar sesión. Inténtalo de nuevo.",
+      );
     }
   }
 

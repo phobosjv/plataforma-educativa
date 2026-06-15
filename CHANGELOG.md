@@ -6,6 +6,22 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.8.4] - 2026-06-15
+
+### Corregido
+- **API en bucle de reinicio en Docker** (`ModuleNotFoundError: No module named 'app'` al ejecutar
+  Alembic). El layout plano del backend no instala el paquete `app` en site-packages con
+  `pip install .`, y el entrypoint usa el comando `alembic` (que no añade `/app` al `sys.path`).
+  Solución: **`PYTHONPATH=/app`** en `backend/Dockerfile` (builds limpias) y en el servicio `api`
+  del `docker-compose.yml` (permite aplicar el arreglo sin reconstruir la imagen).
+
+### Cambiado
+- **Mensajes de error de login más claros:** el formulario ahora distingue entre **credenciales
+  incorrectas** (401), **servidor no disponible** (5xx, p. ej. la API caída o reiniciándose) y
+  **fallo de conexión** (sin respuesta), en vez de mostrar siempre "Credenciales incorrectas".
+
+---
+
 ## [V-0.8.3] - 2026-06-14
 
 ### Cambiado
