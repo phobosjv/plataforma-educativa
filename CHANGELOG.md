@@ -6,6 +6,19 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.8.6] - 2026-06-15
+
+### Corregido
+- **Ejercicios interactivos daban `403 Forbidden` (nginx del sandbox)** en el despliegue Docker. El
+  HTML del ejercicio se guardaba con permisos `0o600` (herencia de `tempfile.mkstemp`), legible solo
+  por el usuario de la API (root); el sandbox lo sirve como usuario `nginx`, que no podía leerlo.
+  Ahora el fichero se guarda como `0o644` (es contenido público servido de forma aislada). En local
+  no se reproducía porque el sandbox Python corría con el mismo usuario.
+- **Remediación de ficheros ya subidos** (permisos antiguos): `chmod -R a+rX media/` en el host
+  (o `docker compose exec api sh -c "chmod -R a+rX /app/media"`).
+
+---
+
 ## [V-0.8.5] - 2026-06-15
 
 ### Corregido

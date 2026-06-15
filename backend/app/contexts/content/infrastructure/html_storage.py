@@ -22,6 +22,10 @@ class FileSystemHtmlStorage:
             try:
                 with os.fdopen(fd, "wb") as f:
                     f.write(raw_html)
+                # mkstemp crea el fichero con 0o600 (solo el dueño). El sandbox lo sirve
+                # como otro usuario (nginx) -> daría 403. El HTML de ejercicio es contenido
+                # público servido aislado, así que se hace legible por todos (0o644).
+                os.chmod(tmp_path, 0o644)
                 os.replace(tmp_path, target)
             except Exception:
                 os.unlink(tmp_path)
