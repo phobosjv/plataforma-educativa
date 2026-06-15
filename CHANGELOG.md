@@ -6,6 +6,27 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.8.9] - 2026-06-15
+
+### Cambiado (robustez / producción)
+- **El frontend en Docker se sirve como build estático tras nginx**, en vez del servidor de
+  desarrollo de Vite (`npm run dev`), que no es apto para producción.
+  - `frontend/Dockerfile` ahora es **multi-stage**: etapa Node (`npm run build`) + etapa **nginx**
+    que sirve `dist/`.
+  - Nuevo `nginx/frontend.conf`: sirve la SPA con *fallback* a `index.html` (React Router), proxya
+    `/api` y `/media` al servicio `api`, cachea los assets con hash (sin cachear errores) y sube
+    `client_max_body_size` a **16 MB** (evita `413` al subir imágenes/HTML; el default de nginx es 1 MB).
+  - `docker-compose.yml`: `frontend` pasa a `5173:80`, monta la config y deja de necesitar
+    `VITE_API_TARGET`/`VITE_ALLOWED_HOSTS`.
+- **`ALLOWED_HOSTS` ya no es necesario:** nginx sirve cualquier `Host`, así que el acceso por IP y
+  por dominio funciona sin configurarlo. (El servidor de desarrollo de Vite para uso local sigue
+  igual con `npm run dev`.)
+
+### Notas de despliegue
+- Aplicar con `docker compose up -d --build frontend`.
+
+---
+
 ## [V-0.8.8] - 2026-06-15
 
 ### Añadido
