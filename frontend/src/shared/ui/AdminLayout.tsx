@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/auth/AuthContext";
 import { useConfig } from "../../app/config/useConfig";
 
@@ -60,6 +60,9 @@ export function AdminLayout() {
           </NavLink>
         )}
         <div className="cms-sidebar-spacer" />
+        <Link to="/" className="cms-sidebar-link cms-sidebar-link-web">
+          ↗ Ver la web
+        </Link>
         <button className="cms-sidebar-logout" onClick={handleLogout}>
           Cerrar sesión
         </button>

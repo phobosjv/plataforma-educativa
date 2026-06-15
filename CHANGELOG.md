@@ -6,6 +6,14 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.8.8] - 2026-06-15
+
+### Añadido
+- **Enlace "↗ Ver la web" en el panel de administración** (sidebar, sobre "Cerrar sesión") que
+  lleva al catálogo público (`/`). Evita tener que borrar `/admin` de la URL a mano.
+
+---
+
 ## [V-0.8.7] - 2026-06-15
 
 ### Corregido

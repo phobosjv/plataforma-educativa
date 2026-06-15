@@ -96,6 +96,8 @@ body::before {
 .cms-sidebar-link:hover { background: var(--cms-color-bg); }
 .cms-sidebar-link-active { border-left-color: var(--cms-color-primary); font-weight: 600; color: var(--cms-color-primary); background: var(--cms-color-bg); }
 .cms-sidebar-spacer { flex: 1; }
+/* Enlace para salir del panel y volver a la web pública: separado del resto. */
+.cms-sidebar-link-web { color: var(--cms-color-primary); border-top: 1px solid var(--cms-color-border); }
 .cms-sidebar-logout { padding: .55rem 1.25rem; color: var(--cms-color-danger); font-size: .9rem; cursor: pointer; background: none; border: none; text-align: left; width: 100%; }
 .cms-sidebar-logout:hover { background: var(--cms-color-bg); }
 
