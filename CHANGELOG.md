@@ -6,6 +6,20 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.8.7] - 2026-06-15
+
+### Corregido
+- **El sandbox cacheaba las respuestas de error durante 1 año.** La CSP/headers del sandbox añadían
+  `Cache-Control: public, max-age=31536000, immutable` con `always`, por lo que un **403/404** se
+  cacheaba como inmutable: tras corregir el fichero, el navegador seguía mostrando el error sin
+  reintentar. Ahora ese `Cache-Control` se aplica **sin `always`** (solo a respuestas 2xx/3xx), en
+  `nginx/sandbox.conf.template` y `nginx/sandbox.conf`. (El sandbox Python ya solo lo ponía en el
+  200, sin cambios.)
+- Tras actualizar: `docker compose restart sandbox` (re-renderiza la plantilla). Y **vaciar la caché
+  del navegador** para soltar un error ya cacheado (incógnito o recarga forzada).
+
+---
+
 ## [V-0.8.6] - 2026-06-15
 
 ### Corregido
