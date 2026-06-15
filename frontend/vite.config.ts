@@ -4,6 +4,17 @@ import react from "@vitejs/plugin-react";
 // El backend de desarrollo. Configurable por si corre en otro puerto.
 const API_TARGET = process.env.VITE_API_TARGET ?? "http://localhost:8001";
 
+// Hosts permitidos (Vite bloquea dominios desconocidos por seguridad; las IPs se permiten solas).
+// VITE_ALLOWED_HOSTS: lista separada por comas (p. ej. "midominio.ddns.net,192.168.1.50").
+// Usa "true" para permitir cualquier host (cómodo en pruebas, menos seguro).
+const allowedHostsEnv = process.env.VITE_ALLOWED_HOSTS?.trim();
+const allowedHosts =
+  allowedHostsEnv === "true"
+    ? true
+    : allowedHostsEnv
+      ? allowedHostsEnv.split(",").map((h) => h.trim()).filter(Boolean)
+      : undefined; // sin configurar: comportamiento por defecto de Vite (localhost + IPs)
+
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -12,6 +23,7 @@ export default defineConfig({
     // Evita que el frontend acabe en un puerto que el navegador/CORS no espera.
     strictPort: true,
     host: true,
+    allowedHosts,
     // Proxy de /api al backend: el navegador habla siempre con el mismo
     // origen (localhost:5173), así que NO hay CORS en desarrollo.
     proxy: {

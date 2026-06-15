@@ -49,6 +49,9 @@ services:
     # por la red interna de Docker. Por eso el target es el nombre de servicio, no el host.
     environment:
       - VITE_API_TARGET=http://api:8000
+      # Hosts (dominios) desde los que se accede a la web. Lista separada por comas.
+      # Las IP se permiten solas; los dominios hay que listarlos aqui. "true" = cualquiera.
+      - VITE_ALLOWED_HOSTS=${ALLOWED_HOSTS:-}
     ports:
       - "5173:5173"
     depends_on:

@@ -6,6 +6,22 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.8.5] - 2026-06-15
+
+### Corregido
+- **Vite bloqueaba el acceso por dominio** (`Blocked request. This host ... is not allowed`). Vite
+  permite las IP por defecto, pero exige declarar los dominios en `server.allowedHosts`.
+
+### Añadido
+- **`server.allowedHosts` configurable por entorno** en `vite.config.ts` mediante
+  `VITE_ALLOWED_HOSTS` (lista de hosts separados por comas, o `true` para permitir cualquiera),
+  propagada desde la variable `ALLOWED_HOSTS` del `.env` vía `docker-compose.yml`. Permite servir
+  la web por **IP y dominio a la vez**.
+- `.env.example`: nueva `ALLOWED_HOSTS` y guía de acceso dual (IP + dominio). `APP_ORIGINS` admite
+  varios orígenes (separados por espacios) y `CORS_ALLOW_ORIGINS` varios (separados por comas).
+
+---
+
 ## [V-0.8.4] - 2026-06-15
 
 ### Corregido
