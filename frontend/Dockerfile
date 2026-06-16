@@ -10,5 +10,7 @@ RUN npm run build          # genera /app/dist (tsc -b && vite build)
 # La config (nginx/frontend.conf) se monta como volumen desde docker-compose,
 # igual que el sandbox. Sirve la SPA y proxya /api y /media al servicio api.
 FROM nginx:alpine
+# Parches de seguridad del SO (Alpine) posteriores a la imagen base.
+RUN apk upgrade --no-cache
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80

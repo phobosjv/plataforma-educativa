@@ -6,6 +6,29 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.10.1] - 2026-06-16
+
+### Seguridad / Robustez (imágenes Docker)
+- **Backend:** base `python:3.12-slim` → `python:3.12-slim-bookworm` (release de Debian explícita) y
+  **parches de seguridad del SO** en el build (`apt-get upgrade -y`), que aplican las correcciones de
+  Debian publicadas después de la imagen base (el grueso de los hallazgos del escáner). Se actualizan
+  `pip`/`setuptools`/`wheel` (versiones antiguas son un hallazgo recurrente). Limpieza de listas apt
+  en la capa final.
+- **Frontend:** etapa final `nginx:alpine` con `apk upgrade --no-cache` (paridad de parches del SO).
+
+### Documentación
+- Nueva guía `docs/seguridad-imagenes.md`: cómo **escanear** las imágenes ya construidas (Trivy,
+  `--ignore-unfixed`), fijar la base por **digest** y endurecimiento pendiente (usuario no-root,
+  revisión de `python-jose`).
+
+### Notas
+- El escáner del IDE marca el **tag base** antes del `apt-get upgrade`; tras el build, las CVEs con
+  parche quedan resueltas y las restantes suelen ser "sin fix" en Debian. Verificar en el servidor.
+- Sin cambios de código, API ni esquema: 123 tests siguen en verde. El usuario NO necesita nada
+  especial al desplegar; el endurecimiento se aplica solo al reconstruir las imágenes.
+
+---
+
 ## [V-0.10.0] - 2026-06-16
 
 ### Añadido (robustez)

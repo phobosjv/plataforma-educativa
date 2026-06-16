@@ -36,7 +36,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         await scheduler.stop()
 
 
-app = FastAPI(title="Plataforma Educativa API", version="0.10.0", lifespan=lifespan)
+app = FastAPI(title="Plataforma Educativa API", version="0.10.1", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
