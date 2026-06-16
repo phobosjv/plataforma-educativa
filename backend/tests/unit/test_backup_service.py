@@ -75,3 +75,36 @@ def test_rotacion_conserva_solo_las_n_mas_recientes(tmp_path: Path) -> None:
 def test_url_no_sqlite_es_rechazada(tmp_path: Path) -> None:
     with pytest.raises(ValueError):
         SqliteBackupService("postgresql://x/y", str(tmp_path), keep=1)
+
+
+def test_ruta_de_devuelve_la_copia_existente(tmp_path: Path) -> None:
+    servicio = _servicio(tmp_path)
+    info = servicio.crear_backup()
+
+    ruta = servicio.ruta_de(info.nombre)
+
+    assert ruta is not None
+    assert ruta.is_file()
+    assert ruta.name == info.nombre
+
+
+def test_ruta_de_inexistente_es_none(tmp_path: Path) -> None:
+    servicio = _servicio(tmp_path)
+    assert servicio.ruta_de("app-20200101-000000.sqlite3") is None
+
+
+@pytest.mark.parametrize(
+    "nombre",
+    [
+        "../app.sqlite3",
+        "..\\app.sqlite3",
+        "app-20200101-000000.sqlite3/../../etc/passwd",
+        "/etc/passwd",
+        "app.sqlite3",
+        "app-2020-01.sqlite3",
+        "otro.txt",
+    ],
+)
+def test_ruta_de_rechaza_nombres_invalidos_y_traversal(tmp_path: Path, nombre: str) -> None:
+    servicio = _servicio(tmp_path)
+    assert servicio.ruta_de(nombre) is None

@@ -8,7 +8,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.config import settings
@@ -49,3 +50,17 @@ def listar_backups(_: UsuarioDTO = Depends(require_admin)) -> list[BackupRespons
 def crear_backup(_: UsuarioDTO = Depends(require_admin)) -> BackupResponse:
     """Genera una copia de seguridad de la BD de inmediato y rota las antiguas."""
     return _to_response(_servicio().crear_backup())
+
+
+@router.get("/admin/backups/{nombre}")
+def descargar_backup(nombre: str, _: UsuarioDTO = Depends(require_admin)) -> FileResponse:
+    """Descarga el fichero de una copia de seguridad (solo admin).
+
+    El nombre se valida en el servicio (formato exacto + contención en el directorio de
+    copias) para impedir cualquier path traversal. Se sirve como adjunto para que el
+    navegador lo descargue al PC del administrador.
+    """
+    ruta = _servicio().ruta_de(nombre)
+    if ruta is None:
+        raise HTTPException(status_code=404, detail="Copia de seguridad no encontrada.")
+    return FileResponse(ruta, media_type="application/octet-stream", filename=nombre)

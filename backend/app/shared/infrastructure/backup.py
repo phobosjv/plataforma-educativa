@@ -11,6 +11,7 @@ Infra pura: no conoce FastAPI ni el dominio. El path de la BD se deriva de ``dat
 from __future__ import annotations
 
 import logging
+import re
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -19,6 +20,9 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 _SQLITE_PREFIX = "sqlite:///"
+# Nombre exacto de un fichero de copia: app-YYYYMMDD-HHMMSS.sqlite3. Se usa para validar
+# las descargas y rechazar cualquier intento de path traversal (../, rutas absolutas, etc.).
+_NOMBRE_BACKUP_RE = re.compile(r"^app-\d{8}-\d{6}\.sqlite3$")
 
 
 @dataclass(frozen=True)
@@ -74,6 +78,22 @@ class SqliteBackupService:
             return []
         copias = [self._info(p) for p in self._backup_dir.glob("app-*.sqlite3")]
         return sorted(copias, key=lambda b: b.nombre, reverse=True)
+
+    def ruta_de(self, nombre: str) -> Path | None:
+        """Devuelve la ruta de una copia por su nombre, o ``None`` si no es válida.
+
+        Solo acepta nombres con el formato exacto de una copia (sin separadores de ruta),
+        y comprueba además que el path resuelto cae dentro de ``backup_dir``. Así una
+        descarga nunca puede salir del directorio de copias (defensa en profundidad).
+        """
+        if not _NOMBRE_BACKUP_RE.match(nombre):
+            return None
+        candidato = self._backup_dir / nombre
+        try:
+            candidato.resolve().relative_to(self._backup_dir.resolve())
+        except ValueError:
+            return None
+        return candidato if candidato.is_file() else None
 
     def _rotar(self) -> None:
         """Elimina las copias más antiguas dejando solo las ``keep`` más recientes.

@@ -422,6 +422,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/backups/{nombre}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Descargar Backup
+         * @description Descarga el fichero de una copia de seguridad (solo admin).
+         *
+         *     El nombre se valida en el servicio (formato exacto + contención en el directorio de
+         *     copias) para impedir cualquier path traversal. Se sirve como adjunto para que el
+         *     navegador lo descargue al PC del administrador.
+         */
+        get: operations["descargar_backup_api_v1_admin_backups__nombre__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1924,6 +1948,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BackupResponse"];
+                };
+            };
+        };
+    };
+    descargar_backup_api_v1_admin_backups__nombre__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nombre: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

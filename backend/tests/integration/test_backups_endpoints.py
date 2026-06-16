@@ -113,3 +113,46 @@ def test_crear_y_listar_backup(
 
 def test_crear_backup_requiere_admin(client: TestClient, editor_token: str) -> None:
     assert client.post("/api/v1/admin/backups", headers=_auth(editor_token)).status_code == 403
+
+
+def test_descargar_backup_devuelve_el_fichero(
+    client: TestClient, admin_token: str, backup_tmp: Path
+) -> None:
+    nombre = client.post("/api/v1/admin/backups", headers=_auth(admin_token)).json()["nombre"]
+
+    resp = client.get(f"/api/v1/admin/backups/{nombre}", headers=_auth(admin_token))
+
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/octet-stream"
+    assert "attachment" in resp.headers.get("content-disposition", "")
+    # Es una BD SQLite válida (cabecera mágica de SQLite).
+    assert resp.content[:16] == b"SQLite format 3\x00"
+
+
+def test_descargar_backup_inexistente_es_404(
+    client: TestClient, admin_token: str, backup_tmp: Path
+) -> None:
+    resp = client.get(
+        "/api/v1/admin/backups/app-20200101-000000.sqlite3", headers=_auth(admin_token)
+    )
+    assert resp.status_code == 404
+
+
+def test_descargar_backup_requiere_admin(
+    client: TestClient, editor_token: str, backup_tmp: Path
+) -> None:
+    resp = client.get(
+        "/api/v1/admin/backups/app-20200101-000000.sqlite3", headers=_auth(editor_token)
+    )
+    assert resp.status_code == 403
+
+
+def test_descargar_backup_rechaza_traversal(
+    client: TestClient, admin_token: str, backup_tmp: Path
+) -> None:
+    # El nombre no cumple el formato de copia => 404 (nunca sale del directorio de copias).
+    resp = client.get(
+        "/api/v1/admin/backups/app-20200101-000000.sqlite3/../../../etc/passwd",
+        headers=_auth(admin_token),
+    )
+    assert resp.status_code in (404, 400)

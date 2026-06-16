@@ -6,6 +6,25 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.10.2] - 2026-06-16
+
+### Añadido
+- **Descarga de copias de seguridad desde el navegador.** Nuevo endpoint
+  `GET /api/v1/admin/backups/{nombre}` (solo `admin`) que sirve el fichero de la copia como adjunto,
+  y botón **«Descargar»** en cada fila del panel «Copias de seguridad». La descarga usa el cliente
+  tipado con el token de sesión (`parseAs: blob`), de modo que el admin guarda la copia en su PC.
+
+### Seguridad
+- El nombre solicitado se valida en el servicio de backup (formato exacto
+  `app-YYYYMMDD-HHMMSS.sqlite3` + comprobación de contención en el directorio de copias): se rechaza
+  cualquier intento de *path traversal* (`../`, rutas absolutas, etc.) con 404.
+
+### Notas
+- Sin cambios de esquema → sin migración. 136 tests en verde (13 nuevos: validación de nombre y
+  endpoints de descarga). API version → `0.10.2`.
+
+---
+
 ## [V-0.10.1] - 2026-06-16
 
 ### Seguridad / Robustez (imágenes Docker)
