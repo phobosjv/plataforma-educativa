@@ -398,6 +398,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/backups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Backups
+         * @description Lista las copias de seguridad existentes (de la más reciente a la más antigua).
+         */
+        get: operations["listar_backups_api_v1_admin_backups_get"];
+        put?: never;
+        /**
+         * Crear Backup
+         * @description Genera una copia de seguridad de la BD de inmediato y rota las antiguas.
+         */
+        post: operations["crear_backup_api_v1_admin_backups_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -473,6 +497,18 @@ export interface components {
             nombre: string;
             /** Color */
             color: string;
+        };
+        /** BackupResponse */
+        BackupResponse: {
+            /** Nombre */
+            nombre: string;
+            /** Tamano Bytes */
+            tamano_bytes: number;
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
         };
         /** Body_login_api_v1_auth_token_post */
         Body_login_api_v1_auth_token_post: {
@@ -1848,6 +1884,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_backups_api_v1_admin_backups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupResponse"][];
+                };
+            };
+        };
+    };
+    crear_backup_api_v1_admin_backups_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupResponse"];
                 };
             };
         };

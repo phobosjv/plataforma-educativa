@@ -72,3 +72,14 @@ class PurgarContenidoCommand:
 
     contenido_id: UUID
     purged_by: UUID
+
+
+@dataclass(frozen=True)
+class PurgarPapeleraVencidaCommand:
+    """Purga DEFINITIVA del contenido que lleva en papelera más de ``antiguedad_dias``.
+
+    Operación de mantenimiento sin actor humano (la dispara la tarea programada). No
+    lleva ``purged_by`` porque la ejecuta el sistema, no un usuario.
+    """
+
+    antiguedad_dias: int

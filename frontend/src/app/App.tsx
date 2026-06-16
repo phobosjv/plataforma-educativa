@@ -12,6 +12,7 @@ import { ContenidoFormPage } from "../pages/admin/ContenidoFormPage";
 import { TaxonomiaPage } from "../pages/admin/TaxonomiaPage";
 import { UsuariosPage } from "../pages/admin/UsuariosPage";
 import { ConfiguracionPage } from "../pages/admin/ConfiguracionPage";
+import { BackupsPage } from "../pages/admin/BackupsPage";
 import { PublicLayout } from "../shared/ui/PublicLayout";
 import { AdminLayout } from "../shared/ui/AdminLayout";
 
@@ -51,6 +52,14 @@ function AppRoutes() {
           element={
             <RequireAuth rol="admin">
               <UsuariosPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="copias"
+          element={
+            <RequireAuth rol="admin">
+              <BackupsPage />
             </RequireAuth>
           }
         />

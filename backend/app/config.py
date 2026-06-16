@@ -21,5 +21,21 @@ class Settings(BaseSettings):
     default_admin_email: str = "admin@plataforma.local"
     default_admin_password: str = "CambiaMe1234"
 
+    # --- Copias de seguridad de la BD (tarea en segundo plano) ---
+    # Backup en caliente de SQLite (online backup API, seguro con WAL). Los ficheros
+    # se rotan conservando solo los `backup_keep` más recientes.
+    backup_enabled: bool = True
+    backup_dir: str = "./data/backups"
+    backup_interval_hours: int = 24
+    backup_keep: int = 7
+
+    # --- Purga programada de la papelera (borrado lógico -> físico) ---
+    # El contenido en papelera durante más de `trash_retention_days` se elimina de forma
+    # DEFINITIVA por la tarea de mantenimiento. Poner `trash_purge_enabled=False` (o
+    # `trash_retention_days<=0`) desactiva la purga automática.
+    trash_purge_enabled: bool = True
+    trash_retention_days: int = 30
+    trash_purge_interval_hours: int = 24
+
 
 settings = Settings()

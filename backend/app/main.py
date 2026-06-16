@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,10 +20,23 @@ from app.shared.domain.base import (
     DomainError,
     NotFoundError,
 )
+from app.shared.infrastructure.scheduler import MaintenanceScheduler
 
 logging.basicConfig(level=settings.log_level)
 
-app = FastAPI(title="Plataforma Educativa API", version="0.8.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    """Arranca y detiene las tareas de mantenimiento (backups + purga de papelera)."""
+    scheduler = MaintenanceScheduler(settings)
+    scheduler.start()
+    try:
+        yield
+    finally:
+        await scheduler.stop()
+
+
+app = FastAPI(title="Plataforma Educativa API", version="0.10.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -81,9 +96,11 @@ from app.contexts.content.api.router import router as content_router  # noqa: E4
 from app.contexts.taxonomy.api.router import router as taxonomy_router  # noqa: E402
 from app.contexts.configuration.api.router import router as config_router  # noqa: E402
 from app.contexts.media.api.router import router as media_router  # noqa: E402
+from app.shared.api.maintenance_router import router as maintenance_router  # noqa: E402
 
 app.include_router(identity_router, prefix="/api/v1")
 app.include_router(content_router, prefix="/api/v1")
 app.include_router(taxonomy_router, prefix="/api/v1")
 app.include_router(config_router, prefix="/api/v1")
 app.include_router(media_router, prefix="/api/v1")
+app.include_router(maintenance_router, prefix="/api/v1")

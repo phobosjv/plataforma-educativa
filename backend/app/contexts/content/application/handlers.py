@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from uuid import UUID
 
 from app.contexts.content.application.commands import (
@@ -11,6 +12,7 @@ from app.contexts.content.application.commands import (
     CrearContenidoCommand,
     PublicarContenidoCommand,
     PurgarContenidoCommand,
+    PurgarPapeleraVencidaCommand,
     RestaurarContenidoCommand,
     SubirHtmlContenidoCommand,
 )
@@ -248,6 +250,30 @@ class PurgarContenidoHandler:
             raise DomainError("Solo se puede eliminar definitivamente un contenido de la papelera.")
         self._repo.delete_permanent(cmd.contenido_id)
         self._uow.commit()
+
+
+class PurgarPapeleraVencidaHandler:
+    """Elimina DEFINITIVAMENTE el contenido que lleva en papelera más de N días.
+
+    Lo ejecuta la tarea de mantenimiento en segundo plano (no un usuario). Reúne el
+    contenido cuya antigüedad en papelera supera el umbral y lo purga en un único commit.
+    Devuelve cuántos elementos se purgaron (útil para el log y los tests).
+    """
+
+    def __init__(self, repo: ContenidoRepository, uow: UnitOfWork) -> None:
+        self._repo = repo
+        self._uow = uow
+
+    def handle(self, cmd: PurgarPapeleraVencidaCommand) -> int:
+        if cmd.antiguedad_dias <= 0:
+            return 0
+        limite = now() - timedelta(days=cmd.antiguedad_dias)
+        vencidos = self._repo.list_trash_borrado_antes_de(limite)
+        for contenido in vencidos:
+            self._repo.delete_permanent(contenido.id)
+        if vencidos:
+            self._uow.commit()
+        return len(vencidos)
 
 
 class ObtenerContenidoHandler:

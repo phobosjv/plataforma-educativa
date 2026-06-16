@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -61,6 +62,21 @@ class SqlAlchemyContenidoRepository:
             select(ContenidoModel)
             .where(ContenidoModel.is_deleted.is_(True))
             .order_by(ContenidoModel.updated_at.desc())
+        )
+        return [self._to_domain(m) for m in self._session.execute(stmt).scalars()]
+
+    def list_trash_borrado_antes_de(self, limite: datetime) -> list[Contenido]:
+        """Contenido en papelera que entró antes de ``limite``.
+
+        Un contenido borrado está congelado (no se edita ni republica), por lo que su
+        ``updated_at`` es el instante en que se movió a la papelera. Sirve, pues, como
+        marca de "borrado en" para decidir la antigüedad de la purga programada.
+        """
+        stmt = (
+            select(ContenidoModel)
+            .where(ContenidoModel.is_deleted.is_(True))
+            .where(ContenidoModel.updated_at < limite)
+            .order_by(ContenidoModel.updated_at)
         )
         return [self._to_domain(m) for m in self._session.execute(stmt).scalars()]
 

@@ -50,14 +50,24 @@ export function AdminLayout() {
           Apariencia
         </NavLink>
         {user?.rol === "admin" && (
-          <NavLink
-            to="/admin/usuarios"
-            className={({ isActive }) =>
-              "cms-sidebar-link" + (isActive ? " cms-sidebar-link-active" : "")
-            }
-          >
-            Usuarios
-          </NavLink>
+          <>
+            <NavLink
+              to="/admin/usuarios"
+              className={({ isActive }) =>
+                "cms-sidebar-link" + (isActive ? " cms-sidebar-link-active" : "")
+              }
+            >
+              Usuarios
+            </NavLink>
+            <NavLink
+              to="/admin/copias"
+              className={({ isActive }) =>
+                "cms-sidebar-link" + (isActive ? " cms-sidebar-link-active" : "")
+              }
+            >
+              Copias de seguridad
+            </NavLink>
+          </>
         )}
         <div className="cms-sidebar-spacer" />
         <Link to="/" className="cms-sidebar-link cms-sidebar-link-web">

@@ -6,6 +6,32 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.10.0] - 2026-06-16
+
+### Añadido (robustez)
+- **Copias de seguridad automáticas de la base de datos.** Tarea en segundo plano (en proceso, sin
+  broker) que hace una **copia en caliente** del SQLite con la *online backup API* (consistente y
+  segura con WAL, a diferencia de un simple copiado del fichero) y **rota** las antiguas conservando
+  solo las más recientes. Configurable por `.env`.
+- **Purga programada de la papelera.** El contenido que lleva en la papelera más de
+  `TRASH_RETENTION_DAYS` (por defecto **30 días**) se elimina de forma **definitiva** automáticamente.
+  El borrado sigue siendo lógico primero (CLAUDE.md §7); la purga solo actúa sobre lo ya borrado.
+- **Panel admin «Copias de seguridad».** Nueva sección (solo `admin`) para ver las copias existentes
+  (nombre, tamaño, fecha) y **crear una copia manual** bajo demanda.
+- **Endpoints admin** `GET /api/v1/admin/backups` y `POST /api/v1/admin/backups` (guarda de rol admin).
+
+### Cambiado
+- `app.main` arranca/detiene las tareas de mantenimiento con el `lifespan` de FastAPI.
+- Versión de la API: `0.8.0` → `0.10.0` (estaba desactualizada).
+- `.env.example` documenta las variables nuevas de backup y purga.
+
+### Notas
+- Sin cambios de esquema → **sin migración Alembic**. La antigüedad en papelera se deduce de
+  `updated_at` (un contenido borrado está congelado, así que marca cuándo entró a la papelera).
+- 123 tests en verde (12 nuevos: servicio de backup, purga y endpoints admin).
+
+---
+
 ## [V-0.9.0] - 2026-06-15
 
 ### Añadido (producción / HTTPS)

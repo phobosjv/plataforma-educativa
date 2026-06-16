@@ -170,6 +170,7 @@ body::before {
 @keyframes cms-spin { to { transform: rotate(360deg); } }
 
 .cms-empty { text-align: center; color: var(--cms-color-muted); padding: 3rem 1rem; }
+.cms-text-muted { color: var(--cms-color-muted); font-size: .9rem; }
 
 /* ── Catálogo navegable (público, pensado para niños) ── */
 .cms-cat-head { text-align: center; margin: .5rem 0 2rem; }
