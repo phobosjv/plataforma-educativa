@@ -23,6 +23,18 @@ function formatoFecha(iso: string): string {
   return new Date(iso).toLocaleString("es-ES", { dateStyle: "medium", timeStyle: "short" });
 }
 
+// Fuerza la descarga de un blob al PC creando un enlace temporal.
+function descargarBlob(blob: Blob, nombre: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export function BackupsPage() {
   const qc = useQueryClient();
   const { data, isLoading, isError } = useQuery({
@@ -32,6 +44,7 @@ export function BackupsPage() {
 
   const [error, setError] = useState("");
   const [descargando, setDescargando] = useState<string | null>(null);
+  const [exportando, setExportando] = useState(false);
 
   async function descargar(nombre: string) {
     setError("");
@@ -45,19 +58,33 @@ export function BackupsPage() {
         setError("No se pudo descargar la copia de seguridad.");
         return;
       }
-      // Forzar la descarga al PC creando un enlace temporal hacia el blob.
-      const url = URL.createObjectURL(data as Blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = nombre;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      descargarBlob(data as Blob, nombre);
     } catch {
       setError("No se pudo descargar la copia de seguridad.");
     } finally {
       setDescargando(null);
+    }
+  }
+
+  async function exportarTodo() {
+    setError("");
+    setExportando(true);
+    try {
+      const { response, data, error: apiError } = await api.POST("/api/v1/admin/export", {
+        parseAs: "blob",
+      });
+      if (apiError || !data) {
+        setError("No se pudo generar la exportación completa.");
+        return;
+      }
+      // El nombre del fichero viene en Content-Disposition; si no, uno por defecto.
+      const cd = response.headers.get("content-disposition") ?? "";
+      const match = cd.match(/filename="?([^"]+)"?/);
+      descargarBlob(data as Blob, match?.[1] ?? "plataforma-export.tar.gz");
+    } catch {
+      setError("No se pudo generar la exportación completa.");
+    } finally {
+      setExportando(false);
     }
   }
 
@@ -78,19 +105,30 @@ export function BackupsPage() {
     <>
       <div className="cms-admin-header">
         <h1 className="cms-h1">Copias de seguridad</h1>
-        <button
-          className="cms-btn cms-btn-primary"
-          onClick={() => crearBackup.mutate()}
-          disabled={crearBackup.isPending}
-        >
-          {crearBackup.isPending ? "Creando…" : "Crear copia ahora"}
-        </button>
+        <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+          <button
+            className="cms-btn cms-btn-ghost"
+            onClick={exportarTodo}
+            disabled={exportando}
+          >
+            {exportando ? "Exportando…" : "Exportar todo (BD + media)"}
+          </button>
+          <button
+            className="cms-btn cms-btn-primary"
+            onClick={() => crearBackup.mutate()}
+            disabled={crearBackup.isPending}
+          >
+            {crearBackup.isPending ? "Creando…" : "Crear copia ahora"}
+          </button>
+        </div>
       </div>
 
       <p className="cms-text-muted" style={{ marginBottom: "1.5rem" }}>
-        La copia de la base de datos se hace automáticamente cada día y se conservan las más
-        recientes; el contenido en la papelera se elimina de forma definitiva tras 30 días.
-        También puedes crear una copia manual cuando lo necesites.
+        La copia de la base de datos se hace automáticamente cada día (junto con una copia
+        incremental de los ficheros subidos) y se conservan las más recientes; el contenido en la
+        papelera se elimina de forma definitiva tras 30 días. <strong>Exportar todo</strong> descarga
+        un archivo único (base de datos + media) con el que puedes <strong>migrar el servidor o
+        recuperar el sitio entero</strong> ante un fallo total.
       </p>
 
       {error && <p className="cms-error">{error}</p>}

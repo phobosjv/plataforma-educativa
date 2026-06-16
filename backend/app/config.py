@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     backup_dir: str = "./data/backups"
     backup_interval_hours: int = 24
     backup_keep: int = 7
+    # Copia incremental de la carpeta media (ejercicios HTML + imágenes) en cada ciclo de
+    # backup. Los ficheros son content-addressed (inmutables): solo se copian los nuevos.
+    # El espejo vive en `<backup_dir>/media`.
+    media_backup_enabled: bool = True
 
     # --- Purga programada de la papelera (borrado lógico -> físico) ---
     # El contenido en papelera durante más de `trash_retention_days` se elimina de forma

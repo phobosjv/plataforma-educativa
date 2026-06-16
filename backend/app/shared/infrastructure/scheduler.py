@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 
 from app.config import Settings
 from app.contexts.content.application.commands import PurgarPapeleraVencidaCommand
@@ -24,16 +25,20 @@ from app.contexts.content.application.handlers import PurgarPapeleraVencidaHandl
 from app.contexts.content.infrastructure.repositories import SqlAlchemyContenidoRepository
 from app.shared.infrastructure.backup import SqliteBackupService
 from app.shared.infrastructure.database import SessionLocal
+from app.shared.infrastructure.media_backup import MediaMirrorService
 from app.shared.infrastructure.unit_of_work import UnitOfWork
 
 logger = logging.getLogger(__name__)
 
 
 def _ejecutar_backup(settings: Settings) -> None:
-    servicio = SqliteBackupService(
+    SqliteBackupService(
         settings.database_url, settings.backup_dir, settings.backup_keep
-    )
-    servicio.crear_backup()
+    ).crear_backup()
+    # Copia incremental de media en el mismo ciclo (solo ficheros nuevos; son inmutables).
+    if settings.media_backup_enabled:
+        mirror_dir = str(Path(settings.backup_dir) / "media")
+        MediaMirrorService(settings.media_dir, mirror_dir).sync()
 
 
 def _ejecutar_purga(settings: Settings) -> None:

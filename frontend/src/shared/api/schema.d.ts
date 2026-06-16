@@ -446,6 +446,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Exportar Todo
+         * @description Genera y descarga la exportación completa (BD + media) como ``.tar.gz`` (solo admin).
+         *
+         *     Con este archivo se puede migrar el servidor o recuperar el sitio entero. Se construye
+         *     en un temporal bajo el directorio de backups y se elimina después de enviarlo.
+         */
+        post: operations["exportar_todo_api_v1_admin_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1979,6 +2002,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exportar_todo_api_v1_admin_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

@@ -54,9 +54,19 @@ class SqliteBackupService:
         self._backup_dir.mkdir(parents=True, exist_ok=True)
         marca = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
         destino = self._backup_dir / f"app-{marca}.sqlite3"
+        self.copiar_consistente(destino)
+        self._rotar()
+        info = self._info(destino)
+        logger.info("Backup creado: %s (%d bytes)", info.nombre, info.tamano_bytes)
+        return info
 
-        # connect en modo solo-lectura del origen no es imprescindible: backup() toma un
-        # snapshot consistente aunque haya escrituras concurrentes.
+    def copiar_consistente(self, destino: Path) -> Path:
+        """Copia la BD a ``destino`` con la online backup API (snapshot consistente).
+
+        Seguro con WAL aunque haya escrituras concurrentes (a diferencia de copiar el
+        fichero a pelo). Reutilizado por ``crear_backup`` y por la exportación completa.
+        """
+        destino.parent.mkdir(parents=True, exist_ok=True)
         origen = sqlite3.connect(self._db_path)
         try:
             copia = sqlite3.connect(destino)
@@ -66,11 +76,7 @@ class SqliteBackupService:
                 copia.close()
         finally:
             origen.close()
-
-        self._rotar()
-        info = self._info(destino)
-        logger.info("Backup creado: %s (%d bytes)", info.nombre, info.tamano_bytes)
-        return info
+        return destino
 
     def listar_backups(self) -> list[BackupInfo]:
         """Lista las copias existentes, de la más reciente a la más antigua."""

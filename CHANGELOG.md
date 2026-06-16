@@ -6,6 +6,32 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.10.3] - 2026-06-16
+
+### Añadido
+- **Exportación completa del sitio (BD + media) descargable.** Nuevo endpoint
+  `POST /api/v1/admin/export` (solo `admin`) y botón **«Exportar todo (BD + media)»** en el panel.
+  Genera un `.tar.gz` con `data/app.sqlite3` (copia en caliente), la carpeta `media/` entera y un
+  `manifest.json`. Con ese archivo se puede **migrar el servidor** o **recuperar el sitio entero**
+  ante un fallo total. No incluye el `.env` (secretos): se gestiona aparte.
+- **Copia incremental automática de `media`.** En cada ciclo de backup, junto a la copia de la BD,
+  se sincroniza un espejo de `media` en `./data/backups/media/` copiando solo los ficheros nuevos
+  (son content-addressed e inmutables). Desactivable con `MEDIA_BACKUP_ENABLED=false`.
+
+### Documentación
+- Nueva guía `docs/copias-y-restauracion.md`: qué se guarda y dónde, copias automáticas,
+  exportación y **procedimiento de restauración/migración** a otro servidor.
+
+### Cambiado
+- La versión de la app se centraliza en `app/version.py` (`__version__`), usada por FastAPI y por el
+  `manifest.json` de la exportación (evita el drift de la versión, que llegó a quedar desactualizada).
+
+### Notas
+- Sin cambios de esquema → sin migración. 144 tests en verde (8 nuevos: espejo de media, servicio de
+  exportación y endpoint). API version → `0.10.3`.
+
+---
+
 ## [V-0.10.2] - 2026-06-16
 
 ### Añadido

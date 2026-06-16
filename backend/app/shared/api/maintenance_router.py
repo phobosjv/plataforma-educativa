@@ -6,16 +6,21 @@ rutas permiten al admin ver las copias existentes y lanzar una copia manual bajo
 
 from __future__ import annotations
 
+import os
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from starlette.background import BackgroundTask
 
 from app.config import settings
 from app.contexts.identity.api.dependencies import require_admin
 from app.contexts.identity.application.dtos import UsuarioDTO
 from app.shared.infrastructure.backup import BackupInfo, SqliteBackupService
+from app.shared.infrastructure.export import ExportService
+from app.version import __version__
 
 router = APIRouter(tags=["maintenance"])
 
@@ -64,3 +69,27 @@ def descargar_backup(nombre: str, _: UsuarioDTO = Depends(require_admin)) -> Fil
     if ruta is None:
         raise HTTPException(status_code=404, detail="Copia de seguridad no encontrada.")
     return FileResponse(ruta, media_type="application/octet-stream", filename=nombre)
+
+
+def _borrar_temporal(ruta: Path) -> None:
+    try:
+        os.unlink(ruta)
+    except OSError:
+        pass
+
+
+@router.post("/admin/export")
+def exportar_todo(_: UsuarioDTO = Depends(require_admin)) -> FileResponse:
+    """Genera y descarga la exportación completa (BD + media) como ``.tar.gz`` (solo admin).
+
+    Con este archivo se puede migrar el servidor o recuperar el sitio entero. Se construye
+    en un temporal bajo el directorio de backups y se elimina después de enviarlo.
+    """
+    work = str(Path(settings.backup_dir) / "tmp")
+    export_path = ExportService(settings.database_url, settings.media_dir, __version__).crear(work)
+    return FileResponse(
+        export_path,
+        media_type="application/gzip",
+        filename=export_path.name,
+        background=BackgroundTask(_borrar_temporal, export_path),
+    )

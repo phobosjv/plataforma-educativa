@@ -47,14 +47,18 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
 
 @pytest.fixture()
 def backup_tmp(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Apunta el servicio de backup a una BD y un directorio temporales."""
+    """Apunta backup/export a una BD, un directorio de copias y una media temporales."""
     db = tmp_path / "app.sqlite3"
     con = sqlite3.connect(db)
     con.execute("CREATE TABLE t (id INTEGER PRIMARY KEY)")
     con.commit()
     con.close()
+    media = tmp_path / "media"
+    (media / "images").mkdir(parents=True)
+    (media / "images" / "a.png").write_bytes(b"img")
     monkeypatch.setattr(settings, "database_url", f"sqlite:///{db}")
     monkeypatch.setattr(settings, "backup_dir", str(tmp_path / "backups"))
+    monkeypatch.setattr(settings, "media_dir", str(media))
     return tmp_path
 
 
@@ -156,3 +160,34 @@ def test_descargar_backup_rechaza_traversal(
         headers=_auth(admin_token),
     )
     assert resp.status_code in (404, 400)
+
+
+# ── Exportación completa (BD + media) ────────────────────────────────────────────
+
+
+def test_export_requiere_admin(client: TestClient, editor_token: str) -> None:
+    assert client.post("/api/v1/admin/export", headers=_auth(editor_token)).status_code == 403
+
+
+def test_export_sin_auth_es_401(client: TestClient) -> None:
+    assert client.post("/api/v1/admin/export").status_code == 401
+
+
+def test_export_descarga_targz_con_bd_y_media(
+    client: TestClient, admin_token: str, backup_tmp: Path
+) -> None:
+    import io
+    import tarfile
+
+    resp = client.post("/api/v1/admin/export", headers=_auth(admin_token))
+
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/gzip"
+    assert "attachment" in resp.headers.get("content-disposition", "")
+    assert "plataforma-export-" in resp.headers.get("content-disposition", "")
+
+    with tarfile.open(fileobj=io.BytesIO(resp.content), mode="r:gz") as tar:
+        nombres = tar.getnames()
+        assert "data/app.sqlite3" in nombres
+        assert "manifest.json" in nombres
+        assert "media/images/a.png" in nombres

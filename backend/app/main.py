@@ -21,6 +21,7 @@ from app.shared.domain.base import (
     NotFoundError,
 )
 from app.shared.infrastructure.scheduler import MaintenanceScheduler
+from app.version import __version__
 
 logging.basicConfig(level=settings.log_level)
 
@@ -36,7 +37,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         await scheduler.stop()
 
 
-app = FastAPI(title="Plataforma Educativa API", version="0.10.2", lifespan=lifespan)
+app = FastAPI(title="Plataforma Educativa API", version=__version__, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
