@@ -32,6 +32,7 @@ class ActualizarAjustesGeneralesHandler:
         config.cambiar_fuente(cmd.fuente_activa)
         config.cambiar_fondo(cmd.fondo_activo)
         config.cambiar_estilo_fondo(cmd.fondo_estilo)
+        config.cambiar_aula_abierta(cmd.aula_abierta_label, cmd.aula_abierta_emoji)
         self._repo.save(config)
         self._uow.commit()
         return config_to_dto(config)

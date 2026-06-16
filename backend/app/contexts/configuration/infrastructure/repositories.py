@@ -25,6 +25,8 @@ class SqlAlchemyConfiguracionRepository:
         model.fuente_activa = config.fuente_activa
         model.fondo_activo = config.fondo_activo
         model.fondo_estilo = config.fondo_estilo
+        model.aula_abierta_label = config.aula_abierta_label
+        model.aula_abierta_emoji = config.aula_abierta_emoji
 
     def _get_or_create_model(self) -> ConfiguracionModel:
         """Obtiene la fila singleton, creándola si no existe.
@@ -45,6 +47,8 @@ class SqlAlchemyConfiguracionRepository:
                 fuente_activa="sistema",
                 fondo_activo="ninguno",
                 fondo_estilo="ordenado",
+                aula_abierta_label="Aula Abierta",
+                aula_abierta_emoji="🌟",
             )
             self._session.add(model)
             self._session.flush()
@@ -60,4 +64,6 @@ class SqlAlchemyConfiguracionRepository:
             fuente_activa=m.fuente_activa,
             fondo_activo=m.fondo_activo,
             fondo_estilo=m.fondo_estilo,
+            aula_abierta_label=m.aula_abierta_label,
+            aula_abierta_emoji=m.aula_abierta_emoji,
         )

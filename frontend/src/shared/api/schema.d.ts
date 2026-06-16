@@ -484,6 +484,8 @@ export interface components {
             nombre?: string | null;
             /** Color */
             color?: string | null;
+            /** Transversal */
+            transversal?: boolean | null;
         };
         /** ActualizarCicloRequest */
         ActualizarCicloRequest: {
@@ -532,6 +534,16 @@ export interface components {
              * @default ordenado
              */
             fondo_estilo: string;
+            /**
+             * Aula Abierta Label
+             * @default Aula Abierta
+             */
+            aula_abierta_label: string;
+            /**
+             * Aula Abierta Emoji
+             * @default 🌟
+             */
+            aula_abierta_emoji: string;
         };
         /** AsignaturaResponse */
         AsignaturaResponse: {
@@ -544,6 +556,8 @@ export interface components {
             nombre: string;
             /** Color */
             color: string;
+            /** Transversal */
+            transversal: boolean;
         };
         /** BackupResponse */
         BackupResponse: {
@@ -615,6 +629,10 @@ export interface components {
             fondo_activo: string;
             /** Fondo Estilo */
             fondo_estilo: string;
+            /** Aula Abierta Label */
+            aula_abierta_label: string;
+            /** Aula Abierta Emoji */
+            aula_abierta_emoji: string;
             /** Paletas Personalizadas */
             paletas_personalizadas: components["schemas"]["PaletaResponse"][];
         };
@@ -673,6 +691,11 @@ export interface components {
              * @default #6366f1
              */
             color: string;
+            /**
+             * Transversal
+             * @default false
+             */
+            transversal: boolean;
         };
         /** CrearCicloRequest */
         CrearCicloRequest: {

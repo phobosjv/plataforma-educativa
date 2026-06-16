@@ -6,6 +6,30 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.11.0] - 2026-06-16
+
+### Añadido (asignaturas transversales / Aula Abierta)
+- **Asignaturas transversales.** Una asignatura puede marcarse como **transversal** (check en
+  Taxonomía): p. ej. Audición y Lenguaje o Pedagogía Terapéutica, que no dependen del curso. Su
+  contenido se saca de la clasificación por ciclo/curso y se agrupa en **«Aula Abierta»**.
+- **Catálogo público — Aula Abierta.** Tarjeta de acceso (en el inicio y dentro de un curso, solo si
+  hay contenido transversal) que lleva a las asignaturas transversales y a sus ejercicios, agregados
+  de cualquier curso. El contenido transversal **no** aparece en el flujo normal de curso/asignatura.
+- **Etiqueta y emoji configurables** de «Aula Abierta» en Apariencia (default `🌟 Aula Abierta`), para
+  que cada centro elija un término inclusivo.
+- **Formulario de contenido**: al elegir una asignatura transversal se ocultan ciclo/curso (no
+  aplican) y el desplegable separa las asignaturas normales de las transversales.
+
+### Cambiado / migraciones
+- Alembic `008` (`asignatura.is_transversal`) y `009` (`site_config.aula_abierta_label/emoji`).
+- Esquemas API: `AsignaturaResponse`/requests con `transversal`; `ConfiguracionResponse`/ajustes
+  generales con `aula_abierta_label`/`aula_abierta_emoji`. Cliente OpenAPI regenerado.
+
+### Notas
+- 149 tests de backend + 7 E2E (2 nuevos de Aula Abierta) en verde. API version → `0.11.0`.
+
+---
+
 ## [V-0.10.4] - 2026-06-16
 
 ### Añadido (tests)

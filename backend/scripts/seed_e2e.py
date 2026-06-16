@@ -179,6 +179,24 @@ def main() -> None:
             PublicarContenidoCommand(contenido_id=articulo_id, published_by=admin_id)
         )
 
+        # 6. Asignatura TRANSVERSAL (Aula Abierta) + un contenido sin ciclo/curso.
+        transversal_id = CrearAsignaturaHandler(
+            SqlAlchemyAsignaturaRepository(session), UnitOfWork(session)
+        ).handle(CrearAsignaturaCommand(nombre="Audición y Lenguaje", transversal=True))
+        aula_id = CrearContenidoHandler(repo, vrepo, UnitOfWork(session), Nh3HtmlSanitizer()).handle(
+            CrearContenidoCommand(
+                titulo="Ejercicio Aula Abierta",
+                descripcion="Contenido transversal de prueba E2E",
+                tipo="texto",
+                autor_id=admin_id,
+                asignatura_id=transversal_id,
+                body_html="<p>Actividad de apoyo (transversal).</p>",
+            )
+        )
+        PublicarContenidoHandler(repo, UnitOfWork(session)).handle(
+            PublicarContenidoCommand(contenido_id=aula_id, published_by=admin_id)
+        )
+
         print(f"[seed_e2e] OK — admin={ADMIN_EMAIL} ejercicio={ejercicio_id} articulo={articulo_id}")
     finally:
         session.close()

@@ -45,13 +45,16 @@ class AsignaturaResponse(BaseModel):
     id: UUID
     nombre: str
     color: str
+    transversal: bool
 
 
 class CrearAsignaturaRequest(BaseModel):
     nombre: str = Field(min_length=1, max_length=100)
     color: str = "#6366f1"
+    transversal: bool = False
 
 
 class ActualizarAsignaturaRequest(BaseModel):
     nombre: str | None = Field(default=None, min_length=1, max_length=100)
     color: str | None = None
+    transversal: bool | None = None

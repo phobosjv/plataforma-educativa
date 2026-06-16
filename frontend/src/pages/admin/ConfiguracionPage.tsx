@@ -11,18 +11,31 @@ function AjustesGenerales({
   fuenteInicial,
   fondoInicial,
   estiloInicial,
+  aulaLabelInicial,
+  aulaEmojiInicial,
   onGuardar,
 }: {
   nombreInicial: string;
   fuenteInicial: string;
   fondoInicial: string;
   estiloInicial: string;
-  onGuardar: (nombre: string, fuente: string, fondo: string, estilo: string) => Promise<void>;
+  aulaLabelInicial: string;
+  aulaEmojiInicial: string;
+  onGuardar: (
+    nombre: string,
+    fuente: string,
+    fondo: string,
+    estilo: string,
+    aulaLabel: string,
+    aulaEmoji: string,
+  ) => Promise<void>;
 }) {
   const [nombre, setNombre] = useState(nombreInicial);
   const [fuente, setFuente] = useState(fuenteInicial);
   const [fondo, setFondo] = useState(fondoInicial);
   const [estilo, setEstilo] = useState(estiloInicial);
+  const [aulaLabel, setAulaLabel] = useState(aulaLabelInicial);
+  const [aulaEmoji, setAulaEmoji] = useState(aulaEmojiInicial);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
 
@@ -31,19 +44,23 @@ function AjustesGenerales({
   useEffect(() => setFuente(fuenteInicial), [fuenteInicial]);
   useEffect(() => setFondo(fondoInicial), [fondoInicial]);
   useEffect(() => setEstilo(estiloInicial), [estiloInicial]);
+  useEffect(() => setAulaLabel(aulaLabelInicial), [aulaLabelInicial]);
+  useEffect(() => setAulaEmoji(aulaEmojiInicial), [aulaEmojiInicial]);
 
   const sucio =
     nombre.trim() !== nombreInicial ||
     fuente !== fuenteInicial ||
     fondo !== fondoInicial ||
-    estilo !== estiloInicial;
+    estilo !== estiloInicial ||
+    aulaLabel.trim() !== aulaLabelInicial ||
+    aulaEmoji !== aulaEmojiInicial;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!nombre.trim() || guardando) return;
+    if (!nombre.trim() || !aulaLabel.trim() || guardando) return;
     setGuardando(true);
     setGuardado(false);
-    onGuardar(nombre.trim(), fuente, fondo, estilo)
+    onGuardar(nombre.trim(), fuente, fondo, estilo, aulaLabel.trim(), aulaEmoji.trim())
       .then(() => setGuardado(true))
       .catch(() => setGuardado(false)) // el error se muestra a nivel de página
       .finally(() => setGuardando(false));
@@ -244,6 +261,40 @@ function AjustesGenerales({
             </button>
           );
         })}
+      </div>
+
+      <label className="cms-label" style={{ display: "block", marginTop: "1.5rem", marginBottom: ".4rem" }}>
+        Aula Abierta (asignaturas transversales)
+      </label>
+      <p className="cms-text-muted" style={{ marginBottom: ".6rem" }}>
+        Nombre y emoji de la tarjeta que agrupa las asignaturas transversales (p. ej. Audición y
+        Lenguaje) en el catálogo. Elige un término inclusivo para tu centro.
+      </p>
+      <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap", marginBottom: "1.25rem" }}>
+        <div className="cms-form-group" style={{ marginBottom: 0, width: 90 }}>
+          <label className="cms-label" htmlFor="cms-aula-emoji">Emoji</label>
+          <input
+            id="cms-aula-emoji"
+            className="cms-input"
+            value={aulaEmoji}
+            maxLength={8}
+            onChange={(e) => { setAulaEmoji(e.target.value); setGuardado(false); }}
+            placeholder="🌟"
+            style={{ textAlign: "center" }}
+          />
+        </div>
+        <div className="cms-form-group" style={{ marginBottom: 0, flex: 1, minWidth: 220, maxWidth: 320 }}>
+          <label className="cms-label" htmlFor="cms-aula-label">Nombre</label>
+          <input
+            id="cms-aula-label"
+            className="cms-input"
+            value={aulaLabel}
+            maxLength={40}
+            onChange={(e) => { setAulaLabel(e.target.value); setGuardado(false); }}
+            placeholder="Aula Abierta"
+            required
+          />
+        </div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
@@ -478,6 +529,8 @@ export function ConfiguracionPage() {
     fuente_activa,
     fondo_activo,
     fondo_estilo,
+    aula_abierta_label,
+    aula_abierta_emoji,
     paleta_activa,
     personalizadas,
     isLoading,
@@ -526,9 +579,13 @@ export function ConfiguracionPage() {
         fuenteInicial={fuente_activa}
         fondoInicial={fondo_activo}
         estiloInicial={fondo_estilo}
-        onGuardar={(nombre, fuente, fondo, estilo) => {
+        aulaLabelInicial={aula_abierta_label}
+        aulaEmojiInicial={aula_abierta_emoji}
+        onGuardar={(nombre, fuente, fondo, estilo, aulaLabel, aulaEmoji) => {
           setError(null);
-          return guardarAjustesGenerales(nombre, fuente, fondo, estilo).catch((e: unknown) => {
+          return guardarAjustesGenerales(
+            nombre, fuente, fondo, estilo, aulaLabel, aulaEmoji,
+          ).catch((e: unknown) => {
             setError(e instanceof Error ? e.message : "Error inesperado.");
             throw e;
           });

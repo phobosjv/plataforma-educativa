@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from uuid import UUID
 
 from app.shared.domain.base import DomainError, Entity
@@ -32,6 +32,8 @@ FONDOS_PERMITIDOS: frozenset[str] = frozenset(
 ESTILOS_FONDO_PERMITIDOS: frozenset[str] = frozenset({"ordenado", "desordenado"})
 
 LONGITUD_MAX_NOMBRE = 80
+LONGITUD_MAX_AULA_ABIERTA = 40
+LONGITUD_MAX_EMOJI = 8
 
 
 @dataclass
@@ -62,6 +64,11 @@ class ConfiguracionSitio(Entity):
     fuente_activa: str = "sistema"
     fondo_activo: str = "ninguno"
     fondo_estilo: str = "ordenado"
+    # Etiqueta y emoji de la entrada a las asignaturas transversales en el catálogo. El
+    # nombre lo decide cada centro (p. ej. "Aula Abierta", "Diversidad") para evitar
+    # términos que puedan estigmatizar al alumnado con esas necesidades.
+    aula_abierta_label: str = "Aula Abierta"
+    aula_abierta_emoji: str = "🌟"
 
     @classmethod
     def singleton(cls) -> "ConfiguracionSitio":
@@ -95,6 +102,20 @@ class ConfiguracionSitio(Entity):
         if estilo not in ESTILOS_FONDO_PERMITIDOS:
             raise DomainError(f"Estilo de fondo '{estilo}' no permitido.")
         self.fondo_estilo = estilo
+
+    def cambiar_aula_abierta(self, label: str, emoji: str) -> None:
+        label = label.strip()
+        if not label:
+            raise DomainError("La etiqueta de Aula Abierta no puede estar vacía.")
+        if len(label) > LONGITUD_MAX_AULA_ABIERTA:
+            raise DomainError(
+                f"La etiqueta de Aula Abierta no puede superar {LONGITUD_MAX_AULA_ABIERTA} caracteres."
+            )
+        emoji = emoji.strip()
+        if len(emoji) > LONGITUD_MAX_EMOJI:
+            raise DomainError("El emoji de Aula Abierta es demasiado largo.")
+        self.aula_abierta_label = label
+        self.aula_abierta_emoji = emoji
 
     def activar_paleta(self, paleta_id: str) -> None:
         self.paleta_activa = paleta_id

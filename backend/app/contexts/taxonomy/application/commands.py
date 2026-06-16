@@ -47,6 +47,7 @@ class EliminarCursoCommand:
 class CrearAsignaturaCommand:
     nombre: str
     color: str = "#6366f1"
+    transversal: bool = False
 
 
 @dataclass(frozen=True)
@@ -54,6 +55,7 @@ class ActualizarAsignaturaCommand:
     asignatura_id: UUID
     nombre: str | None = None
     color: str | None = None
+    transversal: bool | None = None
 
 
 @dataclass(frozen=True)

@@ -18,6 +18,8 @@ class ConfiguracionResponse(BaseModel):
     fuente_activa: str
     fondo_activo: str
     fondo_estilo: str
+    aula_abierta_label: str
+    aula_abierta_emoji: str
     paletas_personalizadas: list[PaletaResponse]
 
 
@@ -26,6 +28,8 @@ class AjustesGeneralesRequest(BaseModel):
     fuente_activa: str
     fondo_activo: str = "ninguno"
     fondo_estilo: str = "ordenado"
+    aula_abierta_label: str = Field(default="Aula Abierta", min_length=1, max_length=40)
+    aula_abierta_emoji: str = Field(default="🌟", max_length=8)
 
 
 class ActivarPaletaRequest(BaseModel):

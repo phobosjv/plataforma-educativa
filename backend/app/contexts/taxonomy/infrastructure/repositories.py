@@ -94,7 +94,12 @@ class SqlAlchemyAsignaturaRepository:
 
     def add(self, asignatura: Asignatura) -> None:
         self._session.add(
-            AsignaturaModel(id=str(asignatura.id), nombre=asignatura.nombre, color=asignatura.color)
+            AsignaturaModel(
+                id=str(asignatura.id),
+                nombre=asignatura.nombre,
+                color=asignatura.color,
+                is_transversal=asignatura.transversal,
+            )
         )
 
     def get(self, asignatura_id: UUID) -> Asignatura | None:
@@ -106,6 +111,7 @@ class SqlAlchemyAsignaturaRepository:
         if m:
             m.nombre = asignatura.nombre
             m.color = asignatura.color
+            m.is_transversal = asignatura.transversal
 
     def delete(self, asignatura_id: UUID) -> None:
         m = self._session.get(AsignaturaModel, str(asignatura_id))
@@ -118,4 +124,6 @@ class SqlAlchemyAsignaturaRepository:
 
     @staticmethod
     def _to_domain(m: AsignaturaModel) -> Asignatura:
-        return Asignatura(id=UUID(m.id), nombre=m.nombre, color=m.color)
+        return Asignatura(
+            id=UUID(m.id), nombre=m.nombre, color=m.color, transversal=m.is_transversal
+        )

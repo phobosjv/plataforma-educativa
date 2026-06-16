@@ -112,6 +112,39 @@ def test_obtener_configuracion_incluye_fondo_por_defecto(client: TestClient) -> 
     assert body["fondo_activo"] == "ninguno"
 
 
+def test_aula_abierta_por_defecto(client: TestClient) -> None:
+    body = client.get("/api/v1/config/").json()
+    assert body["aula_abierta_label"] == "Aula Abierta"
+    assert body["aula_abierta_emoji"] == "🌟"
+
+
+def test_actualizar_aula_abierta(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "aula_abierta_label": "Diversidad",
+            "aula_abierta_emoji": "🌈",
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 200
+    assert resp.json()["aula_abierta_label"] == "Diversidad"
+    assert resp.json()["aula_abierta_emoji"] == "🌈"
+    publico = client.get("/api/v1/config/").json()
+    assert publico["aula_abierta_label"] == "Diversidad"
+
+
+def test_aula_abierta_label_vacio_devuelve_error(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={"nombre_sitio": "Mi Cole", "fuente_activa": "sistema", "aula_abierta_label": "   "},
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 400
+
+
 def test_actualizar_fondo(client: TestClient, admin_token: str) -> None:
     resp = client.put(
         "/api/v1/config/general",

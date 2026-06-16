@@ -196,6 +196,36 @@ def test_crear_y_listar_asignatura(client: TestClient, admin_token: str) -> None
     lista = client.get("/api/v1/taxonomy/asignaturas/").json()
     assert len(lista) == 1
     assert lista[0]["color"] == "#3b82f6"
+    assert lista[0]["transversal"] is False  # por defecto NO transversal
+
+
+def test_crear_asignatura_transversal(client: TestClient, admin_token: str) -> None:
+    resp = client.post(
+        "/api/v1/taxonomy/asignaturas/",
+        json={"nombre": "Audición y Lenguaje", "transversal": True},
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 201
+    lista = client.get("/api/v1/taxonomy/asignaturas/").json()
+    assert lista[0]["transversal"] is True
+
+
+def test_marcar_asignatura_como_transversal(client: TestClient, admin_token: str) -> None:
+    uid = client.post(
+        "/api/v1/taxonomy/asignaturas/",
+        json={"nombre": "Pedagogía Terapéutica"},
+        headers=auth_headers(admin_token),
+    ).json()["id"]
+
+    resp = client.put(
+        f"/api/v1/taxonomy/asignaturas/{uid}",
+        json={"transversal": True},
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 200
+    assert resp.json()["transversal"] is True
+    # Persiste y se ve en la lista.
+    assert client.get("/api/v1/taxonomy/asignaturas/").json()[0]["transversal"] is True
 
 
 def test_actualizar_asignatura(client: TestClient, admin_token: str) -> None:

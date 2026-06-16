@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import Boolean, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.infrastructure.database import Base
@@ -31,3 +31,4 @@ class AsignaturaModel(Base):
     id: Mapped[str] = mapped_column(String, primary_key=True)
     nombre: Mapped[str] = mapped_column(String, nullable=False)
     color: Mapped[str] = mapped_column(String, default="#6366f1", nullable=False)
+    is_transversal: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

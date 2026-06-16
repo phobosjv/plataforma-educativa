@@ -178,7 +178,7 @@ class CrearAsignaturaHandler:
         self._uow = uow
 
     def handle(self, cmd: CrearAsignaturaCommand) -> UUID:
-        asignatura = Asignatura(nombre=cmd.nombre, color=cmd.color)
+        asignatura = Asignatura(nombre=cmd.nombre, color=cmd.color, transversal=cmd.transversal)
         self._repo.add(asignatura)
         self._uow.commit()
         return asignatura.id
@@ -193,7 +193,7 @@ class ActualizarAsignaturaHandler:
         asignatura = self._repo.get(cmd.asignatura_id)
         if asignatura is None:
             raise NotFoundError(f"Asignatura {cmd.asignatura_id} no encontrada.")
-        asignatura.actualizar(nombre=cmd.nombre, color=cmd.color)
+        asignatura.actualizar(nombre=cmd.nombre, color=cmd.color, transversal=cmd.transversal)
         self._repo.save(asignatura)
         self._uow.commit()
         return asignatura_to_dto(asignatura)

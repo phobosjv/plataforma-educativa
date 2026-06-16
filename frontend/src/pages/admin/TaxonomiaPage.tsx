@@ -135,7 +135,11 @@ export function TaxonomiaPage() {
   const crearAsig = useMutation({
     mutationFn: (body: components["schemas"]["CrearAsignaturaRequest"]) =>
       api.POST("/api/v1/taxonomy/asignaturas/", { body }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["asignaturas"] }); setNombreAsig(""); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["asignaturas"] });
+      setNombreAsig("");
+      setTransversalAsig(false);
+    },
   });
   const editarAsig = useMutation({
     mutationFn: ({ id, body }: { id: string; body: components["schemas"]["ActualizarAsignaturaRequest"] }) =>
@@ -153,6 +157,7 @@ export function TaxonomiaPage() {
   const [cicloSeleccionado, setCicloSeleccionado] = useState("");
   const [nombreAsig, setNombreAsig] = useState("");
   const [colorAsig, setColorAsig] = useState("#6366f1");
+  const [transversalAsig, setTransversalAsig] = useState(false);
 
   function handleCiclo(e: FormEvent) {
     e.preventDefault();
@@ -173,7 +178,7 @@ export function TaxonomiaPage() {
   function handleAsig(e: FormEvent) {
     e.preventDefault();
     if (!nombreAsig.trim()) return;
-    crearAsig.mutate({ nombre: nombreAsig, color: colorAsig });
+    crearAsig.mutate({ nombre: nombreAsig, color: colorAsig, transversal: transversalAsig });
   }
 
   return (
@@ -264,16 +269,27 @@ export function TaxonomiaPage() {
           <p className="cms-empty">Sin asignaturas aún.</p>
         ) : (
           <table className="cms-table" style={{ marginBottom: "1rem" }}>
-            <thead><tr><th>Nombre</th><th>Color</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Nombre</th><th>Color / Tipo</th><th>Acciones</th></tr></thead>
             <tbody>
               {asignaturas.map((a) => (
                 <FilaEditable
                   key={a.id}
                   nombre={a.nombre}
                   extra={
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: ".4rem" }}>
-                      <span style={{ width: 16, height: 16, borderRadius: "50%", background: a.color, display: "inline-block", border: "1px solid #ccc" }} />
-                      {a.color}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: ".4rem" }}>
+                        <span style={{ width: 16, height: 16, borderRadius: "50%", background: a.color, display: "inline-block", border: "1px solid #ccc" }} />
+                        {a.color}
+                      </span>
+                      {a.transversal && <span className="cms-badge cms-badge-publicado">Transversal</span>}
+                      <button
+                        type="button"
+                        className="cms-btn cms-btn-ghost"
+                        style={{ padding: ".2rem .5rem", fontSize: ".8rem" }}
+                        onClick={() => editarAsig.mutate({ id: a.id, body: { transversal: !a.transversal } })}
+                      >
+                        {a.transversal ? "Quitar transversal" : "Marcar transversal"}
+                      </button>
                     </span>
                   }
                   onEdit={(nombre) => editarAsig.mutate({ id: a.id, body: { nombre } })}
@@ -295,8 +311,18 @@ export function TaxonomiaPage() {
               onChange={(e) => setColorAsig(e.target.value)}
               style={{ height: "38px", width: "48px", padding: "2px", border: "1px solid var(--cms-color-border)", borderRadius: "var(--cms-radius-sm)", cursor: "pointer" }} />
           </div>
+          <div className="cms-form-group" style={{ marginBottom: 0, alignSelf: "flex-end" }}>
+            <label className="cms-label" style={{ display: "inline-flex", alignItems: "center", gap: ".4rem", cursor: "pointer" }}>
+              <input type="checkbox" checked={transversalAsig} onChange={(e) => setTransversalAsig(e.target.checked)} />
+              Transversal
+            </label>
+          </div>
           <button type="submit" className="cms-btn cms-btn-primary" style={{ alignSelf: "flex-end" }}>Añadir</button>
         </form>
+        <p className="cms-text-muted" style={{ marginTop: ".5rem" }}>
+          Una asignatura <strong>transversal</strong> (p. ej. Audición y Lenguaje) no se clasifica por
+          ciclo/curso: su contenido aparece en el catálogo dentro de «Aula Abierta».
+        </p>
       </section>
     </>
   );

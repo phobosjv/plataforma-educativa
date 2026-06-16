@@ -22,6 +22,8 @@ class ConfiguracionDTO:
     fuente_activa: str
     fondo_activo: str
     fondo_estilo: str
+    aula_abierta_label: str
+    aula_abierta_emoji: str
     paletas_personalizadas: list[PaletaDTO]
 
 
@@ -32,6 +34,8 @@ def config_to_dto(c: ConfiguracionSitio) -> ConfiguracionDTO:
         fuente_activa=c.fuente_activa,
         fondo_activo=c.fondo_activo,
         fondo_estilo=c.fondo_estilo,
+        aula_abierta_label=c.aula_abierta_label,
+        aula_abierta_emoji=c.aula_abierta_emoji,
         paletas_personalizadas=[
             PaletaDTO(
                 id=p.id,

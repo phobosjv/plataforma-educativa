@@ -60,6 +60,8 @@ export function useConfig() {
     fuente_activa: data?.fuente_activa ?? "sistema",
     fondo_activo: data?.fondo_activo ?? "ninguno",
     fondo_estilo: data?.fondo_estilo ?? "ordenado",
+    aula_abierta_label: data?.aula_abierta_label ?? "Aula Abierta",
+    aula_abierta_emoji: data?.aula_abierta_emoji ?? "🌟",
     todasLasPaletas,
     personalizadas,
   };
@@ -83,9 +85,18 @@ export function useConfigMutations() {
     fuente_activa: string,
     fondo_activo: string,
     fondo_estilo: string,
+    aula_abierta_label: string,
+    aula_abierta_emoji: string,
   ) {
     const { data, error } = await api.PUT("/api/v1/config/general", {
-      body: { nombre_sitio, fuente_activa, fondo_activo, fondo_estilo },
+      body: {
+        nombre_sitio,
+        fuente_activa,
+        fondo_activo,
+        fondo_estilo,
+        aula_abierta_label,
+        aula_abierta_emoji,
+      },
     });
     if (error || !data) throw new Error(mensajeError(error));
     aplicarFuente(data.fuente_activa);

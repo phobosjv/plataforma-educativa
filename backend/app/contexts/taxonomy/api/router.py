@@ -214,7 +214,10 @@ def listar_asignaturas(db: Session = Depends(get_db)) -> list[AsignaturaResponse
     dtos = ListarAsignaturasHandler(SqlAlchemyAsignaturaRepository(db)).handle(
         ListarAsignaturasQuery()
     )
-    return [AsignaturaResponse(id=d.id, nombre=d.nombre, color=d.color) for d in dtos]
+    return [
+        AsignaturaResponse(id=d.id, nombre=d.nombre, color=d.color, transversal=d.transversal)
+        for d in dtos
+    ]
 
 
 @router.get("/asignaturas/{asignatura_id}", response_model=AsignaturaResponse)
@@ -225,7 +228,9 @@ def obtener_asignatura(asignatura_id: UUID, db: Session = Depends(get_db)) -> As
         )
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    return AsignaturaResponse(id=dto.id, nombre=dto.nombre, color=dto.color)
+    return AsignaturaResponse(
+        id=dto.id, nombre=dto.nombre, color=dto.color, transversal=dto.transversal
+    )
 
 
 @router.post("/asignaturas/", status_code=status.HTTP_201_CREATED)
@@ -236,7 +241,9 @@ def crear_asignatura(
 ) -> dict[str, str]:
     try:
         uid = CrearAsignaturaHandler(SqlAlchemyAsignaturaRepository(db), UnitOfWork(db)).handle(
-            CrearAsignaturaCommand(nombre=body.nombre, color=body.color)
+            CrearAsignaturaCommand(
+                nombre=body.nombre, color=body.color, transversal=body.transversal
+            )
         )
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -255,14 +262,19 @@ def actualizar_asignatura(
             SqlAlchemyAsignaturaRepository(db), UnitOfWork(db)
         ).handle(
             ActualizarAsignaturaCommand(
-                asignatura_id=asignatura_id, nombre=body.nombre, color=body.color
+                asignatura_id=asignatura_id,
+                nombre=body.nombre,
+                color=body.color,
+                transversal=body.transversal,
             )
         )
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    return AsignaturaResponse(id=dto.id, nombre=dto.nombre, color=dto.color)
+    return AsignaturaResponse(
+        id=dto.id, nombre=dto.nombre, color=dto.color, transversal=dto.transversal
+    )
 
 
 @router.delete("/asignaturas/{asignatura_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -63,9 +63,24 @@ export function ContenidoForm({
   });
 
   const cursosDelCiclo = v.ciclo_id ? cursos.filter((c) => c.ciclo_id === v.ciclo_id) : cursos;
+  const asignaturasNormales = asignaturas.filter((a) => !a.transversal);
+  const asignaturasTransversales = asignaturas.filter((a) => a.transversal);
+  const asignaturaActual = asignaturas.find((a) => a.id === v.asignatura_id) ?? null;
+  const esTransversal = !!asignaturaActual?.transversal;
 
   function set<K extends keyof ContenidoFormValues>(k: K, val: ContenidoFormValues[K]) {
     setV((prev) => ({ ...prev, [k]: val }));
+  }
+
+  // Al elegir asignatura: si es transversal, se desclasifica de ciclo/curso (no aplican).
+  function setAsignatura(id: string | null) {
+    const transversal = !!asignaturas.find((a) => a.id === id)?.transversal;
+    setV((prev) => ({
+      ...prev,
+      asignatura_id: id,
+      ciclo_id: transversal ? null : prev.ciclo_id,
+      curso_id: transversal ? null : prev.curso_id,
+    }));
   }
 
   function handleSubmit(e: FormEvent) {
@@ -74,7 +89,11 @@ export function ContenidoForm({
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    onSubmit({ ...v, titulo: v.titulo.trim(), etiquetas });
+    // Una asignatura transversal nunca lleva ciclo/curso (se agrupa en Aula Abierta).
+    const taxonomia = esTransversal
+      ? { ciclo_id: null, curso_id: null }
+      : { ciclo_id: v.ciclo_id, curso_id: v.curso_id };
+    onSubmit({ ...v, ...taxonomia, titulo: v.titulo.trim(), etiquetas });
   }
 
   return (
@@ -124,43 +143,62 @@ export function ContenidoForm({
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
-          <div className="cms-form-group">
-            <label className="cms-label" htmlFor="c-ciclo">Ciclo</label>
-            <select
-              id="c-ciclo"
-              className="cms-select"
-              value={v.ciclo_id ?? ""}
-              onChange={(e) => { set("ciclo_id", e.target.value || null); set("curso_id", null); }}
-            >
-              <option value="">— Sin asignar —</option>
-              {ciclos.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
-          </div>
-          <div className="cms-form-group">
-            <label className="cms-label" htmlFor="c-curso">Curso</label>
-            <select
-              id="c-curso"
-              className="cms-select"
-              value={v.curso_id ?? ""}
-              onChange={(e) => set("curso_id", e.target.value || null)}
-            >
-              <option value="">— Sin asignar —</option>
-              {cursosDelCiclo.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
-          </div>
+          {!esTransversal && (
+            <>
+              <div className="cms-form-group">
+                <label className="cms-label" htmlFor="c-ciclo">Ciclo</label>
+                <select
+                  id="c-ciclo"
+                  className="cms-select"
+                  value={v.ciclo_id ?? ""}
+                  onChange={(e) => { set("ciclo_id", e.target.value || null); set("curso_id", null); }}
+                >
+                  <option value="">— Sin asignar —</option>
+                  {ciclos.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+              </div>
+              <div className="cms-form-group">
+                <label className="cms-label" htmlFor="c-curso">Curso</label>
+                <select
+                  id="c-curso"
+                  className="cms-select"
+                  value={v.curso_id ?? ""}
+                  onChange={(e) => set("curso_id", e.target.value || null)}
+                >
+                  <option value="">— Sin asignar —</option>
+                  {cursosDelCiclo.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+              </div>
+            </>
+          )}
           <div className="cms-form-group">
             <label className="cms-label" htmlFor="c-asig">Asignatura</label>
             <select
               id="c-asig"
               className="cms-select"
               value={v.asignatura_id ?? ""}
-              onChange={(e) => set("asignatura_id", e.target.value || null)}
+              onChange={(e) => setAsignatura(e.target.value || null)}
             >
               <option value="">— Sin asignar —</option>
-              {asignaturas.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+              {asignaturasNormales.length > 0 && (
+                <optgroup label="Asignaturas">
+                  {asignaturasNormales.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                </optgroup>
+              )}
+              {asignaturasTransversales.length > 0 && (
+                <optgroup label="Transversales (Aula Abierta)">
+                  {asignaturasTransversales.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                </optgroup>
+              )}
             </select>
           </div>
       </div>
+      {esTransversal && (
+        <p className="cms-muted" style={{ marginTop: "-.5rem", marginBottom: "1rem" }}>
+          Asignatura transversal: este contenido no se clasifica por ciclo ni curso; aparecerá en
+          «Aula Abierta».
+        </p>
+      )}
 
       <div className="cms-form-group">
         <label className="cms-label" htmlFor="c-tags">Etiquetas</label>

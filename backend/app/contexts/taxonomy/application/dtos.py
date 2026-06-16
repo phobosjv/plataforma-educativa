@@ -28,6 +28,7 @@ class AsignaturaDTO:
     id: UUID
     nombre: str
     color: str
+    transversal: bool
 
 
 def ciclo_to_dto(c: Ciclo) -> CicloDTO:
@@ -40,4 +41,4 @@ def curso_to_dto(c: Curso) -> CursoDTO:
 
 
 def asignatura_to_dto(a: Asignatura) -> AsignaturaDTO:
-    return AsignaturaDTO(id=a.id, nombre=a.nombre, color=a.color)
+    return AsignaturaDTO(id=a.id, nombre=a.nombre, color=a.color, transversal=a.transversal)

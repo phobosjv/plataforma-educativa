@@ -53,19 +53,32 @@ class Curso(Entity):
 
 @dataclass
 class Asignatura(Entity):
-    """Materia educativa (p. ej. Matemáticas, Lengua Castellana)."""
+    """Materia educativa (p. ej. Matemáticas, Lengua Castellana).
+
+    Una asignatura ``transversal`` (p. ej. Audición y Lenguaje, Pedagogía Terapéutica) no
+    se clasifica por ciclo/curso: su contenido se agrupa aparte, en "Aula Abierta", porque
+    depende de la situación del alumno y no del curso.
+    """
 
     nombre: str = ""
     color: str = "#6366f1"
+    transversal: bool = False
 
     def __post_init__(self) -> None:
         if not self.nombre.strip():
             raise DomainError("El nombre de la asignatura no puede estar vacío.")
 
-    def actualizar(self, nombre: str | None = None, color: str | None = None) -> None:
+    def actualizar(
+        self,
+        nombre: str | None = None,
+        color: str | None = None,
+        transversal: bool | None = None,
+    ) -> None:
         if nombre is not None:
             if not nombre.strip():
                 raise DomainError("El nombre de la asignatura no puede estar vacío.")
             self.nombre = nombre.strip()
         if color is not None:
             self.color = color
+        if transversal is not None:
+            self.transversal = transversal
