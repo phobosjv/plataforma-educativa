@@ -3,7 +3,7 @@
 import os
 import zipfile
 
-VERSION = "v0.10.3"
+VERSION = "v0.10.4"
 SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST_DIR = os.path.join(SRC, "dist")
 ZIP_NAME = f"plataforma-educativa-{VERSION}.zip"
@@ -14,6 +14,8 @@ PREFIX = f"plataforma-educativa-{VERSION}/"
 EXCLUDE_DIRS = {
     "__pycache__", ".git", ".venv", "venv", "node_modules",
     "dist", ".mypy_cache", ".ruff_cache", ".pytest_cache", ".eggs",
+    # Artefactos de Playwright (E2E)
+    "test-results", "playwright-report", "blob-report", ".playwright",
 }
 # Directorios RUNTIME a excluir SOLO en la raíz del repo o de backend/ (no el código
 # fuente backend/app/contexts/media/, que es un contexto del dominio).

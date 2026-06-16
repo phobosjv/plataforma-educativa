@@ -6,6 +6,26 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.10.4] - 2026-06-16
+
+### Añadido (tests)
+- **Suite E2E con Playwright** (CLAUDE.md §11), ejecutada en navegador real contra la pila completa
+  (API + sandbox + frontend) que la propia configuración levanta en **puertos aislados** (8101/8102/
+  5273) sobre una BD y media e2e desechables:
+  - `catalogo.spec.ts` — navegación pública curso → asignatura → ejercicio → ficha.
+  - `sandbox-seguridad.spec.ts` — **aislamiento del sandbox** (§10): iframe `allow-scripts` sin
+    `allow-same-origin`, origen sandbox distinto, y el **JS del ejercicio no alcanza el origen padre**.
+  - `ejercicio-pantalla-completa.spec.ts` — maximizar y salir con Escape.
+  - `admin-login-crud.spec.ts` — login de admin + crear/borrar un artículo.
+- `backend/scripts/seed_e2e.py` — siembra determinista (admin, taxonomía, ejercicio interactivo con
+  HTML que intenta escapar del sandbox, y un artículo).
+- Guía `docs/e2e.md` y scripts `npm run test:e2e` / `test:e2e:ui`.
+
+### Notas
+- Sin cambios de la aplicación: 144 tests de backend + 5 E2E en verde. API version → `0.10.4`.
+
+---
+
 ## [V-0.10.3] - 2026-06-16
 
 ### Añadido
