@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../app/auth/AuthContext";
 import { useConfig } from "../../app/config/useConfig";
+import { IconoRed, defRed } from "../../app/config/redesSociales";
 
 export function PublicLayout() {
   const { user } = useAuth();
@@ -8,6 +9,7 @@ export function PublicLayout() {
     nombre_sitio,
     logo_url,
     donaciones,
+    redes_sociales,
     publicidad_activa,
     publicidad_html_izquierda,
     publicidad_html_derecha,
@@ -74,6 +76,23 @@ export function PublicLayout() {
         <Outlet />
       </main>
       <footer className="cms-footer">
+        {redes_sociales.length > 0 && (
+          <div className="cms-footer-redes">
+            {redes_sociales.map((r, i) => (
+              <a
+                key={i}
+                href={r.url}
+                className="cms-footer-red"
+                target="_blank"
+                rel="noopener noreferrer external"
+                title={defRed(r.red)?.label ?? r.red}
+                aria-label={defRed(r.red)?.label ?? r.red}
+              >
+                <IconoRed id={r.red} />
+              </a>
+            ))}
+          </div>
+        )}
         <div>{nombre_sitio} — contenidos para infantil y primaria</div>
         {donaciones.length > 0 && (
           <div className="cms-footer-donaciones">

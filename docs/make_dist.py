@@ -3,7 +3,7 @@
 import os
 import zipfile
 
-VERSION = "v0.17.1"
+VERSION = "v0.18.0"
 SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST_DIR = os.path.join(SRC, "dist")
 ZIP_NAME = f"plataforma-educativa-{VERSION}.zip"

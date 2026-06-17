@@ -6,6 +6,28 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.18.0] - 2026-06-17
+
+### Añadido (redes sociales)
+- **Redes sociales en el pie (config admin).** Desde Apariencia se configura una lista de enlaces a
+  redes sociales (Facebook, Instagram, X, YouTube, TikTok, WhatsApp, Telegram, LinkedIn), cada uno con
+  su **icono** (SVG self-hosted, sin CDN externo por privacidad de menores §10). Se muestran en el pie
+  de la web pública. La URL debe ser web (`http(s)://`); cada red puede aparecer una sola vez.
+- **Enlaces a terceros en el cuerpo de artículos (editor).** El editor de artículos ya permitía
+  insertar enlaces; ahora los enlaces **abren en una pestaña nueva** (`target=_blank` + `rel=noopener
+  noreferrer`), de modo que un editor puede enlazar perfiles de redes sociales de terceros (autores
+  citados) sin sacar al menor del sitio. El HTML se sigue saneando siempre (nh3 + DOMPurify).
+
+### Persistencia / migraciones
+- `site_config` gana `redes_sociales_json` (lista de `{red, url}`). Migración Alembic `015`. Se guarda
+  por el endpoint existente `PUT /config/general`. Cliente OpenAPI regenerado.
+
+### Notas
+- 205 tests de backend (4 nuevos de redes sociales) + 9 E2E en verde. Type-check de frontend limpio.
+  API version → `0.18.0`.
+
+---
+
 ## [V-0.17.1] - 2026-06-17
 
 ### Seguridad / cambiado (robustez)

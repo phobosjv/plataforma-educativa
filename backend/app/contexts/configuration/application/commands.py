@@ -16,6 +16,8 @@ class ActualizarAjustesGeneralesCommand:
     catalogo_subtitulo: str = "Toca tu curso para ver las actividades"
     # Pares (etiqueta, url); tupla para que el command sea inmutable/hashable.
     donaciones: tuple[tuple[str, str], ...] = ()
+    # Pares (red, url).
+    redes_sociales: tuple[tuple[str, str], ...] = ()
     publicidad_activa: bool = False
     publicidad_html_izquierda: str = ""
     publicidad_html_derecha: str = ""

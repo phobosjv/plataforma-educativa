@@ -4,9 +4,11 @@ import { PALETAS_PREDEFINIDAS, type Palette } from "../../app/config/palettes";
 import { FUENTES } from "../../app/config/fonts";
 import { ESTILOS_FONDO, FONDOS, patronFondo } from "../../app/config/backgrounds";
 import type { components } from "../../shared/api/schema";
+import { REDES_SOCIALES, IconoRed } from "../../app/config/redesSociales";
 
 type AjustesGeneralesPayload = components["schemas"]["AjustesGeneralesRequest"];
 type Donacion = components["schemas"]["DonacionResponse"];
+type RedSocial = components["schemas"]["RedSocialResponse"];
 
 // ── Ajustes generales: nombre del sitio + fuente + fondo ──────────────────────
 
@@ -21,6 +23,7 @@ function AjustesGenerales({
   catTituloInicial,
   catSubtituloInicial,
   donacionesInicial,
+  redesInicial,
   publiActivaInicial,
   publiIzqInicial,
   publiDerInicial,
@@ -36,6 +39,7 @@ function AjustesGenerales({
   catTituloInicial: string;
   catSubtituloInicial: string;
   donacionesInicial: Donacion[];
+  redesInicial: RedSocial[];
   publiActivaInicial: boolean;
   publiIzqInicial: string;
   publiDerInicial: string;
@@ -53,6 +57,7 @@ function AjustesGenerales({
   const [catTitulo, setCatTitulo] = useState(catTituloInicial);
   const [catSubtitulo, setCatSubtitulo] = useState(catSubtituloInicial);
   const [donaciones, setDonaciones] = useState<Donacion[]>(donacionesInicial);
+  const [redes, setRedes] = useState<RedSocial[]>(redesInicial);
   const [publiActiva, setPubliActiva] = useState(publiActivaInicial);
   const [publiIzq, setPubliIzq] = useState(publiIzqInicial);
   const [publiDer, setPubliDer] = useState(publiDerInicial);
@@ -70,6 +75,7 @@ function AjustesGenerales({
   useEffect(() => setCatTitulo(catTituloInicial), [catTituloInicial]);
   useEffect(() => setCatSubtitulo(catSubtituloInicial), [catSubtituloInicial]);
   useEffect(() => setDonaciones(donacionesInicial), [donacionesInicial]);
+  useEffect(() => setRedes(redesInicial), [redesInicial]);
   useEffect(() => setPubliActiva(publiActivaInicial), [publiActivaInicial]);
   useEffect(() => setPubliIzq(publiIzqInicial), [publiIzqInicial]);
   useEffect(() => setPubliDer(publiDerInicial), [publiDerInicial]);
@@ -86,6 +92,19 @@ function AjustesGenerales({
   }
   function quitarDonacion(i: number) {
     setDonaciones((prev) => prev.filter((_, j) => j !== i));
+    tocado();
+  }
+
+  function actualizarRed(i: number, campo: keyof RedSocial, valor: string) {
+    setRedes((prev) => prev.map((r, j) => (j === i ? { ...r, [campo]: valor } : r)));
+    tocado();
+  }
+  function anadirRed() {
+    setRedes((prev) => [...prev, { red: REDES_SOCIALES[0].id, url: "" }]);
+    tocado();
+  }
+  function quitarRed(i: number) {
+    setRedes((prev) => prev.filter((_, j) => j !== i));
     tocado();
   }
 
@@ -128,6 +147,7 @@ function AjustesGenerales({
     catTitulo.trim() !== catTituloInicial ||
     catSubtitulo.trim() !== catSubtituloInicial ||
     JSON.stringify(donaciones) !== JSON.stringify(donacionesInicial) ||
+    JSON.stringify(redes) !== JSON.stringify(redesInicial) ||
     publiActiva !== publiActivaInicial ||
     publiIzq !== publiIzqInicial ||
     publiDer !== publiDerInicial;
@@ -151,6 +171,10 @@ function AjustesGenerales({
       donaciones: donaciones
         .map((d) => ({ etiqueta: d.etiqueta.trim(), url: d.url.trim() }))
         .filter((d) => d.etiqueta && d.url),
+      // Descarta redes sin URL.
+      redes_sociales: redes
+        .map((r) => ({ red: r.red, url: r.url.trim() }))
+        .filter((r) => r.url),
       publicidad_activa: publiActiva,
       publicidad_html_izquierda: publiIzq,
       publicidad_html_derecha: publiDer,
@@ -529,6 +553,52 @@ function AjustesGenerales({
       </button>
 
       <label className="cms-label" style={{ display: "block", marginBottom: ".4rem" }}>
+        Redes sociales
+      </label>
+      <p className="cms-text-muted" style={{ marginBottom: ".6rem" }}>
+        Iconos enlazados a tus perfiles, mostrados en el pie de la web pública. La URL debe empezar
+        por https://
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: ".5rem", marginBottom: ".75rem" }}>
+        {redes.map((r, i) => (
+          <div key={i} style={{ display: "flex", gap: ".5rem", flexWrap: "wrap", alignItems: "center" }}>
+            <IconoRed id={r.red} size={24} />
+            <select
+              className="cms-select"
+              style={{ width: 150 }}
+              value={r.red}
+              onChange={(e) => actualizarRed(i, "red", e.target.value)}
+              aria-label={`Red social ${i + 1}`}
+            >
+              {REDES_SOCIALES.map((rs) => (
+                <option key={rs.id} value={rs.id}>{rs.label}</option>
+              ))}
+            </select>
+            <input
+              className="cms-input"
+              style={{ flex: 1, minWidth: 220 }}
+              value={r.url}
+              maxLength={500}
+              onChange={(e) => actualizarRed(i, "url", e.target.value)}
+              placeholder="https://…"
+              aria-label={`URL de la red ${i + 1}`}
+            />
+            <button type="button" className="cms-btn cms-btn-ghost" onClick={() => quitarRed(i)}>
+              Quitar
+            </button>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="cms-btn cms-btn-ghost"
+        style={{ marginBottom: "1.5rem" }}
+        onClick={anadirRed}
+      >
+        + Añadir red social
+      </button>
+
+      <label className="cms-label" style={{ display: "block", marginBottom: ".4rem" }}>
         Publicidad en los márgenes (zona pública)
       </label>
       <p className="cms-text-muted" style={{ marginBottom: ".6rem" }}>
@@ -811,6 +881,7 @@ export function ConfiguracionPage() {
     catalogo_titulo,
     catalogo_subtitulo,
     donaciones,
+    redes_sociales,
     publicidad_activa,
     publicidad_html_izquierda,
     publicidad_html_derecha,
@@ -868,6 +939,7 @@ export function ConfiguracionPage() {
         catTituloInicial={catalogo_titulo}
         catSubtituloInicial={catalogo_subtitulo}
         donacionesInicial={donaciones}
+        redesInicial={redes_sociales}
         publiActivaInicial={publicidad_activa}
         publiIzqInicial={publicidad_html_izquierda}
         publiDerInicial={publicidad_html_derecha}

@@ -10,6 +10,7 @@ from app.contexts.configuration.api.schemas import (
     DonacionResponse,
     PaletaRequest,
     PaletaResponse,
+    RedSocialResponse,
 )
 from app.contexts.configuration.application.commands import (
     ActivarPaletaCommand,
@@ -70,6 +71,7 @@ def _dto_to_response(dto: object) -> ConfiguracionResponse:
         catalogo_titulo=dto.catalogo_titulo,
         catalogo_subtitulo=dto.catalogo_subtitulo,
         donaciones=[DonacionResponse(etiqueta=d.etiqueta, url=d.url) for d in dto.donaciones],
+        redes_sociales=[RedSocialResponse(red=r.red, url=r.url) for r in dto.redes_sociales],
         publicidad_activa=dto.publicidad_activa,
         publicidad_html_izquierda=dto.publicidad_html_izquierda,
         publicidad_html_derecha=dto.publicidad_html_derecha,
@@ -106,6 +108,7 @@ def actualizar_ajustes_generales(
                 catalogo_titulo=body.catalogo_titulo,
                 catalogo_subtitulo=body.catalogo_subtitulo,
                 donaciones=tuple((d.etiqueta, d.url) for d in body.donaciones),
+                redes_sociales=tuple((r.red, r.url) for r in body.redes_sociales),
                 publicidad_activa=body.publicidad_activa,
                 publicidad_html_izquierda=body.publicidad_html_izquierda,
                 publicidad_html_derecha=body.publicidad_html_derecha,

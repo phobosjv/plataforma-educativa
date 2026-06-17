@@ -22,6 +22,16 @@ class DonacionRequest(BaseModel):
     url: str = Field(min_length=1, max_length=500)
 
 
+class RedSocialResponse(BaseModel):
+    red: str
+    url: str
+
+
+class RedSocialRequest(BaseModel):
+    red: str = Field(min_length=1, max_length=30)
+    url: str = Field(min_length=1, max_length=500)
+
+
 class ConfiguracionResponse(BaseModel):
     nombre_sitio: str
     paleta_activa: str
@@ -34,6 +44,7 @@ class ConfiguracionResponse(BaseModel):
     catalogo_titulo: str
     catalogo_subtitulo: str
     donaciones: list[DonacionResponse]
+    redes_sociales: list[RedSocialResponse]
     publicidad_activa: bool
     publicidad_html_izquierda: str
     publicidad_html_derecha: str
@@ -51,6 +62,7 @@ class AjustesGeneralesRequest(BaseModel):
     catalogo_titulo: str = Field(default="¿En qué curso estás?", min_length=1, max_length=120)
     catalogo_subtitulo: str = Field(default="Toca tu curso para ver las actividades", max_length=120)
     donaciones: list[DonacionRequest] = Field(default_factory=list)
+    redes_sociales: list[RedSocialRequest] = Field(default_factory=list)
     publicidad_activa: bool = False
     publicidad_html_izquierda: str = Field(default="", max_length=8000)
     publicidad_html_derecha: str = Field(default="", max_length=8000)

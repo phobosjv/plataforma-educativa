@@ -31,6 +31,7 @@ class SqlAlchemyConfiguracionRepository:
         model.catalogo_titulo = config.catalogo_titulo
         model.catalogo_subtitulo = config.catalogo_subtitulo
         model.donaciones_json = config.donaciones_json
+        model.redes_sociales_json = config.redes_sociales_json
         model.publicidad_activa = config.publicidad_activa
         model.publicidad_html_izquierda = config.publicidad_html_izquierda
         model.publicidad_html_derecha = config.publicidad_html_derecha
@@ -60,6 +61,7 @@ class SqlAlchemyConfiguracionRepository:
                 catalogo_titulo="¿En qué curso estás?",
                 catalogo_subtitulo="Toca tu curso para ver las actividades",
                 donaciones_json="[]",
+                redes_sociales_json="[]",
                 publicidad_activa=False,
                 publicidad_html_izquierda="",
                 publicidad_html_derecha="",
@@ -84,6 +86,7 @@ class SqlAlchemyConfiguracionRepository:
             catalogo_titulo=m.catalogo_titulo,
             catalogo_subtitulo=m.catalogo_subtitulo,
             donaciones_json=m.donaciones_json,
+            redes_sociales_json=m.redes_sociales_json,
             publicidad_activa=m.publicidad_activa,
             publicidad_html_izquierda=m.publicidad_html_izquierda,
             publicidad_html_derecha=m.publicidad_html_derecha,

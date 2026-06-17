@@ -15,7 +15,7 @@ const BACKEND = path.resolve(process.cwd(), "..", "backend");
 const backendEnv: Record<string, string> = {
   DATABASE_URL: "sqlite:///./data/e2e.sqlite3",
   MEDIA_DIR: "./data/e2e-media",
-  SECRET_KEY: "e2e-secret-key-not-for-prod",
+  SECRET_KEY: "e2e-secret-key-not-for-prod-min-32-bytes-largo",
   ENVIRONMENT: "test",
   SANDBOX_BASE_URL: SANDBOX_URL,
   APP_ORIGINS: FRONT_URL,

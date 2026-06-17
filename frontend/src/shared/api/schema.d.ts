@@ -687,6 +687,8 @@ export interface components {
             catalogo_subtitulo: string;
             /** Donaciones */
             donaciones?: components["schemas"]["DonacionRequest"][];
+            /** Redes Sociales */
+            redes_sociales?: components["schemas"]["RedSocialRequest"][];
             /**
              * Publicidad Activa
              * @default false
@@ -830,6 +832,8 @@ export interface components {
             catalogo_subtitulo: string;
             /** Donaciones */
             donaciones: components["schemas"]["DonacionResponse"][];
+            /** Redes Sociales */
+            redes_sociales: components["schemas"]["RedSocialResponse"][];
             /** Publicidad Activa */
             publicidad_activa: boolean;
             /** Publicidad Html Izquierda */
@@ -1040,6 +1044,20 @@ export interface components {
             fg: string;
             /** Primary */
             primary: string;
+        };
+        /** RedSocialRequest */
+        RedSocialRequest: {
+            /** Red */
+            red: string;
+            /** Url */
+            url: string;
+        };
+        /** RedSocialResponse */
+        RedSocialResponse: {
+            /** Red */
+            red: string;
+            /** Url */
+            url: string;
         };
         /** TokenResponse */
         TokenResponse: {

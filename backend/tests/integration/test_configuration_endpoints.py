@@ -265,6 +265,55 @@ def test_donacion_url_no_web_se_rechaza(client: TestClient, admin_token: str) ->
     assert resp.status_code == 400
 
 
+def test_redes_sociales_por_defecto_vacio(client: TestClient) -> None:
+    assert client.get("/api/v1/config/").json()["redes_sociales"] == []
+
+
+def test_actualizar_redes_sociales(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "redes_sociales": [
+                {"red": "instagram", "url": "https://instagram.com/micole"},
+                {"red": "youtube", "url": "https://youtube.com/@micole"},
+            ],
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 200
+    redes = resp.json()["redes_sociales"]
+    assert [r["red"] for r in redes] == ["instagram", "youtube"]
+    assert client.get("/api/v1/config/").json()["redes_sociales"][0]["url"] == "https://instagram.com/micole"
+
+
+def test_red_social_no_soportada_se_rechaza(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "redes_sociales": [{"red": "myspace", "url": "https://myspace.com/x"}],
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 400
+
+
+def test_red_social_url_invalida_se_rechaza(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "redes_sociales": [{"red": "facebook", "url": "javascript:alert(1)"}],
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 400
+
+
 def test_actualizar_publicidad(client: TestClient, admin_token: str) -> None:
     resp = client.put(
         "/api/v1/config/general",

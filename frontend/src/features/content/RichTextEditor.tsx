@@ -66,7 +66,13 @@ export function RichTextEditor({
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Link.configure({ openOnClick: false, autolink: true }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        // Los enlaces de artículos (incluidos perfiles de terceros / redes sociales) abren en una
+        // pestaña nueva para no sacar al menor del sitio. El servidor (nh3) refuerza rel=noopener.
+        HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
+      }),
       FiguraImagen,
     ],
     content: value,

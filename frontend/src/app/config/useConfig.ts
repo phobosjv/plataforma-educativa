@@ -15,6 +15,7 @@ type ConfigDTO = components["schemas"]["ConfiguracionResponse"];
 type PaletaDTO = components["schemas"]["PaletaResponse"];
 type AjustesGenerales = components["schemas"]["AjustesGeneralesRequest"];
 type Donacion = components["schemas"]["DonacionResponse"];
+type RedSocial = components["schemas"]["RedSocialResponse"];
 
 function toFrontendPalette(p: PaletaDTO): Palette {
   return {
@@ -68,6 +69,7 @@ export function useConfig() {
     catalogo_titulo: data?.catalogo_titulo ?? "¿En qué curso estás?",
     catalogo_subtitulo: data?.catalogo_subtitulo ?? "Toca tu curso para ver las actividades",
     donaciones: (data?.donaciones ?? []) as Donacion[],
+    redes_sociales: (data?.redes_sociales ?? []) as RedSocial[],
     publicidad_activa: data?.publicidad_activa ?? false,
     publicidad_html_izquierda: data?.publicidad_html_izquierda ?? "",
     publicidad_html_derecha: data?.publicidad_html_derecha ?? "",

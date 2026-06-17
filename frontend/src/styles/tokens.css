@@ -83,6 +83,16 @@ body::before {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
   gap: .5rem; margin-top: .75rem;
 }
+/* Iconos de redes sociales en el pie */
+.cms-footer-redes {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: .5rem; margin-bottom: .75rem;
+}
+.cms-footer-red {
+  display: inline-flex; line-height: 0; border-radius: 6px;
+  transition: transform .12s, opacity .12s; opacity: .9;
+}
+.cms-footer-red:hover { transform: translateY(-2px); opacity: 1; }
 
 /* Rieles de publicidad en los márgenes (solo navegación pública del catálogo).
    Fijos a los lados; se ocultan en pantallas estrechas para no tapar el contenido. */

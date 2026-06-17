@@ -64,6 +64,25 @@ class EnlaceDonacion:
         return {"etiqueta": self.etiqueta, "url": self.url}
 
 
+# Redes sociales soportadas en el pie público. El dominio solo conoce los IDs válidos; el
+# icono (SVG self-hosted, sin CDN externo por la privacidad de los menores, §10) vive en el frontend.
+REDES_SOCIALES_PERMITIDAS: frozenset[str] = frozenset(
+    {"facebook", "instagram", "x", "youtube", "tiktok", "whatsapp", "telegram", "linkedin"}
+)
+MAX_REDES_SOCIALES = 10
+
+
+@dataclass
+class EnlaceRedSocial:
+    """Enlace a un perfil del sitio en una red social (mostrado con su icono en el pie)."""
+
+    red: str
+    url: str
+
+    def to_dict(self) -> dict[str, str]:
+        return {"red": self.red, "url": self.url}
+
+
 @dataclass
 class PaletaPersonalizada:
     id: str
@@ -106,6 +125,8 @@ class ConfiguracionSitio(Entity):
     catalogo_subtitulo: str = "Toca tu curso para ver las actividades"
     # Enlaces de donación (PayPal y otras plataformas) mostrados en la zona pública.
     donaciones_json: str = "[]"
+    # Enlaces a redes sociales del sitio, mostrados con su icono en el pie público.
+    redes_sociales_json: str = "[]"
     # Publicidad en los márgenes de las pantallas públicas de navegación (zona de adultos,
     # §10). Nunca se muestra durante un ejercicio (lo usa un menor) ni en el panel.
     publicidad_activa: bool = False
@@ -123,6 +144,10 @@ class ConfiguracionSitio(Entity):
     @property
     def donaciones(self) -> list[EnlaceDonacion]:
         return [EnlaceDonacion(**d) for d in json.loads(self.donaciones_json)]
+
+    @property
+    def redes_sociales(self) -> list[EnlaceRedSocial]:
+        return [EnlaceRedSocial(**d) for d in json.loads(self.redes_sociales_json)]
 
     def cambiar_nombre(self, nombre: str) -> None:
         nombre = nombre.strip()
@@ -189,6 +214,26 @@ class ConfiguracionSitio(Entity):
                 raise DomainError("La URL de donación debe empezar por http:// o https://.")
             normalizados.append(EnlaceDonacion(etiqueta=etiqueta, url=url))
         self.donaciones_json = json.dumps(
+            [e.to_dict() for e in normalizados], ensure_ascii=False
+        )
+
+    def cambiar_redes_sociales(self, enlaces: list[EnlaceRedSocial]) -> None:
+        if len(enlaces) > MAX_REDES_SOCIALES:
+            raise DomainError(f"No se permiten más de {MAX_REDES_SOCIALES} redes sociales.")
+        normalizados: list[EnlaceRedSocial] = []
+        vistas: set[str] = set()
+        for e in enlaces:
+            red = e.red.strip().lower()
+            url = e.url.strip()
+            if red not in REDES_SOCIALES_PERMITIDAS:
+                raise DomainError(f"Red social '{e.red}' no soportada.")
+            if red in vistas:
+                raise DomainError(f"Red social '{red}' duplicada.")
+            if not url or len(url) > LONGITUD_MAX_URL or not url.startswith(ESQUEMAS_URL_PERMITIDOS):
+                raise DomainError("La URL de la red social debe empezar por http:// o https://.")
+            vistas.add(red)
+            normalizados.append(EnlaceRedSocial(red=red, url=url))
+        self.redes_sociales_json = json.dumps(
             [e.to_dict() for e in normalizados], ensure_ascii=False
         )
 

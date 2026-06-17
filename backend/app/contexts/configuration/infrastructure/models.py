@@ -24,6 +24,7 @@ class ConfiguracionModel(Base):
         String(120), default="Toca tu curso para ver las actividades"
     )
     donaciones_json: Mapped[str] = mapped_column(Text, default="[]")
+    redes_sociales_json: Mapped[str] = mapped_column(Text, default="[]")
     publicidad_activa: Mapped[bool] = mapped_column(Boolean, default=False)
     publicidad_html_izquierda: Mapped[str] = mapped_column(Text, default="")
     publicidad_html_derecha: Mapped[str] = mapped_column(Text, default="")
