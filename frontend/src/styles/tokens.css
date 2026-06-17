@@ -61,7 +61,9 @@ body::before {
   box-shadow: var(--cms-shadow);
   display: flex; align-items: center; gap: 1rem; padding: 0 1.5rem;
 }
-.cms-nav-brand { font-weight: 700; font-size: 1.1rem; color: var(--cms-color-primary); text-decoration: none; }
+.cms-nav-brand { font-weight: 700; font-size: 1.1rem; color: var(--cms-color-primary); text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; }
+/* Logo del sitio junto al nombre, en cabecera pública y barra lateral admin. */
+.cms-nav-logo { height: 2rem; width: auto; max-width: 8rem; object-fit: contain; display: block; }
 .cms-nav-spacer { flex: 1; }
 .cms-nav-link { color: var(--cms-color-fg); text-decoration: none; font-size: .9rem; padding: .4rem .6rem; border-radius: var(--cms-radius-sm); }
 .cms-nav-link:hover { background: var(--cms-color-bg); }
@@ -87,7 +89,7 @@ body::before {
   display: flex; flex-direction: column;
   padding: 1rem 0;
 }
-.cms-sidebar-brand { font-weight: 700; color: var(--cms-color-primary); padding: .5rem 1.25rem 1rem; font-size: 1rem; }
+.cms-sidebar-brand { font-weight: 700; color: var(--cms-color-primary); padding: .5rem 1.25rem 1rem; font-size: 1rem; display: flex; align-items: center; gap: .5rem; }
 .cms-sidebar-link {
   display: block; padding: .55rem 1.25rem;
   text-decoration: none; color: var(--cms-color-fg); font-size: .9rem;

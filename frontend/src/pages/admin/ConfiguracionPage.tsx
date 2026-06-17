@@ -11,6 +11,7 @@ function AjustesGenerales({
   fuenteInicial,
   fondoInicial,
   estiloInicial,
+  logoInicial,
   aulaLabelInicial,
   aulaEmojiInicial,
   onGuardar,
@@ -19,6 +20,7 @@ function AjustesGenerales({
   fuenteInicial: string;
   fondoInicial: string;
   estiloInicial: string;
+  logoInicial: string;
   aulaLabelInicial: string;
   aulaEmojiInicial: string;
   onGuardar: (
@@ -26,6 +28,7 @@ function AjustesGenerales({
     fuente: string,
     fondo: string,
     estilo: string,
+    logo: string,
     aulaLabel: string,
     aulaEmoji: string,
   ) => Promise<void>;
@@ -34,6 +37,9 @@ function AjustesGenerales({
   const [fuente, setFuente] = useState(fuenteInicial);
   const [fondo, setFondo] = useState(fondoInicial);
   const [estilo, setEstilo] = useState(estiloInicial);
+  const [logo, setLogo] = useState(logoInicial);
+  const [subiendoLogo, setSubiendoLogo] = useState(false);
+  const [errorLogo, setErrorLogo] = useState<string | null>(null);
   const [aulaLabel, setAulaLabel] = useState(aulaLabelInicial);
   const [aulaEmoji, setAulaEmoji] = useState(aulaEmojiInicial);
   const [guardando, setGuardando] = useState(false);
@@ -44,6 +50,7 @@ function AjustesGenerales({
   useEffect(() => setFuente(fuenteInicial), [fuenteInicial]);
   useEffect(() => setFondo(fondoInicial), [fondoInicial]);
   useEffect(() => setEstilo(estiloInicial), [estiloInicial]);
+  useEffect(() => setLogo(logoInicial), [logoInicial]);
   useEffect(() => setAulaLabel(aulaLabelInicial), [aulaLabelInicial]);
   useEffect(() => setAulaEmoji(aulaEmojiInicial), [aulaEmojiInicial]);
 
@@ -52,15 +59,44 @@ function AjustesGenerales({
     fuente !== fuenteInicial ||
     fondo !== fondoInicial ||
     estilo !== estiloInicial ||
+    logo !== logoInicial ||
     aulaLabel.trim() !== aulaLabelInicial ||
     aulaEmoji !== aulaEmojiInicial;
+
+  // Sube la imagen al propio origen (contexto MEDIA, content-addressed, sin SVG) y
+  // guarda la URL devuelta como logo. No se persiste hasta pulsar "Guardar cambios".
+  async function subirLogo(file: File) {
+    setErrorLogo(null);
+    setSubiendoLogo(true);
+    try {
+      const fd = new FormData();
+      fd.append("fichero", file);
+      const token = localStorage.getItem("auth_token");
+      const r = await fetch("/api/v1/media/imagenes", {
+        method: "POST",
+        body: fd,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!r.ok) {
+        const cuerpo = (await r.json().catch(() => null)) as { detail?: string } | null;
+        throw new Error(cuerpo?.detail ?? "No se pudo subir el logo.");
+      }
+      const { url } = (await r.json()) as { url: string };
+      setLogo(url);
+      setGuardado(false);
+    } catch (e) {
+      setErrorLogo(e instanceof Error ? e.message : "Error al subir el logo.");
+    } finally {
+      setSubiendoLogo(false);
+    }
+  }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!nombre.trim() || !aulaLabel.trim() || guardando) return;
     setGuardando(true);
     setGuardado(false);
-    onGuardar(nombre.trim(), fuente, fondo, estilo, aulaLabel.trim(), aulaEmoji.trim())
+    onGuardar(nombre.trim(), fuente, fondo, estilo, logo, aulaLabel.trim(), aulaEmoji.trim())
       .then(() => setGuardado(true))
       .catch(() => setGuardado(false)) // el error se muestra a nivel de página
       .finally(() => setGuardando(false));
@@ -80,6 +116,69 @@ function AjustesGenerales({
           required
         />
       </div>
+
+      <label className="cms-label" style={{ display: "block", marginBottom: ".4rem" }}>
+        Logo del sitio
+      </label>
+      <p className="cms-text-muted" style={{ marginBottom: ".6rem" }}>
+        Imagen que acompaña al nombre en la cabecera (PNG, JPG, GIF o WebP, máx. 5 MB).
+        Se recomienda un PNG con fondo transparente. Sin logo se muestra solo el nombre.
+      </p>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+        <div
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: "var(--cms-radius)",
+            border: "1px solid var(--cms-color-border)",
+            background: "var(--cms-color-surface)",
+            display: "grid",
+            placeItems: "center",
+            overflow: "hidden",
+            flexShrink: 0,
+          }}
+        >
+          {logo ? (
+            <img
+              src={logo}
+              alt="Logo del sitio"
+              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+            />
+          ) : (
+            <span className="cms-text-muted" style={{ fontSize: ".7rem" }}>sin logo</span>
+          )}
+        </div>
+        <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap", alignItems: "center" }}>
+          <label className="cms-btn cms-btn-ghost" style={{ cursor: subiendoLogo ? "wait" : "pointer", margin: 0 }}>
+            {subiendoLogo ? "Subiendo…" : logo ? "Cambiar logo" : "Subir logo"}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/gif,image/webp"
+              style={{ display: "none" }}
+              disabled={subiendoLogo}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) subirLogo(file);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {logo && (
+            <button
+              type="button"
+              className="cms-btn cms-btn-ghost"
+              onClick={() => { setLogo(""); setGuardado(false); }}
+            >
+              Quitar
+            </button>
+          )}
+        </div>
+      </div>
+      {errorLogo && (
+        <p role="alert" style={{ color: "var(--cms-color-danger)", fontSize: ".85rem", marginTop: "-1rem", marginBottom: "1.25rem" }}>
+          {errorLogo}
+        </p>
+      )}
 
       <label className="cms-label" style={{ display: "block", marginBottom: ".6rem" }}>
         Fuente de letra
@@ -529,6 +628,7 @@ export function ConfiguracionPage() {
     fuente_activa,
     fondo_activo,
     fondo_estilo,
+    logo_url,
     aula_abierta_label,
     aula_abierta_emoji,
     paleta_activa,
@@ -579,12 +679,13 @@ export function ConfiguracionPage() {
         fuenteInicial={fuente_activa}
         fondoInicial={fondo_activo}
         estiloInicial={fondo_estilo}
+        logoInicial={logo_url}
         aulaLabelInicial={aula_abierta_label}
         aulaEmojiInicial={aula_abierta_emoji}
-        onGuardar={(nombre, fuente, fondo, estilo, aulaLabel, aulaEmoji) => {
+        onGuardar={(nombre, fuente, fondo, estilo, logo, aulaLabel, aulaEmoji) => {
           setError(null);
           return guardarAjustesGenerales(
-            nombre, fuente, fondo, estilo, aulaLabel, aulaEmoji,
+            nombre, fuente, fondo, estilo, logo, aulaLabel, aulaEmoji,
           ).catch((e: unknown) => {
             setError(e instanceof Error ? e.message : "Error inesperado.");
             throw e;

@@ -535,6 +535,11 @@ export interface components {
              */
             fondo_estilo: string;
             /**
+             * Logo Url
+             * @default
+             */
+            logo_url: string;
+            /**
              * Aula Abierta Label
              * @default Aula Abierta
              */
@@ -629,6 +634,8 @@ export interface components {
             fondo_activo: string;
             /** Fondo Estilo */
             fondo_estilo: string;
+            /** Logo Url */
+            logo_url: string;
             /** Aula Abierta Label */
             aula_abierta_label: string;
             /** Aula Abierta Emoji */

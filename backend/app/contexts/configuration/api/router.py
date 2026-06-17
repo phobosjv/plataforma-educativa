@@ -52,6 +52,7 @@ def _dto_to_response(dto: object) -> ConfiguracionResponse:
         fuente_activa=dto.fuente_activa,
         fondo_activo=dto.fondo_activo,
         fondo_estilo=dto.fondo_estilo,
+        logo_url=dto.logo_url,
         aula_abierta_label=dto.aula_abierta_label,
         aula_abierta_emoji=dto.aula_abierta_emoji,
         paletas_personalizadas=[
@@ -80,6 +81,7 @@ def actualizar_ajustes_generales(
                 fuente_activa=body.fuente_activa,
                 fondo_activo=body.fondo_activo,
                 fondo_estilo=body.fondo_estilo,
+                logo_url=body.logo_url,
                 aula_abierta_label=body.aula_abierta_label,
                 aula_abierta_emoji=body.aula_abierta_emoji,
             )

@@ -4,12 +4,15 @@ import { useConfig } from "../../app/config/useConfig";
 
 export function PublicLayout() {
   const { user } = useAuth();
-  const { nombre_sitio } = useConfig();
+  const { nombre_sitio, logo_url } = useConfig();
 
   return (
     <div className="cms-shell">
       <nav className="cms-nav">
         <NavLink to="/" className="cms-nav-brand">
+          {logo_url && (
+            <img src={logo_url} alt="" className="cms-nav-logo" aria-hidden />
+          )}
           {nombre_sitio}
         </NavLink>
         <span className="cms-nav-spacer" />

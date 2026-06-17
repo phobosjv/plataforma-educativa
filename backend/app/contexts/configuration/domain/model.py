@@ -34,6 +34,13 @@ ESTILOS_FONDO_PERMITIDOS: frozenset[str] = frozenset({"ordenado", "desordenado"}
 LONGITUD_MAX_NOMBRE = 80
 LONGITUD_MAX_AULA_ABIERTA = 40
 LONGITUD_MAX_EMOJI = 8
+LONGITUD_MAX_LOGO_URL = 500
+
+# El logo es una imagen subida por el contexto MEDIA, que la sirve direccionada por
+# contenido bajo /media/images/. El dominio solo acepta referencias a ese origen propio
+# (o cadena vacía = sin logo): así nunca guardamos una URL externa que pudiera filtrar la
+# IP de los menores a terceros (CLAUDE.md §10) ni inyectar un origen arbitrario en la cabecera.
+PREFIJO_LOGO_PERMITIDO = "/media/"
 
 
 @dataclass
@@ -64,6 +71,9 @@ class ConfiguracionSitio(Entity):
     fuente_activa: str = "sistema"
     fondo_activo: str = "ninguno"
     fondo_estilo: str = "ordenado"
+    # Logo del sitio: URL relativa a una imagen del propio origen (/media/images/...) o
+    # cadena vacía si no hay logo (entonces el frontend muestra solo el nombre).
+    logo_url: str = ""
     # Etiqueta y emoji de la entrada a las asignaturas transversales en el catálogo. El
     # nombre lo decide cada centro (p. ej. "Aula Abierta", "Diversidad") para evitar
     # términos que puedan estigmatizar al alumnado con esas necesidades.
@@ -102,6 +112,17 @@ class ConfiguracionSitio(Entity):
         if estilo not in ESTILOS_FONDO_PERMITIDOS:
             raise DomainError(f"Estilo de fondo '{estilo}' no permitido.")
         self.fondo_estilo = estilo
+
+    def cambiar_logo(self, logo_url: str) -> None:
+        logo_url = logo_url.strip()
+        if not logo_url:
+            self.logo_url = ""
+            return
+        if len(logo_url) > LONGITUD_MAX_LOGO_URL:
+            raise DomainError("La URL del logo es demasiado larga.")
+        if not logo_url.startswith(PREFIJO_LOGO_PERMITIDO):
+            raise DomainError("El logo debe ser una imagen subida al propio sitio.")
+        self.logo_url = logo_url
 
     def cambiar_aula_abierta(self, label: str, emoji: str) -> None:
         label = label.strip()

@@ -16,5 +16,6 @@ class ConfiguracionModel(Base):
     fuente_activa: Mapped[str] = mapped_column(String(100), default="sistema")
     fondo_activo: Mapped[str] = mapped_column(String(100), default="ninguno")
     fondo_estilo: Mapped[str] = mapped_column(String(100), default="ordenado")
+    logo_url: Mapped[str] = mapped_column(String(500), default="")
     aula_abierta_label: Mapped[str] = mapped_column(String(40), default="Aula Abierta")
     aula_abierta_emoji: Mapped[str] = mapped_column(String(16), default="🌟")

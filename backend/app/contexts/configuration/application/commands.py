@@ -9,6 +9,7 @@ class ActualizarAjustesGeneralesCommand:
     fuente_activa: str
     fondo_activo: str = "ninguno"
     fondo_estilo: str = "ordenado"
+    logo_url: str = ""
     aula_abierta_label: str = "Aula Abierta"
     aula_abierta_emoji: str = "🌟"
 

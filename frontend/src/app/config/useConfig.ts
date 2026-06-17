@@ -60,6 +60,7 @@ export function useConfig() {
     fuente_activa: data?.fuente_activa ?? "sistema",
     fondo_activo: data?.fondo_activo ?? "ninguno",
     fondo_estilo: data?.fondo_estilo ?? "ordenado",
+    logo_url: data?.logo_url ?? "",
     aula_abierta_label: data?.aula_abierta_label ?? "Aula Abierta",
     aula_abierta_emoji: data?.aula_abierta_emoji ?? "🌟",
     todasLasPaletas,
@@ -85,6 +86,7 @@ export function useConfigMutations() {
     fuente_activa: string,
     fondo_activo: string,
     fondo_estilo: string,
+    logo_url: string,
     aula_abierta_label: string,
     aula_abierta_emoji: string,
   ) {
@@ -94,6 +96,7 @@ export function useConfigMutations() {
         fuente_activa,
         fondo_activo,
         fondo_estilo,
+        logo_url,
         aula_abierta_label,
         aula_abierta_emoji,
       },

@@ -145,6 +145,59 @@ def test_aula_abierta_label_vacio_devuelve_error(client: TestClient, admin_token
     assert resp.status_code == 400
 
 
+def test_logo_url_por_defecto_vacio(client: TestClient) -> None:
+    assert client.get("/api/v1/config/").json()["logo_url"] == ""
+
+
+def test_actualizar_logo(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "logo_url": "/media/images/abc123.png",
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 200
+    assert resp.json()["logo_url"] == "/media/images/abc123.png"
+    assert client.get("/api/v1/config/").json()["logo_url"] == "/media/images/abc123.png"
+
+
+def test_quitar_logo_con_cadena_vacia(client: TestClient, admin_token: str) -> None:
+    client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "logo_url": "/media/images/abc123.png",
+        },
+        headers=auth_headers(admin_token),
+    )
+    resp = client.put(
+        "/api/v1/config/general",
+        json={"nombre_sitio": "Mi Cole", "fuente_activa": "sistema", "logo_url": ""},
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 200
+    assert resp.json()["logo_url"] == ""
+
+
+def test_logo_externo_rechazado(client: TestClient, admin_token: str) -> None:
+    # Solo se admiten referencias al propio origen (/media/...): jamás una URL externa
+    # que filtraría la IP de los menores a terceros (CLAUDE.md §10).
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "logo_url": "https://cdn.malo.example/logo.png",
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 400
+
+
 def test_actualizar_fondo(client: TestClient, admin_token: str) -> None:
     resp = client.put(
         "/api/v1/config/general",

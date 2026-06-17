@@ -6,6 +6,28 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.12.0] - 2026-06-17
+
+### Añadido (logo del sitio configurable)
+- **Logo del sitio.** Desde Apariencia → Ajustes generales se puede **subir un logotipo** (PNG, JPG,
+  GIF o WebP, máx. 5 MB) con vista previa y botón para quitarlo. La imagen se almacena en el propio
+  origen (contexto MEDIA, direccionada por contenido) y se sirve con `X-Content-Type-Options: nosniff`.
+- **Cabecera con logo + nombre.** El logo aparece junto al nombre del sitio en la cabecera pública y en
+  la barra lateral del panel de administración. Si no hay logo, se muestra solo el nombre (igual que antes).
+
+### Seguridad
+- El campo `logo_url` solo admite referencias al **propio origen** (`/media/…`); se rechaza cualquier
+  URL externa, evitando filtrar la IP de los menores a terceros (CLAUDE.md §10). SVG sigue rechazado.
+
+### Cambiado / migraciones
+- Alembic `010` (`site_config.logo_url`).
+- Esquemas API: `ConfiguracionResponse` y ajustes generales con `logo_url`. Cliente OpenAPI regenerado.
+
+### Notas
+- 153 tests de backend (4 nuevos del logo) en verde. Type-check de frontend limpio. API version → `0.12.0`.
+
+---
+
 ## [V-0.11.0] - 2026-06-16
 
 ### Añadido (asignaturas transversales / Aula Abierta)

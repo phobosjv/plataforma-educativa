@@ -25,6 +25,7 @@ class SqlAlchemyConfiguracionRepository:
         model.fuente_activa = config.fuente_activa
         model.fondo_activo = config.fondo_activo
         model.fondo_estilo = config.fondo_estilo
+        model.logo_url = config.logo_url
         model.aula_abierta_label = config.aula_abierta_label
         model.aula_abierta_emoji = config.aula_abierta_emoji
 
@@ -47,6 +48,7 @@ class SqlAlchemyConfiguracionRepository:
                 fuente_activa="sistema",
                 fondo_activo="ninguno",
                 fondo_estilo="ordenado",
+                logo_url="",
                 aula_abierta_label="Aula Abierta",
                 aula_abierta_emoji="🌟",
             )
@@ -64,6 +66,7 @@ class SqlAlchemyConfiguracionRepository:
             fuente_activa=m.fuente_activa,
             fondo_activo=m.fondo_activo,
             fondo_estilo=m.fondo_estilo,
+            logo_url=m.logo_url,
             aula_abierta_label=m.aula_abierta_label,
             aula_abierta_emoji=m.aula_abierta_emoji,
         )
