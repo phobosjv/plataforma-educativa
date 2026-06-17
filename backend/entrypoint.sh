@@ -1,6 +1,17 @@
 #!/bin/sh
-# Entrypoint del backend: migraciones + seed admin si no existe + arranque.
+# Entrypoint del backend: baja privilegios + migraciones + seed admin si no existe + arranque.
 set -e
+
+# Endurecimiento (menor privilegio): el contenedor arranca como root SOLO para ajustar el
+# propietario de los volúmenes montados (./data y ./media) y, acto seguido, se reinvoca a sí
+# mismo bajando privilegios a `appuser` con gosu. Así las migraciones, el seed y uvicorn
+# corren SIN privilegios (reduce el daño si hubiera una RCE). Patrón estándar (cf. la imagen
+# oficial de postgres). En la segunda pasada (ya como appuser) este bloque se omite.
+if [ "$(id -u)" = "0" ]; then
+  echo "[entrypoint] Ajustando permisos de /app/data y /app/media y bajando privilegios a appuser…"
+  chown -R appuser:appuser /app/data /app/media 2>/dev/null || true
+  exec gosu appuser "$0" "$@"
+fi
 
 echo "[entrypoint] Aplicando migraciones Alembic…"
 alembic upgrade head

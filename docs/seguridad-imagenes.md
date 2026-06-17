@@ -57,14 +57,46 @@ FROM python:3.12-slim-bookworm@sha256:<digest>
 Inconveniente: hay que actualizar el digest a mano para recibir nuevos parches (conviene revisarlo
 cada cierto tiempo o automatizarlo).
 
-## 4. Endurecimiento pendiente (futuro, requiere validar en el servidor)
+## 4. Backend sin privilegios (usuario no-root) — V-0.19.1
 
-- **Ejecutar como usuario no-root**: el contenedor del backend corre como `root`. Pasar a un usuario
-  sin privilegios es un endurecimiento valioso, pero el backend escribe en los *bind mounts*
-  `./data` (BD SQLite + backups) y `./media`; un usuario no-root necesita que esos directorios del
-  host le pertenezcan (UID coincidente) o usar `gosu`/`su-exec` para bajar privilegios en el
-  entrypoint tras hacer `chown`. **No se aplicó aún** para no arriesgar la escritura de la BD en
-  producción sin poder probarlo (Docker no está disponible en la máquina de desarrollo).
-- **Revisar `python-jose`**: histórico de CVEs; valorar migrar a `pyjwt` en el futuro (cambia
-  `auth_service.py`).
+El contenedor del backend ya **no ejecuta la aplicación como `root`**. Aplica el principio de
+**menor privilegio**: si apareciera una RCE (en una dependencia, FastAPI, etc.), el proceso
+comprometido no sería root dentro del contenedor, lo que dificulta escalar y escapar.
+
+Cómo está montado (patrón de la imagen oficial de postgres):
+
+- `backend/Dockerfile` instala `gosu` y crea el usuario `appuser` (UID/GID `10001` por defecto,
+  configurables con los build-args `APP_UID`/`APP_GID`).
+- **No** se fija `USER appuser` en la imagen: el `entrypoint.sh` arranca como `root` SOLO para
+  hacer `chown -R appuser:appuser /app/data /app/media` (los *bind mounts* donde se escribe la BD
+  SQLite, los backups y la media) y, acto seguido, **se reinvoca con `gosu appuser`**. A partir de
+  ahí las migraciones Alembic, el seed del admin y `uvicorn` corren ya sin privilegios.
+
+### Validación en el servidor (recomendado tras desplegar)
+
+```bash
+# Reconstruir y levantar
+docker compose up -d --build api
+
+# 1) El proceso de uvicorn corre como appuser (no root):
+docker compose exec api ps -o user,pid,comm
+#   -> la línea de 'uvicorn'/'python' debe mostrar 'appuser', no 'root'
+
+# 2) La BD y la media se escriben correctamente (sin errores de permisos):
+docker compose logs api | grep -i -E "permission|denied|alembic|admin"
+#   -> migraciones aplicadas y, en primer arranque, "Usuario admin creado"
+```
+
+Si los *bind mounts* del host tenían ficheros de propietario `root` de versiones anteriores, el
+`chown` del entrypoint los reasigna a `appuser` en el primer arranque (puede tardar un poco si
+`./media` tiene muchos ficheros; es un coste único). Para alinear con un UID concreto del host,
+reconstruir con `docker compose build --build-arg APP_UID=<uid> --build-arg APP_GID=<gid> api`.
+
+> Nota: el `healthcheck` del compose se ejecuta como root (vía `docker exec`); solo hace un
+> `urlopen` a `localhost:8000/health`, no necesita privilegios especiales y sigue funcionando.
+
+## 5. Hecho / histórico
+
+- **`python-jose` → `PyJWT`** (V-0.17.1): migrada la gestión de JWT a la librería de referencia
+  (mejor mantenida, sin el histórico de CVEs de `python-jose`). Aislado en `auth_service.py`.
 ```

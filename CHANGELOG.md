@@ -6,6 +6,24 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.19.1] - 2026-06-17
+
+### Seguridad (endurecimiento de imágenes)
+- **El backend ya no ejecuta la aplicación como `root`.** Principio de menor privilegio: si apareciera
+  una RCE, el proceso comprometido no sería root dentro del contenedor (dificulta escalar/escapar).
+  `backend/Dockerfile` instala `gosu` y crea el usuario `appuser` (UID/GID `10001`, configurables con
+  los build-args `APP_UID`/`APP_GID`). El `entrypoint.sh` arranca como `root` **solo** para ajustar el
+  propietario de los *bind mounts* (`chown` de `/app/data` y `/app/media`) y a continuación se reinvoca
+  con `gosu appuser`: migraciones Alembic, seed del admin y `uvicorn` corren ya sin privilegios (patrón
+  de la imagen oficial de postgres).
+
+### Notas
+- Cambio **solo de infraestructura** (Dockerfile + entrypoint + docs); sin cambios de código, API ni
+  esquema. 205 tests de backend en verde. **Requiere validar en el servidor** (Docker no está en el
+  entorno de desarrollo): ver pasos de verificación en `docs/seguridad-imagenes.md` §4.
+
+---
+
 ## [V-0.19.0] - 2026-06-17
 
 ### Añadido (mejoras de contenido)
