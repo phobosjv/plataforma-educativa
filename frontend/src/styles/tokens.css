@@ -177,6 +177,13 @@ body::before {
 /* ── Catálogo navegable (público, pensado para niños) ── */
 .cms-cat-head { text-align: center; margin: .5rem 0 2rem; }
 .cms-cat-title { font-size: 2rem; font-weight: 800; line-height: 1.15; }
+
+/* Cuadro de búsqueda del catálogo (centrado, child-friendly) */
+.cms-cat-search {
+  display: flex; gap: .5rem; max-width: 560px; margin: 0 auto 1.75rem;
+}
+.cms-cat-search .cms-input { flex: 1; font-size: 1.05rem; padding: .65rem .9rem; }
+.cms-cat-search .cms-btn { white-space: nowrap; }
 .cms-cat-sub { color: var(--cms-color-muted); font-size: 1.05rem; margin-top: .5rem; }
 
 /* Migas de pan grandes y clicables */

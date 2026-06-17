@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../shared/api/client";
@@ -22,6 +23,20 @@ function emojiTipo(tipo: string): string {
   return tipo === "interactivo" ? "🎮" : "📖";
 }
 
+// Tarjeta de un contenido (ejercicio / artículo). Pura: solo depende de ``c``, por lo que
+// vive a nivel de módulo y la reutilizan tanto las pantallas del catálogo como la búsqueda.
+function tarjetaContenido(c: Contenido) {
+  return (
+    <Link key={c.id} to={`/contenido/${c.id}`} className="cms-card">
+      <span className={`cms-badge cms-badge-${c.tipo}`} style={{ marginBottom: ".5rem" }}>
+        {emojiTipo(c.tipo)} {c.tipo}
+      </span>
+      <p className="cms-h3" style={{ marginTop: ".4rem" }}>{c.titulo}</p>
+      {c.descripcion && <p className="cms-muted" style={{ marginTop: ".4rem" }}>{c.descripcion}</p>}
+    </Link>
+  );
+}
+
 export function CatalogoPage() {
   const [params, setParams] = useSearchParams();
   const { aula_abierta_label, aula_abierta_emoji } = useConfig();
@@ -30,6 +45,24 @@ export function CatalogoPage() {
   const asigSel = params.get("asignatura");
   const verTodo = params.get("todo") === "1";
   const enAulaAbierta = params.get("transversal") === "1";
+  const q = (params.get("q") ?? "").trim();
+
+  // Texto del cuadro de búsqueda (sincronizado con el parámetro ?q= de la URL).
+  const [textoBusqueda, setTextoBusqueda] = useState(q);
+  useEffect(() => setTextoBusqueda(q), [q]);
+
+  // Búsqueda full-text (FTS5) en el servidor; solo se dispara si hay texto.
+  const buscarQ = useQuery<Contenido[]>({
+    queryKey: ["buscar", q],
+    enabled: q.length > 0,
+    queryFn: () =>
+      api
+        .GET("/api/v1/contenidos/buscar", { params: { query: { q } } })
+        .then(({ data, error }) => {
+          if (error) throw new Error("Error al buscar");
+          return data ?? [];
+        }),
+  });
 
   const ciclosQ = useQuery<Ciclo[]>({
     queryKey: ["ciclos"],
@@ -54,6 +87,59 @@ export function CatalogoPage() {
 
   const cargando = ciclosQ.isLoading || cursosQ.isLoading || asigQ.isLoading || contQ.isLoading;
   const error = ciclosQ.isError || cursosQ.isError || asigQ.isError || contQ.isError;
+
+  // Cuadro de búsqueda (cabecera del inicio y de la pantalla de resultados).
+  const buscador = (
+    <form
+      className="cms-cat-search"
+      role="search"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const t = textoBusqueda.trim();
+        setParams(t ? { q: t } : {});
+      }}
+    >
+      <input
+        className="cms-input"
+        type="search"
+        value={textoBusqueda}
+        onChange={(e) => setTextoBusqueda(e.target.value)}
+        placeholder="Busca un juego o un tema…"
+        aria-label="Buscar en el catálogo"
+      />
+      <button type="submit" className="cms-btn cms-btn-primary">🔍 Buscar</button>
+    </form>
+  );
+
+  // ── PANTALLA: Resultados de búsqueda (independiente de la carga del catálogo) ──
+  if (q) {
+    const resultados = buscarQ.data ?? [];
+    return (
+      <>
+        <nav className="cms-cat-crumbs" aria-label="Dónde estás">
+          <button type="button" className="cms-cat-crumb" onClick={() => setParams({})}>🏠 Inicio</button>
+          <span className="cms-cat-crumb-sep" aria-hidden>›</span>
+          <span className="cms-cat-crumb" aria-current="page">Buscar</span>
+        </nav>
+        {buscador}
+        <div className="cms-cat-head">
+          <p className="cms-cat-title">Resultados de «{q}»</p>
+          <p className="cms-cat-sub">
+            {buscarQ.isLoading ? "Buscando…" : actividades(resultados.length)}
+          </p>
+        </div>
+        {buscarQ.isLoading ? (
+          <div className="cms-spinner" role="status" aria-label="Buscando" />
+        ) : buscarQ.isError ? (
+          <p className="cms-error">No se pudo realizar la búsqueda.</p>
+        ) : resultados.length === 0 ? (
+          <p className="cms-empty">No encontramos nada con «{q}». Prueba con otra palabra.</p>
+        ) : (
+          <div className="cms-grid">{resultados.map(tarjetaContenido)}</div>
+        )}
+      </>
+    );
+  }
 
   if (cargando) return <div className="cms-spinner" role="status" aria-label="Cargando" />;
   if (error) return <p className="cms-error">No se pudo cargar el catálogo.</p>;
@@ -142,17 +228,6 @@ export function CatalogoPage() {
         </>
       )}
     </nav>
-  );
-
-  // ── Tarjetas de contenido (ejercicios / artículos) ──────
-  const tarjetaContenido = (c: Contenido) => (
-    <Link key={c.id} to={`/contenido/${c.id}`} className="cms-card">
-      <span className={`cms-badge cms-badge-${c.tipo}`} style={{ marginBottom: ".5rem" }}>
-        {emojiTipo(c.tipo)} {c.tipo}
-      </span>
-      <p className="cms-h3" style={{ marginTop: ".4rem" }}>{c.titulo}</p>
-      {c.descripcion && <p className="cms-muted" style={{ marginTop: ".4rem" }}>{c.descripcion}</p>}
-    </Link>
   );
 
   // Tarjeta de acceso a "Aula Abierta" (asignaturas transversales). Solo si hay contenido.
@@ -343,6 +418,7 @@ export function CatalogoPage() {
   return (
     <>
       {cicloSel && crumbs}
+      {buscador}
       <div className="cms-cat-head">
         <p className="cms-cat-title">¿En qué curso estás?</p>
         <p className="cms-cat-sub">

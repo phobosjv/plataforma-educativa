@@ -74,6 +74,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contenidos/buscar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Buscar Contenidos
+         * @description Busca en el catálogo público por título, descripción y etiquetas (FTS5).
+         *
+         *     Declarado ANTES de ``/contenidos/{contenido_id}`` para que el segmento ``buscar``
+         *     no se intente validar como UUID. ``q`` vacío o sin términos útiles devuelve [].
+         */
+        get: operations["buscar_contenidos_api_v1_contenidos_buscar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contenidos/{contenido_id}": {
         parameters: {
             query?: never;
@@ -1032,6 +1055,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ContenidoResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    buscar_contenidos_api_v1_contenidos_buscar_get: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContenidoResponse"][];
                 };
             };
             /** @description Validation Error */

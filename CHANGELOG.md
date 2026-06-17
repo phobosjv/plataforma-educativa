@@ -6,6 +6,29 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.13.0] - 2026-06-17
+
+### Añadido (buscador del catálogo, FTS5)
+- **Búsqueda full-text en el catálogo público.** Cuadro de búsqueda en la portada que encuentra
+  contenidos por **título, descripción y etiquetas**. Resultados ordenados por relevancia, con su
+  propia pantalla (estado en la URL `?q=`) y mensaje cuando no hay coincidencias.
+- **Tolerante para niños:** ignora acentos en ambos sentidos (buscar «espana» encuentra «España») y
+  busca por **prefijo** (escribir «mapa» encuentra «mapas»). Varios términos combinan en AND.
+- Nuevo endpoint público `GET /api/v1/contenidos/buscar?q=…` (sin autenticación, solo contenido
+  publicado y no borrado, máx. 50 resultados).
+
+### Persistencia / migraciones
+- Tabla virtual **FTS5** `content_fts` (contenido externo sobre `content`, tokenizer
+  `unicode61 remove_diacritics 2`) mantenida por **triggers** de alta/baja/modificación. Migración
+  Alembic `011`. El DDL vive en `content/infrastructure/fts.py` (lo reusan migración, seed E2E y tests).
+- La consulta neutraliza los operadores de FTS5 que escriba el usuario (sin errores de sintaxis).
+
+### Notas
+- 164 tests de backend (11 nuevos de búsqueda) + 9 E2E (2 nuevos del buscador) en verde. Type-check de
+  frontend limpio. Cliente OpenAPI regenerado. API version → `0.13.0`.
+
+---
+
 ## [V-0.12.0] - 2026-06-17
 
 ### Añadido (logo del sitio configurable)

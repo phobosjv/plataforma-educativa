@@ -17,7 +17,11 @@ from app.contexts.content.application.commands import (
     SubirHtmlContenidoCommand,
 )
 from app.contexts.content.application.dtos import ContenidoDTO, contenido_to_dto
-from app.contexts.content.application.queries import ListarContenidosQuery, ObtenerContenidoQuery
+from app.contexts.content.application.queries import (
+    BuscarContenidosQuery,
+    ListarContenidosQuery,
+    ObtenerContenidoQuery,
+)
 from app.contexts.content.domain.model import ContentVersion, Contenido, TipoContenido
 from app.contexts.content.domain.ports import (
     ContenidoRepository,
@@ -285,6 +289,17 @@ class ObtenerContenidoHandler:
         if contenido is None or contenido.borrado:
             raise NotFoundError(f"Contenido {query.contenido_id} no encontrado.")
         return contenido_to_dto(contenido)
+
+
+class BuscarContenidosHandler:
+    """Busca contenidos por texto libre (título, descripción y etiquetas) vía FTS5."""
+
+    def __init__(self, repo: ContenidoRepository) -> None:
+        self._repo = repo
+
+    def handle(self, query: BuscarContenidosQuery) -> list[ContenidoDTO]:
+        items = self._repo.buscar(query.texto, solo_publicados=query.solo_publicados)
+        return [contenido_to_dto(c) for c in items]
 
 
 class ListarContenidosHandler:

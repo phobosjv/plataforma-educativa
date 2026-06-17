@@ -73,6 +73,7 @@ def main() -> None:
         PublicarContenidoHandler,
         SubirHtmlContenidoHandler,
     )
+    from app.contexts.content.infrastructure.fts import crear_indice_busqueda
     from app.contexts.content.infrastructure.html_sanitizer import Nh3HtmlSanitizer
     from app.contexts.content.infrastructure.html_storage import FileSystemHtmlStorage
     from app.contexts.content.infrastructure.repositories import (
@@ -113,6 +114,15 @@ def main() -> None:
     media_dir.mkdir(parents=True, exist_ok=True)
 
     Base.metadata.create_all(engine)
+    # El índice de búsqueda FTS5 + triggers no los crea create_all (solo la migración
+    # Alembic). Lo creamos aquí para que el buscador funcione en los tests E2E y los
+    # triggers indexen el contenido que se siembra a continuación.
+    raw = engine.raw_connection()
+    try:
+        crear_indice_busqueda(raw.dbapi_connection)
+        raw.commit()
+    finally:
+        raw.close()
 
     session = SessionLocal()
     try:

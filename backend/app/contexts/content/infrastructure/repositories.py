@@ -6,10 +6,11 @@ import json
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from app.contexts.content.domain.model import ContentVersion, Contenido, TipoContenido
+from app.contexts.content.infrastructure.fts import construir_match
 from app.contexts.content.infrastructure.models import ContentVersionModel, ContenidoModel
 
 
@@ -79,6 +80,39 @@ class SqlAlchemyContenidoRepository:
             .order_by(ContenidoModel.updated_at)
         )
         return [self._to_domain(m) for m in self._session.execute(stmt).scalars()]
+
+    def buscar(self, texto: str, solo_publicados: bool = True) -> list[Contenido]:
+        """Búsqueda full-text por título/descripción/etiquetas (FTS5), ordenada por relevancia.
+
+        Une el índice ``content_fts`` con ``content`` por ``rowid`` para aplicar la
+        visibilidad (no borrados; publicados si procede) y ordena por ``rank`` (mejor
+        relevancia primero). Devuelve a lo sumo 50 resultados. Si el texto no tiene
+        términos válidos, devuelve lista vacía sin tocar la BD.
+        """
+        match = construir_match(texto)
+        if not match:
+            return []
+        filtro_pub = "AND c.is_published = 1" if solo_publicados else ""
+        stmt = text(
+            f"""
+            SELECT c.id
+            FROM content_fts
+            JOIN content c ON c.rowid = content_fts.rowid
+            WHERE content_fts MATCH :match
+              AND c.is_deleted = 0
+              {filtro_pub}
+            ORDER BY rank
+            LIMIT 50
+            """
+        )
+        ids = self._session.execute(stmt, {"match": match}).scalars().all()
+        # Cargamos los modelos preservando el orden por relevancia que dio FTS5.
+        resultados: list[Contenido] = []
+        for cid in ids:
+            model = self._session.get(ContenidoModel, cid)
+            if model is not None:
+                resultados.append(self._to_domain(model))
+        return resultados
 
     def delete_permanent(self, contenido_id: UUID) -> None:
         model = self._session.get(ContenidoModel, str(contenido_id))

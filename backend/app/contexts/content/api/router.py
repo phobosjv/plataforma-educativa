@@ -26,6 +26,7 @@ from app.contexts.content.application.dtos import ContenidoDTO
 from app.contexts.content.application.handlers import (
     ActualizarContenidoHandler,
     BorrarContenidoHandler,
+    BuscarContenidosHandler,
     CrearContenidoHandler,
     ListarContenidosHandler,
     ObtenerContenidoHandler,
@@ -34,7 +35,11 @@ from app.contexts.content.application.handlers import (
     RestaurarContenidoHandler,
     SubirHtmlContenidoHandler,
 )
-from app.contexts.content.application.queries import ListarContenidosQuery, ObtenerContenidoQuery
+from app.contexts.content.application.queries import (
+    BuscarContenidosQuery,
+    ListarContenidosQuery,
+    ObtenerContenidoQuery,
+)
 from app.contexts.content.infrastructure.html_sanitizer import Nh3HtmlSanitizer
 from app.contexts.content.infrastructure.html_storage import FileSystemHtmlStorage
 from app.contexts.content.infrastructure.repositories import (
@@ -86,6 +91,19 @@ def listar_contenidos_publicos(db: Session = Depends(get_db)) -> list[ContenidoR
     repo = SqlAlchemyContenidoRepository(db)
     handler = ListarContenidosHandler(repo)
     dtos = handler.handle(ListarContenidosQuery(solo_publicados=True))
+    return [_dto_to_response(d) for d in dtos]
+
+
+@router.get("/contenidos/buscar", response_model=list[ContenidoResponse])
+def buscar_contenidos(q: str = "", db: Session = Depends(get_db)) -> list[ContenidoResponse]:
+    """Busca en el catálogo público por título, descripción y etiquetas (FTS5).
+
+    Declarado ANTES de ``/contenidos/{contenido_id}`` para que el segmento ``buscar``
+    no se intente validar como UUID. ``q`` vacío o sin términos útiles devuelve [].
+    """
+    repo = SqlAlchemyContenidoRepository(db)
+    handler = BuscarContenidosHandler(repo)
+    dtos = handler.handle(BuscarContenidosQuery(texto=q, solo_publicados=True))
     return [_dto_to_response(d) for d in dtos]
 
 
