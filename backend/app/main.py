@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from collections.abc import AsyncIterator
@@ -20,7 +21,7 @@ from app.shared.domain.base import (
     DomainError,
     NotFoundError,
 )
-from app.shared.infrastructure.scheduler import MaintenanceScheduler
+from app.shared.infrastructure.scheduler import MaintenanceScheduler, volcar_visitas
 from app.version import __version__
 
 logging.basicConfig(level=settings.log_level)
@@ -28,13 +29,16 @@ logging.basicConfig(level=settings.log_level)
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    """Arranca y detiene las tareas de mantenimiento (backups + purga de papelera)."""
+    """Arranca y detiene las tareas de mantenimiento (backups, purga, volcado de visitas)."""
     scheduler = MaintenanceScheduler(settings)
     scheduler.start()
     try:
         yield
     finally:
         await scheduler.stop()
+        # Persistir el último lote de visitas acumuladas antes de apagar (no perderlas).
+        if settings.analytics_enabled:
+            await asyncio.to_thread(volcar_visitas)
 
 
 app = FastAPI(title="Plataforma Educativa API", version=__version__, lifespan=lifespan)
@@ -97,6 +101,7 @@ from app.contexts.content.api.router import router as content_router  # noqa: E4
 from app.contexts.taxonomy.api.router import router as taxonomy_router  # noqa: E402
 from app.contexts.configuration.api.router import router as config_router  # noqa: E402
 from app.contexts.media.api.router import router as media_router  # noqa: E402
+from app.contexts.analytics.api.router import router as analytics_router  # noqa: E402
 from app.shared.api.maintenance_router import router as maintenance_router  # noqa: E402
 
 app.include_router(identity_router, prefix="/api/v1")
@@ -104,4 +109,5 @@ app.include_router(content_router, prefix="/api/v1")
 app.include_router(taxonomy_router, prefix="/api/v1")
 app.include_router(config_router, prefix="/api/v1")
 app.include_router(media_router, prefix="/api/v1")
+app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(maintenance_router, prefix="/api/v1")

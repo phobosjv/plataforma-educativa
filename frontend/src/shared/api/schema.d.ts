@@ -421,6 +421,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/visitas/{contenido_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registrar Visita
+         * @description Anota una visita anónima a un contenido (público).
+         *
+         *     Solo incrementa un contador en memoria; NO escribe en la BD (CLAUDE.md §8). La tarea de
+         *     mantenimiento vuelca los conteos por lotes. Sin datos del visitante (§10).
+         */
+        post: operations["registrar_visita_api_v1_analytics_visitas__contenido_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/visitas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Obtener Visitas
+         * @description Total de visitas y desglose por contenido (solo admin). Refleja lo ya volcado a la BD.
+         */
+        get: operations["obtener_visitas_api_v1_analytics_visitas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/backups": {
         parameters: {
             query?: never;
@@ -895,6 +938,15 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VisitasResponse */
+        VisitasResponse: {
+            /** Total */
+            total: number;
+            /** Por Contenido */
+            por_contenido: {
+                [key: string]: number;
+            };
         };
     };
     responses: never;
@@ -2015,6 +2067,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    registrar_visita_api_v1_analytics_visitas__contenido_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contenido_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    obtener_visitas_api_v1_analytics_visitas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitasResponse"];
                 };
             };
         };

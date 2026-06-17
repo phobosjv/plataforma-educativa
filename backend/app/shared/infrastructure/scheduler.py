@@ -4,9 +4,10 @@ Coherente con CLAUDE.md §3 (eventos/tareas en proceso, sin broker) y con el pat
 previsto para el volcado por lotes del contador de visitas. Arranca con el ciclo de vida
 de FastAPI (``lifespan``) y se detiene limpiamente al apagar la app.
 
-Dos tareas periódicas:
+Tres tareas periódicas:
 - **Backup** de la BD SQLite (copia en caliente + rotación).
 - **Purga** del contenido vencido en la papelera (borrado lógico -> físico).
+- **Volcado de visitas**: persiste por lotes el contador en memoria (CLAUDE.md §8).
 
 Las operaciones de E/S y BD son síncronas; se ejecutan en un hilo (``asyncio.to_thread``)
 para no bloquear el bucle de eventos.
@@ -20,6 +21,9 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 from app.config import Settings
+from app.contexts.analytics.application.handlers import VolcarVisitasHandler
+from app.contexts.analytics.infrastructure.buffer import buffer_visitas
+from app.contexts.analytics.infrastructure.repositories import SqlAlchemyVisitasRepository
 from app.contexts.content.application.commands import PurgarPapeleraVencidaCommand
 from app.contexts.content.application.handlers import PurgarPapeleraVencidaHandler
 from app.contexts.content.infrastructure.repositories import SqlAlchemyContenidoRepository
@@ -55,6 +59,23 @@ def _ejecutar_purga(settings: Settings) -> None:
         session.close()
 
 
+def volcar_visitas() -> None:
+    """Vuelca a la BD el contador de visitas acumulado en memoria (lote único).
+
+    Se ejecuta periódicamente y también al apagar la app (para no perder el último lote).
+    """
+    session = SessionLocal()
+    try:
+        handler = VolcarVisitasHandler(
+            buffer_visitas, SqlAlchemyVisitasRepository(session), UnitOfWork(session)
+        )
+        visitas = handler.handle()
+        if visitas:
+            logger.info("Volcado de visitas: %d visita(s) persistidas.", visitas)
+    finally:
+        session.close()
+
+
 class MaintenanceScheduler:
     """Lanza y detiene las tareas periódicas de backup y purga."""
 
@@ -69,13 +90,19 @@ class MaintenanceScheduler:
             self._programar(
                 "backup",
                 lambda: asyncio.to_thread(_ejecutar_backup, s),
-                intervalo_horas=s.backup_interval_hours,
+                intervalo_seg=max(1, s.backup_interval_hours) * 3600,
             )
         if s.trash_purge_enabled and s.trash_retention_days > 0:
             self._programar(
                 "purga-papelera",
                 lambda: asyncio.to_thread(_ejecutar_purga, s),
-                intervalo_horas=s.trash_purge_interval_hours,
+                intervalo_seg=max(1, s.trash_purge_interval_hours) * 3600,
+            )
+        if s.analytics_enabled:
+            self._programar(
+                "volcado-visitas",
+                lambda: asyncio.to_thread(volcar_visitas),
+                intervalo_seg=max(30, s.analytics_flush_interval_seconds),
             )
 
     async def stop(self) -> None:
@@ -89,10 +116,11 @@ class MaintenanceScheduler:
                 pass
 
     def _programar(
-        self, nombre: str, accion: Callable[[], Awaitable[None]], intervalo_horas: int
+        self, nombre: str, accion: Callable[[], Awaitable[None]], intervalo_seg: int
     ) -> None:
-        intervalo = max(1, intervalo_horas) * 3600
-        self._tasks.append(asyncio.create_task(self._bucle(nombre, accion, intervalo)))
+        self._tasks.append(
+            asyncio.create_task(self._bucle(nombre, accion, max(1, intervalo_seg)))
+        )
 
     async def _bucle(
         self, nombre: str, accion: Callable[[], Awaitable[None]], intervalo_seg: float

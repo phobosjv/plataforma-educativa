@@ -7,6 +7,7 @@ function fetchResumen() {
   return Promise.all([
     api.GET("/api/v1/admin/contenidos/").then(({ data }) => data ?? []),
     api.GET("/api/v1/taxonomy/ciclos/").then(({ data }) => data ?? []),
+    api.GET("/api/v1/analytics/visitas").then(({ data }) => data ?? { total: 0, por_contenido: {} }),
   ]);
 }
 
@@ -17,7 +18,7 @@ export function DashboardPage() {
     queryFn: fetchResumen,
   });
 
-  const [contenidos, ciclos] = data ?? [[], []];
+  const [contenidos, ciclos, visitas] = data ?? [[], [], { total: 0, por_contenido: {} }];
 
   return (
     <>
@@ -38,6 +39,10 @@ export function DashboardPage() {
             <p className="cms-muted">Ciclos educativos</p>
             <p className="cms-h2" style={{ marginTop: ".25rem" }}>{ciclos.length}</p>
           </Link>
+          <div className="cms-card">
+            <p className="cms-muted">Visitas totales</p>
+            <p className="cms-h2" style={{ marginTop: ".25rem" }}>{visitas.total}</p>
+          </div>
         </div>
       )}
     </>

@@ -41,5 +41,13 @@ class Settings(BaseSettings):
     trash_retention_days: int = 30
     trash_purge_interval_hours: int = 24
 
+    # --- Contador de visitas (agregación en memoria + volcado por lotes) ---
+    # Las visitas se cuentan en un buffer en memoria y la tarea de mantenimiento las vuelca
+    # a la BD cada `analytics_flush_interval_seconds` (CLAUDE.md §8: nunca una escritura por
+    # petición). Visitas anónimas y agregadas (§10). Poner `analytics_enabled=False` desactiva
+    # el volcado periódico (las visitas en buffer se persistirían al apagar la app).
+    analytics_enabled: bool = True
+    analytics_flush_interval_seconds: int = 300
+
 
 settings = Settings()

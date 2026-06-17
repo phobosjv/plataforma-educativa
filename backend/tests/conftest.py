@@ -13,3 +13,6 @@ from app.config import settings
 
 settings.backup_enabled = False
 settings.trash_purge_enabled = False
+# El volcado periódico de visitas opera sobre la BD real (SessionLocal); se desactiva en
+# tests. El caso de uso de volcado se prueba aislado en sus propios tests.
+settings.analytics_enabled = False

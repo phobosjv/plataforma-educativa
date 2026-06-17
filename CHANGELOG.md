@@ -6,6 +6,30 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.14.0] - 2026-06-17
+
+### Añadido (contador de visitas — contexto `analytics`)
+- **Conteo de visitas anónimas** de los contenidos. Al abrir la ficha de un contenido se registra una
+  visita; el panel de administración muestra las **visitas totales** (Inicio) y las **visitas por
+  contenido** (lista de Contenidos).
+- Arquitectura según CLAUDE.md §8: las visitas se **agregan en memoria** (buffer de proceso,
+  thread-safe) y se **vuelcan por lotes** a la BD mediante la tarea de mantenimiento (por defecto cada
+  5 min) y al apagar la app. **Nunca** hay una escritura en BD por petición. Visitas anónimas y
+  agregadas, sin datos del visitante (§10).
+- Endpoints: `POST /api/v1/analytics/visitas/{contenido_id}` (público; solo incrementa el buffer en
+  memoria) y `GET /api/v1/analytics/visitas` (solo admin; total + desglose por contenido).
+
+### Persistencia / migraciones
+- Nueva tabla `content_views` (total por contenido, UPSERT acumulativo). Migración Alembic `012`.
+- Nuevos ajustes: `analytics_enabled` y `analytics_flush_interval_seconds`. El planificador de
+  mantenimiento admite ahora intervalos en segundos (además de las tareas horarias de backup/purga).
+
+### Notas
+- 176 tests de backend (12 nuevos de visitas) + 9 E2E en verde. Type-check de frontend limpio. Cliente
+  OpenAPI regenerado. API version → `0.14.0`.
+
+---
+
 ## [V-0.13.0] - 2026-06-17
 
 ### Añadido (buscador del catálogo, FTS5)

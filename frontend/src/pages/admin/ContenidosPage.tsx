@@ -34,6 +34,13 @@ export function ContenidosPage() {
     queryFn: fetchTodos,
   });
 
+  // Visitas por contenido (mapa id -> nº). Si falla, se muestran 0 (no bloquea la lista).
+  const { data: visitas } = useQuery({
+    queryKey: ["admin-visitas"],
+    queryFn: () =>
+      api.GET("/api/v1/analytics/visitas").then(({ data }) => data?.por_contenido ?? {}),
+  });
+
   const publicar = useMutation({
     mutationFn: (id: string) =>
       api.POST("/api/v1/contenidos/{contenido_id}/publicar", {
@@ -94,6 +101,7 @@ export function ContenidosPage() {
               <th>Título</th>
               <th>Tipo</th>
               <th>Estado</th>
+              <th>Visitas</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -109,6 +117,7 @@ export function ContenidosPage() {
                     {estadoLabel(c)}
                   </span>
                 </td>
+                <td>{visitas?.[c.id] ?? 0}</td>
                 <td style={{ display: "flex", gap: ".4rem", flexWrap: "wrap" }}>
                   {!c.borrado && (
                     <Link

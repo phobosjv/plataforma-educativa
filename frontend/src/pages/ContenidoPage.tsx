@@ -51,6 +51,17 @@ export function ContenidoPage() {
     enabled: esInteractivo,
   });
 
+  // Registra una visita anónima al abrir la ficha del contenido (una por carga). Es
+  // "best-effort": el backend solo acumula en memoria y vuelca por lotes; si falla, da igual.
+  useEffect(() => {
+    if (!data?.id) return;
+    api
+      .POST("/api/v1/analytics/visitas/{contenido_id}", {
+        params: { path: { contenido_id: data.id } },
+      })
+      .catch(() => {});
+  }, [data?.id]);
+
   // Bloquea el scroll del fondo y permite salir con Escape mientras está maximizado.
   useEffect(() => {
     if (!maximizado) return;
