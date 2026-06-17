@@ -464,6 +464,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auditoria": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Auditoria
+         * @description Registro de acciones de gestión, más recientes primero (solo admin).
+         */
+        get: operations["listar_auditoria_api_v1_auditoria_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/backups": {
         parameters: {
             query?: never;
@@ -629,6 +649,37 @@ export interface components {
             color: string;
             /** Transversal */
             transversal: boolean;
+        };
+        /** AuditoriaEntradaResponse */
+        AuditoriaEntradaResponse: {
+            /** Id */
+            id: string;
+            /** Usuario Id */
+            usuario_id: string | null;
+            /** Usuario Email */
+            usuario_email: string;
+            /** Usuario Rol */
+            usuario_rol: string;
+            /** Accion */
+            accion: string;
+            /** Entidad */
+            entidad: string;
+            /** Entidad Id */
+            entidad_id: string | null;
+            /** Detalle */
+            detalle: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** AuditoriaListResponse */
+        AuditoriaListResponse: {
+            /** Total */
+            total: number;
+            /** Entradas */
+            entradas: components["schemas"]["AuditoriaEntradaResponse"][];
         };
         /** BackupResponse */
         BackupResponse: {
@@ -2116,6 +2167,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VisitasResponse"];
+                };
+            };
+        };
+    };
+    listar_auditoria_api_v1_auditoria_get: {
+        parameters: {
+            query?: {
+                limite?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditoriaListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

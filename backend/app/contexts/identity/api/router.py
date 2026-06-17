@@ -19,6 +19,7 @@ from app.contexts.identity.application.queries import ListarUsuariosQuery
 from app.contexts.identity.infrastructure.auth_service import ArgonAuthService
 from app.contexts.identity.infrastructure.repositories import SqlAlchemyUsuarioRepository
 from app.config import settings
+from app.contexts.auditing.infrastructure.recorder import registrar_auditoria
 from app.shared.domain.base import AuthenticationError, DomainError
 from app.shared.infrastructure.database import get_db
 from app.shared.infrastructure.unit_of_work import UnitOfWork
@@ -74,7 +75,7 @@ def listar_usuarios(
 @router.post("/users/", status_code=status.HTTP_201_CREATED)
 def crear_usuario(
     body: CrearUsuarioRequest,
-    _: UsuarioDTO = Depends(require_admin),
+    current: UsuarioDTO = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> dict[str, str]:
     handler = _make_crear_usuario_handler(db)
@@ -84,4 +85,8 @@ def crear_usuario(
         )
     except DomainError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    registrar_auditoria(
+        db, usuario_id=current.id, usuario_email=current.email, usuario_rol=current.rol,
+        accion="crear", entidad="usuario", entidad_id=str(uid), detalle=body.email,
+    )
     return {"id": str(uid)}

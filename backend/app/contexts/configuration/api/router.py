@@ -28,11 +28,22 @@ from app.contexts.configuration.application.handlers import (
 from app.contexts.configuration.infrastructure.repositories import (
     SqlAlchemyConfiguracionRepository,
 )
+from app.contexts.auditing.infrastructure.recorder import registrar_auditoria
 from app.contexts.identity.api.dependencies import require_admin
+from app.contexts.identity.application.dtos import UsuarioDTO
 from app.shared.infrastructure.database import get_db
 from app.shared.infrastructure.unit_of_work import UnitOfWork
 
 router = APIRouter(prefix="/config", tags=["configuration"])
+
+
+def _auditar(
+    db: Session, current: UsuarioDTO, accion: str, entidad_id: str | None = None, detalle: str = ""
+) -> None:
+    registrar_auditoria(
+        db, usuario_id=current.id, usuario_email=current.email, usuario_rol=current.rol,
+        accion=accion, entidad="configuracion", entidad_id=entidad_id, detalle=detalle,
+    )
 
 
 def _repo(db: Session = Depends(get_db)) -> SqlAlchemyConfiguracionRepository:
@@ -67,14 +78,15 @@ def obtener_configuracion(repo: SqlAlchemyConfiguracionRepository = Depends(_rep
 
 
 @router.put("/general", response_model=ConfiguracionResponse,
-            summary="Actualizar ajustes generales (nombre del sitio y fuente)",
-            dependencies=[Depends(require_admin)])
+            summary="Actualizar ajustes generales (nombre del sitio y fuente)")
 def actualizar_ajustes_generales(
     body: AjustesGeneralesRequest,
+    current: UsuarioDTO = Depends(require_admin),
+    db: Session = Depends(get_db),
     repo: SqlAlchemyConfiguracionRepository = Depends(_repo),
     uow: UnitOfWork = Depends(_uow),
 ) -> ConfiguracionResponse:
-    return _dto_to_response(
+    resp = _dto_to_response(
         ActualizarAjustesGeneralesHandler(repo, uow).handle(
             ActualizarAjustesGeneralesCommand(
                 nombre_sitio=body.nombre_sitio,
@@ -87,53 +99,70 @@ def actualizar_ajustes_generales(
             )
         )
     )
+    _auditar(db, current, "editar", detalle="ajustes generales")
+    return resp
 
 
-@router.put("/paleta", response_model=ConfiguracionResponse, summary="Activar paleta",
-            dependencies=[Depends(require_admin)])
+@router.put("/paleta", response_model=ConfiguracionResponse, summary="Activar paleta")
 def activar_paleta(
     body: ActivarPaletaRequest,
+    current: UsuarioDTO = Depends(require_admin),
+    db: Session = Depends(get_db),
     repo: SqlAlchemyConfiguracionRepository = Depends(_repo),
     uow: UnitOfWork = Depends(_uow),
 ) -> ConfiguracionResponse:
-    return _dto_to_response(
+    resp = _dto_to_response(
         ActivarPaletaHandler(repo, uow).handle(ActivarPaletaCommand(paleta_id=body.paleta_id))
     )
+    _auditar(db, current, "activar_paleta", body.paleta_id)
+    return resp
 
 
 @router.post("/paletas", response_model=ConfiguracionResponse, status_code=201,
-             summary="Añadir paleta personalizada", dependencies=[Depends(require_admin)])
+             summary="Añadir paleta personalizada")
 def agregar_paleta(
     body: PaletaRequest,
+    current: UsuarioDTO = Depends(require_admin),
+    db: Session = Depends(get_db),
     repo: SqlAlchemyConfiguracionRepository = Depends(_repo),
     uow: UnitOfWork = Depends(_uow),
 ) -> ConfiguracionResponse:
-    return _dto_to_response(
+    resp = _dto_to_response(
         AgregarPaletaHandler(repo, uow).handle(
             AgregarPaletaCommand(**body.model_dump())
         )
     )
+    _auditar(db, current, "crear_paleta", body.id, body.nombre)
+    return resp
 
 
 @router.put("/paletas/{paleta_id}", response_model=ConfiguracionResponse,
-            summary="Actualizar paleta personalizada", dependencies=[Depends(require_admin)])
+            summary="Actualizar paleta personalizada")
 def actualizar_paleta(
     paleta_id: str,
     body: PaletaRequest,
+    current: UsuarioDTO = Depends(require_admin),
+    db: Session = Depends(get_db),
     repo: SqlAlchemyConfiguracionRepository = Depends(_repo),
     uow: UnitOfWork = Depends(_uow),
 ) -> ConfiguracionResponse:
     cmd = ActualizarPaletaCommand(id=paleta_id, **{k: v for k, v in body.model_dump().items() if k != "id"})
-    return _dto_to_response(ActualizarPaletaHandler(repo, uow).handle(cmd))
+    resp = _dto_to_response(ActualizarPaletaHandler(repo, uow).handle(cmd))
+    _auditar(db, current, "editar_paleta", paleta_id, body.nombre)
+    return resp
 
 
 @router.delete("/paletas/{paleta_id}", response_model=ConfiguracionResponse,
-               summary="Eliminar paleta personalizada", dependencies=[Depends(require_admin)])
+               summary="Eliminar paleta personalizada")
 def eliminar_paleta(
     paleta_id: str,
+    current: UsuarioDTO = Depends(require_admin),
+    db: Session = Depends(get_db),
     repo: SqlAlchemyConfiguracionRepository = Depends(_repo),
     uow: UnitOfWork = Depends(_uow),
 ) -> ConfiguracionResponse:
-    return _dto_to_response(
+    resp = _dto_to_response(
         EliminarPaletaHandler(repo, uow).handle(EliminarPaletaCommand(paleta_id=paleta_id))
     )
+    _auditar(db, current, "borrar_paleta", paleta_id)
+    return resp

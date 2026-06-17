@@ -6,6 +6,28 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.15.0] - 2026-06-17
+
+### Añadido (auditoría — contexto `auditing`)
+- **Registro de auditoría** de todas las acciones de gestión (admin/editor): quién hizo qué, sobre qué
+  objeto y cuándo. Cubre contenidos (crear/editar/publicar/borrar/restaurar/purgar/subir HTML),
+  usuarios, taxonomía (ciclos/cursos/asignaturas) y configuración (ajustes y paletas).
+- **Página «Auditoría»** en el panel de administración (solo admin): lista de acciones recientes con
+  fecha, usuario (email + rol), acción y detalle.
+- Endpoint `GET /api/v1/auditoria` (solo admin, paginado). El registro es **append-only** y se
+  **conserva indefinidamente** (sin purga automática).
+
+### Persistencia / migraciones
+- Nueva tabla `audit_log` (índice por fecha). Migración Alembic `013`.
+- El registro se escribe en la capa API tras cada acción con éxito, usando la sesión de la petición.
+  Es **a prueba de fallos**: si la auditoría fallara, nunca tumba la acción real del usuario.
+
+### Notas
+- 186 tests de backend (10 nuevos de auditoría) + 9 E2E en verde. Type-check de frontend limpio.
+  Cliente OpenAPI regenerado. API version → `0.15.0`.
+
+---
+
 ## [V-0.14.0] - 2026-06-17
 
 ### Añadido (contador de visitas — contexto `analytics`)

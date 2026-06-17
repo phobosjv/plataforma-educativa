@@ -46,6 +46,7 @@ from app.contexts.content.infrastructure.repositories import (
     SqlAlchemyContenidoRepository,
     SqlAlchemyContentVersionRepository,
 )
+from app.contexts.auditing.infrastructure.recorder import registrar_auditoria
 from app.contexts.identity.api.dependencies import require_admin, require_editor_or_admin
 from app.contexts.identity.application.dtos import UsuarioDTO
 from app.shared.domain.base import DomainError, NotFoundError
@@ -56,6 +57,15 @@ router = APIRouter(tags=["content"])
 
 # Tamaño máximo del HTML de un ejercicio interactivo (defensa contra subidas abusivas).
 MAX_HTML_BYTES = 2 * 1024 * 1024
+
+
+def _auditar(
+    db: Session, current: UsuarioDTO, accion: str, entidad_id: str, detalle: str = ""
+) -> None:
+    registrar_auditoria(
+        db, usuario_id=current.id, usuario_email=current.email, usuario_rol=current.rol,
+        accion=accion, entidad="contenido", entidad_id=entidad_id, detalle=detalle,
+    )
 
 
 def _dto_to_response(dto: ContenidoDTO) -> ContenidoResponse:
@@ -149,6 +159,7 @@ def crear_contenido(
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
     dto = ObtenerContenidoHandler(repo).handle(ObtenerContenidoQuery(contenido_id=uid))
+    _auditar(db, current, "crear", str(uid), dto.titulo)
     return _dto_to_response(dto)
 
 
@@ -186,6 +197,7 @@ def actualizar_contenido(
         raise HTTPException(status_code=404, detail=str(e))
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "editar", str(contenido_id), dto.titulo)
     return _dto_to_response(dto)
 
 
@@ -220,6 +232,7 @@ def subir_html_interactivo(
         raise HTTPException(status_code=404, detail=str(e))
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "subir_html", str(contenido_id), dto.titulo)
     return _dto_to_response(dto)
 
 
@@ -240,6 +253,7 @@ def publicar_contenido(
         raise HTTPException(status_code=404, detail=str(e))
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "publicar", str(contenido_id), dto.titulo)
     return _dto_to_response(dto)
 
 
@@ -256,6 +270,7 @@ def borrar_contenido(
         handler.handle(BorrarContenidoCommand(contenido_id=contenido_id, deleted_by=current.id))
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    _auditar(db, current, "borrar", str(contenido_id))
 
 
 @router.post("/contenidos/{contenido_id}/restaurar", response_model=ContenidoResponse)
@@ -273,6 +288,7 @@ def restaurar_contenido(
         )
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    _auditar(db, current, "restaurar", str(contenido_id), dto.titulo)
     return _dto_to_response(dto)
 
 
@@ -295,6 +311,7 @@ def purgar_contenido(
         raise HTTPException(status_code=404, detail=str(e))
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "purgar", str(contenido_id))
 
 
 @router.get("/admin/contenidos/", response_model=list[ContenidoResponse])

@@ -72,6 +72,14 @@ export function AdminLayout() {
             >
               Copias de seguridad
             </NavLink>
+            <NavLink
+              to="/admin/auditoria"
+              className={({ isActive }) =>
+                "cms-sidebar-link" + (isActive ? " cms-sidebar-link-active" : "")
+              }
+            >
+              Auditoría
+            </NavLink>
           </>
         )}
         <div className="cms-sidebar-spacer" />

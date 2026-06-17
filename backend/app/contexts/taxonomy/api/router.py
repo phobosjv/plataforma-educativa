@@ -61,11 +61,21 @@ from app.contexts.taxonomy.infrastructure.repositories import (
     SqlAlchemyCicloRepository,
     SqlAlchemyCursoRepository,
 )
+from app.contexts.auditing.infrastructure.recorder import registrar_auditoria
 from app.shared.domain.base import DomainError, NotFoundError
 from app.shared.infrastructure.database import get_db
 from app.shared.infrastructure.unit_of_work import UnitOfWork
 
 router = APIRouter(prefix="/taxonomy", tags=["taxonomy"])
+
+
+def _auditar(
+    db: Session, current: UsuarioDTO, accion: str, entidad: str, entidad_id: str, detalle: str = ""
+) -> None:
+    registrar_auditoria(
+        db, usuario_id=current.id, usuario_email=current.email, usuario_rol=current.rol,
+        accion=accion, entidad=entidad, entidad_id=entidad_id, detalle=detalle,
+    )
 
 
 # ── Ciclos ────────────────────────────────────────────────────────────────────
@@ -91,7 +101,7 @@ def obtener_ciclo(ciclo_id: UUID, db: Session = Depends(get_db)) -> CicloRespons
 @router.post("/ciclos/", status_code=status.HTTP_201_CREATED)
 def crear_ciclo(
     body: CrearCicloRequest,
-    _: UsuarioDTO = Depends(require_admin),
+    current: UsuarioDTO = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> dict[str, str]:
     try:
@@ -100,6 +110,7 @@ def crear_ciclo(
         )
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "crear", "ciclo", str(uid), body.nombre)
     return {"id": str(uid)}
 
 
@@ -107,7 +118,7 @@ def crear_ciclo(
 def actualizar_ciclo(
     ciclo_id: UUID,
     body: ActualizarCicloRequest,
-    _: UsuarioDTO = Depends(require_admin),
+    current: UsuarioDTO = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> CicloResponse:
     try:
@@ -118,13 +129,14 @@ def actualizar_ciclo(
         raise HTTPException(status_code=404, detail=str(e))
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "editar", "ciclo", str(ciclo_id), dto.nombre)
     return CicloResponse(id=dto.id, nombre=dto.nombre, orden=dto.orden)
 
 
 @router.delete("/ciclos/{ciclo_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_ciclo(
     ciclo_id: UUID,
-    _: UsuarioDTO = Depends(require_admin),
+    current: UsuarioDTO = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> None:
     try:
@@ -133,6 +145,7 @@ def eliminar_ciclo(
         )
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    _auditar(db, current, "borrar", "ciclo", str(ciclo_id))
 
 
 # ── Cursos ────────────────────────────────────────────────────────────────────
@@ -162,7 +175,7 @@ def obtener_curso(curso_id: UUID, db: Session = Depends(get_db)) -> CursoRespons
 @router.post("/cursos/", status_code=status.HTTP_201_CREATED)
 def crear_curso(
     body: CrearCursoRequest,
-    _: UsuarioDTO = Depends(require_admin),
+    current: UsuarioDTO = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> dict[str, str]:
     try:
@@ -171,6 +184,7 @@ def crear_curso(
         ).handle(CrearCursoCommand(nombre=body.nombre, ciclo_id=body.ciclo_id, orden=body.orden))
     except (NotFoundError, DomainError) as e:
         raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "crear", "curso", str(uid), body.nombre)
     return {"id": str(uid)}
 
 
@@ -178,7 +192,7 @@ def crear_curso(
 def actualizar_curso(
     curso_id: UUID,
     body: ActualizarCursoRequest,
-    _: UsuarioDTO = Depends(require_admin),
+    current: UsuarioDTO = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> CursoResponse:
     try:
@@ -189,13 +203,14 @@ def actualizar_curso(
         raise HTTPException(status_code=404, detail=str(e))
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "editar", "curso", str(curso_id), dto.nombre)
     return CursoResponse(id=dto.id, nombre=dto.nombre, ciclo_id=dto.ciclo_id, orden=dto.orden)
 
 
 @router.delete("/cursos/{curso_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_curso(
     curso_id: UUID,
-    _: UsuarioDTO = Depends(require_admin),
+    current: UsuarioDTO = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> None:
     try:
@@ -204,6 +219,7 @@ def eliminar_curso(
         )
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    _auditar(db, current, "borrar", "curso", str(curso_id))
 
 
 # ── Asignaturas ───────────────────────────────────────────────────────────────
@@ -236,7 +252,7 @@ def obtener_asignatura(asignatura_id: UUID, db: Session = Depends(get_db)) -> As
 @router.post("/asignaturas/", status_code=status.HTTP_201_CREATED)
 def crear_asignatura(
     body: CrearAsignaturaRequest,
-    _: UsuarioDTO = Depends(require_admin),
+    current: UsuarioDTO = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> dict[str, str]:
     try:
@@ -247,6 +263,7 @@ def crear_asignatura(
         )
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "crear", "asignatura", str(uid), body.nombre)
     return {"id": str(uid)}
 
 
@@ -254,7 +271,7 @@ def crear_asignatura(
 def actualizar_asignatura(
     asignatura_id: UUID,
     body: ActualizarAsignaturaRequest,
-    _: UsuarioDTO = Depends(require_admin),
+    current: UsuarioDTO = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> AsignaturaResponse:
     try:
@@ -272,6 +289,7 @@ def actualizar_asignatura(
         raise HTTPException(status_code=404, detail=str(e))
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "editar", "asignatura", str(asignatura_id), dto.nombre)
     return AsignaturaResponse(
         id=dto.id, nombre=dto.nombre, color=dto.color, transversal=dto.transversal
     )
@@ -280,7 +298,7 @@ def actualizar_asignatura(
 @router.delete("/asignaturas/{asignatura_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_asignatura(
     asignatura_id: UUID,
-    _: UsuarioDTO = Depends(require_admin),
+    current: UsuarioDTO = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> None:
     try:
@@ -289,3 +307,4 @@ def eliminar_asignatura(
         )
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    _auditar(db, current, "borrar", "asignatura", str(asignatura_id))

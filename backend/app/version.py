@@ -5,4 +5,4 @@ Mantener sincronizada con la última entrada de CHANGELOG.md en cada release (§
 
 from __future__ import annotations
 
-__version__ = "0.14.0"
+__version__ = "0.15.0"

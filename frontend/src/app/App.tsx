@@ -13,6 +13,7 @@ import { TaxonomiaPage } from "../pages/admin/TaxonomiaPage";
 import { UsuariosPage } from "../pages/admin/UsuariosPage";
 import { ConfiguracionPage } from "../pages/admin/ConfiguracionPage";
 import { BackupsPage } from "../pages/admin/BackupsPage";
+import { AuditoriaPage } from "../pages/admin/AuditoriaPage";
 import { PublicLayout } from "../shared/ui/PublicLayout";
 import { AdminLayout } from "../shared/ui/AdminLayout";
 
@@ -60,6 +61,14 @@ function AppRoutes() {
           element={
             <RequireAuth rol="admin">
               <BackupsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="auditoria"
+          element={
+            <RequireAuth rol="admin">
+              <AuditoriaPage />
             </RequireAuth>
           }
         />

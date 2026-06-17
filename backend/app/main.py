@@ -102,6 +102,7 @@ from app.contexts.taxonomy.api.router import router as taxonomy_router  # noqa: 
 from app.contexts.configuration.api.router import router as config_router  # noqa: E402
 from app.contexts.media.api.router import router as media_router  # noqa: E402
 from app.contexts.analytics.api.router import router as analytics_router  # noqa: E402
+from app.contexts.auditing.api.router import router as auditing_router  # noqa: E402
 from app.shared.api.maintenance_router import router as maintenance_router  # noqa: E402
 
 app.include_router(identity_router, prefix="/api/v1")
@@ -110,4 +111,5 @@ app.include_router(taxonomy_router, prefix="/api/v1")
 app.include_router(config_router, prefix="/api/v1")
 app.include_router(media_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
+app.include_router(auditing_router, prefix="/api/v1")
 app.include_router(maintenance_router, prefix="/api/v1")
