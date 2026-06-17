@@ -1114,6 +1114,8 @@ export interface components {
              * Format: uuid
              */
             created_by: string;
+            /** Created By Email */
+            created_by_email?: string | null;
             /**
              * Created At
              * Format: date-time

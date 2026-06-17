@@ -35,6 +35,9 @@ class VersionResponse(BaseModel):
     titulo: str
     tipo: str
     created_by: UUID
+    # Email del autor de la versión, resuelto en la capa API a partir de ``created_by``
+    # (puede ser None si ese usuario ya no existe).
+    created_by_email: str | None = None
     created_at: datetime
 
 

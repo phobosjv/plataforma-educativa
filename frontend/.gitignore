@@ -1,3 +1,9 @@
+# Artefactos de emisión de tsc (el código fuente es .ts/.tsx; estos .js son basura de
+# `tsc -b` al type-checkear y nunca deben commitearse — Vite compila los .tsx directamente).
+src/**/*.js
+src/**/*.js.map
+*.tsbuildinfo
+
 # Artefactos de Playwright (E2E)
 /test-results/
 /playwright-report/

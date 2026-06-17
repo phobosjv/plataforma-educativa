@@ -6,6 +6,30 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.19.0] - 2026-06-17
+
+### Añadido (mejoras de contenido)
+- **Iconos de red social en el cuerpo de los artículos.** Cuando un editor enlaza a un perfil de una
+  red social conocida (Facebook, Instagram, X, YouTube, TikTok, WhatsApp, Telegram, LinkedIn) dentro de
+  un artículo, el enlace se muestra precedido por el **icono de marca** de esa red. La detección es por
+  dominio del enlace; el icono es el mismo SVG self-hosted del pie (fuente única en
+  `redesSociales.tsx`). Los enlaces externos abren en pestaña nueva (`rel=noopener noreferrer`, §10).
+- **Autor de cada versión en el historial.** El historial de versiones de un contenido muestra ahora una
+  columna **«Autor»** con el email de quien creó cada versión. El email se resuelve en la capa API a
+  partir de `created_by` vía el caso de uso de `identity` (sin acoplar el dominio de contenido).
+
+### Corregido / aclarado
+- **Taxonomía:** se verificó que los nombres de ciclos/cursos/asignaturas están correctamente
+  codificados en UTF-8 en la base de datos; lo que parecía «doble codificación» era solo la consola de
+  Windows (cp1252). No había datos corruptos, no se requiere migración de datos.
+
+### Notas
+- `VersionResponse` gana el campo opcional `created_by_email`; cliente OpenAPI regenerado. Sin cambios
+  de esquema de base de datos (no hay migración nueva).
+- 205 tests de backend + 9 E2E en verde. Type-check de frontend limpio. API version → `0.19.0`.
+
+---
+
 ## [V-0.18.0] - 2026-06-17
 
 ### Añadido (redes sociales)

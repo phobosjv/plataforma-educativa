@@ -54,6 +54,9 @@ from app.contexts.content.infrastructure.repositories import (
 from app.contexts.auditing.infrastructure.recorder import registrar_auditoria
 from app.contexts.identity.api.dependencies import require_admin, require_editor_or_admin
 from app.contexts.identity.application.dtos import UsuarioDTO
+from app.contexts.identity.application.handlers import ListarUsuariosHandler
+from app.contexts.identity.application.queries import ListarUsuariosQuery
+from app.contexts.identity.infrastructure.repositories import SqlAlchemyUsuarioRepository
 from app.shared.domain.base import DomainError, NotFoundError
 from app.shared.infrastructure.database import get_db
 from app.shared.infrastructure.unit_of_work import UnitOfWork
@@ -308,12 +311,18 @@ def listar_versiones(
     dtos = ListarVersionesHandler(version_repo).handle(
         ListarVersionesQuery(contenido_id=contenido_id)
     )
+    # Resolución del autor (email) en la capa de composición: los usuarios privilegiados
+    # son pocos, así que se cargan una vez y se mapea id -> email (CLAUDE.md: comunicación
+    # entre contextos vía caso de uso de aplicación, sin acoplar el dominio de CONTENIDO).
+    usuarios = ListarUsuariosHandler(SqlAlchemyUsuarioRepository(db)).handle(ListarUsuariosQuery())
+    email_por_id = {u.id: u.email for u in usuarios}
     return [
         VersionResponse(
             version_no=d.version_no,
             titulo=d.titulo,
             tipo=d.tipo,
             created_by=d.created_by,
+            created_by_email=email_por_id.get(d.created_by),
             created_at=d.created_at,
         )
         for d in dtos

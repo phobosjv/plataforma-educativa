@@ -1,9 +1,10 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import DOMPurify from "dompurify";
 import { api } from "../shared/api/client";
 import { useConfig } from "../app/config/useConfig";
+import { detectarRed, iconoRedSVG } from "../app/config/redesSociales";
 import type { components } from "../shared/api/schema";
 
 type Contenido = components["schemas"]["ContenidoResponse"];
@@ -166,15 +167,40 @@ export function ContenidoPage() {
           <p className="cms-empty">Este ejercicio todavía no tiene fichero.</p>
         )
       ) : data.body_html ? (
-        // El HTML ya se saneó en el servidor (nh3); DOMPurify es la 2ª capa
-        // en cliente exigida por la sanitización asimétrica (CLAUDE.md §10).
-        <div
-          className="cms-text cms-prose"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(data.body_html) }}
-        />
+        <CuerpoArticulo html={data.body_html} />
       ) : (
         <p className="cms-empty">Este contenido no tiene cuerpo.</p>
       )}
     </>
+  );
+}
+
+// Renderiza el cuerpo de un artículo. El HTML ya se saneó en el servidor (nh3); DOMPurify es la
+// 2ª capa en cliente exigida por la sanitización asimétrica (CLAUDE.md §10). Tras montar,
+// decora los enlaces: los externos abren en pestaña nueva (rel noopener, §10) y los que apuntan
+// a una red social conocida muestran su icono de marca (enlaces a autores/terceros citados).
+function CuerpoArticulo({ html }: { html: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const limpio = useMemo(() => DOMPurify.sanitize(html), [html]);
+
+  useEffect(() => {
+    const cont = ref.current;
+    if (!cont) return;
+    cont.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((a) => {
+      if (a.hostname && a.hostname !== window.location.hostname) {
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      }
+      const red = detectarRed(a.getAttribute("href") ?? "");
+      if (!red || a.dataset.redDecorada) return;
+      a.dataset.redDecorada = "1";
+      a.classList.add("cms-prose-red");
+      // El icono se construye en código de confianza (no proviene del HTML del usuario).
+      a.insertAdjacentHTML("afterbegin", iconoRedSVG(red));
+    });
+  }, [limpio]);
+
+  return (
+    <div ref={ref} className="cms-text cms-prose" dangerouslySetInnerHTML={{ __html: limpio }} />
   );
 }

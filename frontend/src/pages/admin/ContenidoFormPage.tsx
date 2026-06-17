@@ -254,6 +254,7 @@ export function ContenidoFormPage() {
                 <tr>
                   <th>Versión</th>
                   <th>Título</th>
+                  <th>Autor</th>
                   <th>Fecha</th>
                   <th></th>
                 </tr>
@@ -272,6 +273,7 @@ export function ContenidoFormPage() {
                           )}
                         </td>
                         <td>{v.titulo}</td>
+                        <td className="cms-muted">{v.created_by_email ?? "—"}</td>
                         <td style={{ whiteSpace: "nowrap" }}>{fechaLegible(v.created_at)}</td>
                         <td>
                           {!esActual && (

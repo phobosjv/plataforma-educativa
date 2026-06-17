@@ -354,6 +354,8 @@ class TestVersionado:
         assert [v["version_no"] for v in versiones] == [1, 2]
         assert versiones[0]["titulo"] == "Titulo A"
         assert versiones[1]["titulo"] == "Titulo B"
+        # El autor de cada versión se resuelve a su email (CLAUDE.md: vía caso de uso de identity).
+        assert all(v["created_by_email"] == "editor@test.es" for v in versiones)
 
     def test_restaurar_version_revierte_y_crea_nueva(
         self, client: TestClient, editor_token: str

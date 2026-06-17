@@ -365,6 +365,13 @@ body::before {
 .cms-prose ul, .cms-prose ol { margin: .6rem 0 .6rem 1.4rem; }
 .cms-prose li { margin: .2rem 0; }
 .cms-prose a { color: var(--cms-color-primary); text-decoration: underline; }
+/* Enlace a red social dentro de un artículo: el icono de marca precede al texto. */
+.cms-prose-red { white-space: nowrap; }
+.cms-prose-red-icon {
+  display: inline-block;
+  vertical-align: -.22em;
+  margin-right: .25em;
+}
 .cms-prose blockquote {
   border-left: 3px solid var(--cms-color-primary); margin: .8rem 0;
   padding: .2rem 0 .2rem 1rem; color: var(--cms-color-muted);
