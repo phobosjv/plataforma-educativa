@@ -6,6 +6,23 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.17.1] - 2026-06-17
+
+### Seguridad / cambiado (robustez)
+- **Migrada la gestión de JWT de `python-jose` a `PyJWT`.** `python-jose` arrastra un historial de
+  CVEs y mantenimiento irregular; `PyJWT` es la librería de referencia y mejor mantenida. El cambio
+  está aislado en `auth_service.py` (codificación/decodificación HS256); **sin cambios de
+  comportamiento, de API ni de esquema** — los tokens existentes siguen siendo válidos.
+- Como beneficio colateral, `PyJWT` avisa si la `SECRET_KEY` es más corta de lo recomendado (< 32
+  bytes), reforzando el aviso ya documentado de usar una clave larga en producción.
+
+### Notas
+- Dependencia `python-jose[cryptography]` → `pyjwt`. 201 tests de backend (5 nuevos del servicio de
+  auth: round-trip, token inválido/expirado, secreto distinto, hash de contraseña) en verde. API
+  version → `0.17.1`.
+
+---
+
 ## [V-0.17.0] - 2026-06-17
 
 ### Añadido (historial de versiones y restauración de contenidos)

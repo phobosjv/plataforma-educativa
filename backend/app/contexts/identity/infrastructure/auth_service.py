@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from jose import JWTError, jwt
 
 from app.shared.domain.base import AuthenticationError
 
@@ -35,5 +35,5 @@ class ArgonAuthService:
         try:
             data: dict[str, str] = jwt.decode(token, self._secret_key, algorithms=["HS256"])
             return data
-        except JWTError:
+        except jwt.PyJWTError:
             raise AuthenticationError("Token inválido o expirado.")
