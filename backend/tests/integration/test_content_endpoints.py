@@ -330,6 +330,65 @@ class TestSubirHtmlInteractivo:
         assert r.status_code == 400
 
 
+class TestVersionado:
+    """Historial de versiones y restauración (CLAUDE.md §7: restaurar nunca destruye)."""
+
+    def _crear_y_editar(self, client: TestClient, token: str) -> str:
+        uid = client.post(
+            "/api/v1/contenidos/",
+            json={"titulo": "Titulo A", "tipo": "texto", "body_html": "<p>A</p>"},
+            headers=_headers(token),
+        ).json()["id"]
+        client.put(
+            f"/api/v1/contenidos/{uid}",
+            json={"titulo": "Titulo B", "body_html": "<p>B</p>"},
+            headers=_headers(token),
+        )
+        return str(uid)
+
+    def test_listar_versiones(self, client: TestClient, editor_token: str) -> None:
+        uid = self._crear_y_editar(client, editor_token)
+        r = client.get(f"/api/v1/contenidos/{uid}/versiones", headers=_headers(editor_token))
+        assert r.status_code == 200
+        versiones = r.json()
+        assert [v["version_no"] for v in versiones] == [1, 2]
+        assert versiones[0]["titulo"] == "Titulo A"
+        assert versiones[1]["titulo"] == "Titulo B"
+
+    def test_restaurar_version_revierte_y_crea_nueva(
+        self, client: TestClient, editor_token: str
+    ) -> None:
+        uid = self._crear_y_editar(client, editor_token)  # v1=A, v2=B (actual)
+        r = client.post(
+            f"/api/v1/contenidos/{uid}/versiones/1/restaurar", headers=_headers(editor_token)
+        )
+        assert r.status_code == 200
+        assert r.json()["titulo"] == "Titulo A"
+        assert r.json()["body_html"] == "<p>A</p>"
+        # Restaurar NO destruye: se creó una v3, el historial sigue creciendo.
+        versiones = client.get(
+            f"/api/v1/contenidos/{uid}/versiones", headers=_headers(editor_token)
+        ).json()
+        assert [v["version_no"] for v in versiones] == [1, 2, 3]
+        assert versiones[2]["titulo"] == "Titulo A"
+        # La lectura pública del contenido refleja el estado restaurado.
+        client.post(f"/api/v1/contenidos/{uid}/publicar", headers=_headers(editor_token))
+        assert client.get(f"/api/v1/contenidos/{uid}").json()["titulo"] == "Titulo A"
+
+    def test_restaurar_version_inexistente_devuelve_404(
+        self, client: TestClient, editor_token: str
+    ) -> None:
+        uid = self._crear_y_editar(client, editor_token)
+        r = client.post(
+            f"/api/v1/contenidos/{uid}/versiones/99/restaurar", headers=_headers(editor_token)
+        )
+        assert r.status_code == 404
+
+    def test_versiones_requiere_editor(self, client: TestClient) -> None:
+        r = client.get("/api/v1/contenidos/00000000-0000-0000-0000-000000000000/versiones")
+        assert r.status_code == 401
+
+
 class TestSanitizacionArticulos:
     """El HTML de artículos (tipo=texto) se sanea SIEMPRE en servidor (CLAUDE.md §10)."""
 

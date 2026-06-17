@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from app.contexts.content.domain.model import Contenido
+from app.contexts.content.domain.model import ContentVersion, Contenido
 
 
 @dataclass(frozen=True)
@@ -27,6 +27,26 @@ class ContenidoDTO:
     body_html: str | None
     created_at: datetime
     updated_at: datetime
+
+
+@dataclass(frozen=True)
+class VersionDTO:
+    version_no: int
+    titulo: str
+    tipo: str
+    created_by: UUID
+    created_at: datetime
+
+
+def version_to_dto(v: ContentVersion) -> VersionDTO:
+    snap = v.metadata_snapshot
+    return VersionDTO(
+        version_no=v.version_no,
+        titulo=str(snap.get("titulo", "")),
+        tipo=str(snap.get("tipo", "")),
+        created_by=v.created_by,
+        created_at=v.created_at,
+    )
 
 
 def contenido_to_dto(c: Contenido) -> ContenidoDTO:

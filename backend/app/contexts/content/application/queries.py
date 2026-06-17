@@ -22,3 +22,8 @@ class ListarContenidosQuery:
 class BuscarContenidosQuery:
     texto: str
     solo_publicados: bool = True
+
+
+@dataclass(frozen=True)
+class ListarVersionesQuery:
+    contenido_id: UUID

@@ -30,6 +30,14 @@ class ContenidoResponse(BaseModel):
     updated_at: datetime
 
 
+class VersionResponse(BaseModel):
+    version_no: int
+    titulo: str
+    tipo: str
+    created_by: UUID
+    created_at: datetime
+
+
 class CrearContenidoRequest(BaseModel):
     titulo: str = Field(min_length=1, max_length=500)
     descripcion: str = ""

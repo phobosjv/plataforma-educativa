@@ -67,6 +67,19 @@ class RestaurarContenidoCommand:
 
 
 @dataclass(frozen=True)
+class RestaurarVersionCommand:
+    """Restaura un contenido al estado de una de sus versiones anteriores.
+
+    Restaurar NUNCA destruye historial (CLAUDE.md §7): aplica el snapshot de la versión
+    indicada al contenido y crea una versión NUEVA con ese estado.
+    """
+
+    contenido_id: UUID
+    version_no: int
+    editor_id: UUID
+
+
+@dataclass(frozen=True)
 class PurgarContenidoCommand:
     """Eliminación DEFINITIVA de un contenido de la papelera (irreversible)."""
 

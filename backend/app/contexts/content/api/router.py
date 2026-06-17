@@ -12,6 +12,7 @@ from app.contexts.content.api.schemas import (
     ActualizarContenidoRequest,
     ContenidoResponse,
     CrearContenidoRequest,
+    VersionResponse,
 )
 from app.contexts.content.application.commands import (
     ActualizarContenidoCommand,
@@ -20,6 +21,7 @@ from app.contexts.content.application.commands import (
     PublicarContenidoCommand,
     PurgarContenidoCommand,
     RestaurarContenidoCommand,
+    RestaurarVersionCommand,
     SubirHtmlContenidoCommand,
 )
 from app.contexts.content.application.dtos import ContenidoDTO
@@ -29,15 +31,18 @@ from app.contexts.content.application.handlers import (
     BuscarContenidosHandler,
     CrearContenidoHandler,
     ListarContenidosHandler,
+    ListarVersionesHandler,
     ObtenerContenidoHandler,
     PublicarContenidoHandler,
     PurgarContenidoHandler,
     RestaurarContenidoHandler,
+    RestaurarVersionHandler,
     SubirHtmlContenidoHandler,
 )
 from app.contexts.content.application.queries import (
     BuscarContenidosQuery,
     ListarContenidosQuery,
+    ListarVersionesQuery,
     ObtenerContenidoQuery,
 )
 from app.contexts.content.infrastructure.html_sanitizer import Nh3HtmlSanitizer
@@ -289,6 +294,58 @@ def restaurar_contenido(
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     _auditar(db, current, "restaurar", str(contenido_id), dto.titulo)
+    return _dto_to_response(dto)
+
+
+@router.get("/contenidos/{contenido_id}/versiones", response_model=list[VersionResponse])
+def listar_versiones(
+    contenido_id: UUID,
+    _: UsuarioDTO = Depends(require_editor_or_admin),
+    db: Session = Depends(get_db),
+) -> list[VersionResponse]:
+    """Historial de versiones (snapshots) de un contenido, de la más antigua a la más reciente."""
+    version_repo = SqlAlchemyContentVersionRepository(db)
+    dtos = ListarVersionesHandler(version_repo).handle(
+        ListarVersionesQuery(contenido_id=contenido_id)
+    )
+    return [
+        VersionResponse(
+            version_no=d.version_no,
+            titulo=d.titulo,
+            tipo=d.tipo,
+            created_by=d.created_by,
+            created_at=d.created_at,
+        )
+        for d in dtos
+    ]
+
+
+@router.post(
+    "/contenidos/{contenido_id}/versiones/{version_no}/restaurar",
+    response_model=ContenidoResponse,
+)
+def restaurar_version(
+    contenido_id: UUID,
+    version_no: int,
+    current: UsuarioDTO = Depends(require_editor_or_admin),
+    db: Session = Depends(get_db),
+) -> ContenidoResponse:
+    """Restaura el contenido al estado de una versión anterior (crea una versión nueva, §7)."""
+    repo = SqlAlchemyContenidoRepository(db)
+    version_repo = SqlAlchemyContentVersionRepository(db)
+    uow = UnitOfWork(db)
+    handler = RestaurarVersionHandler(repo, version_repo, uow)
+    try:
+        dto = handler.handle(
+            RestaurarVersionCommand(
+                contenido_id=contenido_id, version_no=version_no, editor_id=current.id
+            )
+        )
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except DomainError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "restaurar_version", str(contenido_id), f"v{version_no}")
     return _dto_to_response(dto)
 
 

@@ -14,12 +14,19 @@ from app.contexts.content.application.commands import (
     PurgarContenidoCommand,
     PurgarPapeleraVencidaCommand,
     RestaurarContenidoCommand,
+    RestaurarVersionCommand,
     SubirHtmlContenidoCommand,
 )
-from app.contexts.content.application.dtos import ContenidoDTO, contenido_to_dto
+from app.contexts.content.application.dtos import (
+    ContenidoDTO,
+    VersionDTO,
+    contenido_to_dto,
+    version_to_dto,
+)
 from app.contexts.content.application.queries import (
     BuscarContenidosQuery,
     ListarContenidosQuery,
+    ListarVersionesQuery,
     ObtenerContenidoQuery,
 )
 from app.contexts.content.domain.model import ContentVersion, Contenido, TipoContenido
@@ -230,6 +237,63 @@ class RestaurarContenidoHandler:
         contenido.restaurar()
         contenido.updated_at = now()
         self._repo.save(contenido)
+        self._uow.commit()
+        return contenido_to_dto(contenido)
+
+
+class ListarVersionesHandler:
+    """Lista las versiones (snapshots) de un contenido, de la más antigua a la más reciente."""
+
+    def __init__(self, version_repo: ContentVersionRepository) -> None:
+        self._version_repo = version_repo
+
+    def handle(self, query: ListarVersionesQuery) -> list[VersionDTO]:
+        versiones = self._version_repo.list_for_contenido(query.contenido_id)
+        return [version_to_dto(v) for v in versiones]
+
+
+class RestaurarVersionHandler:
+    """Restaura un contenido al estado de una versión anterior, sin destruir historial.
+
+    Aplica el snapshot de la versión indicada al contenido y crea una versión NUEVA con ese
+    estado (CLAUDE.md §7: "restaurar nunca destruye"). Así el historial sigue creciendo y la
+    operación es reversible (se puede volver a cualquier versión, incluida la previa).
+    """
+
+    def __init__(
+        self,
+        repo: ContenidoRepository,
+        version_repo: ContentVersionRepository,
+        uow: UnitOfWork,
+    ) -> None:
+        self._repo = repo
+        self._version_repo = version_repo
+        self._uow = uow
+
+    def handle(self, cmd: RestaurarVersionCommand) -> ContenidoDTO:
+        contenido = self._repo.get(cmd.contenido_id)
+        if contenido is None or contenido.borrado:
+            raise NotFoundError(f"Contenido {cmd.contenido_id} no encontrado.")
+
+        versiones = self._version_repo.list_for_contenido(cmd.contenido_id)
+        objetivo = next((v for v in versiones if v.version_no == cmd.version_no), None)
+        if objetivo is None:
+            raise NotFoundError(f"Versión {cmd.version_no} no encontrada.")
+
+        snap = objetivo.metadata_snapshot
+        contenido.titulo = str(snap.get("titulo", contenido.titulo))
+        contenido.descripcion = str(snap.get("descripcion", contenido.descripcion))
+        contenido.idioma = str(snap.get("idioma", contenido.idioma))
+        contenido.etiquetas = list(snap.get("etiquetas", contenido.etiquetas))
+        contenido.body_html = objetivo.body_html
+        contenido.hash_html = objetivo.hash_html
+        contenido.updated_at = now()
+
+        version = _make_version(
+            contenido, version_no=len(versiones) + 1, created_by=cmd.editor_id
+        )
+        self._repo.save(contenido)
+        self._version_repo.add(version)
         self._uow.commit()
         return contenido_to_dto(contenido)
 

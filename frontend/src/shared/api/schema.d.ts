@@ -170,6 +170,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contenidos/{contenido_id}/versiones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Versiones
+         * @description Historial de versiones (snapshots) de un contenido, de la más antigua a la más reciente.
+         */
+        get: operations["listar_versiones_api_v1_contenidos__contenido_id__versiones_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contenidos/{contenido_id}/versiones/{version_no}/restaurar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restaurar Version
+         * @description Restaura el contenido al estado de una versión anterior (crea una versión nueva, §7).
+         */
+        post: operations["restaurar_version_api_v1_contenidos__contenido_id__versiones__version_no__restaurar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contenidos/{contenido_id}/purgar": {
         parameters: {
             query?: never;
@@ -1043,6 +1083,25 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** VersionResponse */
+        VersionResponse: {
+            /** Version No */
+            version_no: number;
+            /** Titulo */
+            titulo: string;
+            /** Tipo */
+            tipo: string;
+            /**
+             * Created By
+             * Format: uuid
+             */
+            created_by: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** VisitasResponse */
         VisitasResponse: {
             /** Total */
@@ -1422,6 +1481,69 @@ export interface operations {
             header?: never;
             path: {
                 contenido_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContenidoResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_versiones_api_v1_contenidos__contenido_id__versiones_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contenido_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restaurar_version_api_v1_contenidos__contenido_id__versiones__version_no__restaurar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contenido_id: string;
+                version_no: number;
             };
             cookie?: never;
         };

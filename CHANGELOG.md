@@ -6,6 +6,25 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.17.0] - 2026-06-17
+
+### Añadido (historial de versiones y restauración de contenidos)
+- **Historial de versiones** en la edición de un contenido (panel admin): lista las versiones
+  (número, título y fecha) con la más reciente marcada como «actual».
+- **Restaurar una versión anterior**: devuelve el contenido al estado (título, descripción,
+  etiquetas, cuerpo HTML o ejercicio) de esa versión. Restaurar **no destruye** el historial: crea
+  una **versión nueva** con el estado restaurado (CLAUDE.md §7), de modo que la operación es reversible.
+- Endpoints: `GET /api/v1/contenidos/{id}/versiones` y
+  `POST /api/v1/contenidos/{id}/versiones/{version_no}/restaurar` (ambos editor/admin). La
+  restauración queda registrada en la auditoría.
+
+### Notas
+- Sin cambios de esquema (la tabla `content_version` ya existía; cada modificación crea una versión
+  inmutable). 196 tests de backend (4 nuevos) + 9 E2E en verde. Type-check de frontend limpio.
+  Cliente OpenAPI regenerado. API version → `0.17.0`.
+
+---
+
 ## [V-0.16.0] - 2026-06-17
 
 ### Añadido (donaciones, publicidad y textos del catálogo configurables)

@@ -6,6 +6,11 @@ import type { components } from "../../shared/api/schema";
 import { ContenidoForm, type ContenidoFormValues } from "../../features/content/ContenidoForm";
 
 type Contenido = components["schemas"]["ContenidoResponse"];
+type Version = components["schemas"]["VersionResponse"];
+
+function fechaLegible(iso: string): string {
+  return new Date(iso).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" });
+}
 
 function mensajeError(error: unknown): string {
   if (error && typeof error === "object" && "detail" in error) {
@@ -113,6 +118,38 @@ export function ContenidoFormPage() {
     onError: (e: unknown) => setError(e instanceof Error ? e.message : "Error inesperado."),
   });
 
+  // Historial de versiones (solo en edición).
+  const versionesQ = useQuery<Version[]>({
+    queryKey: ["versiones", id],
+    queryFn: () =>
+      api
+        .GET("/api/v1/contenidos/{contenido_id}/versiones", {
+          params: { path: { contenido_id: id! } },
+        })
+        .then(({ data, error }) => {
+          if (error) throw new Error("No se pudieron cargar las versiones");
+          return data ?? [];
+        }),
+    enabled: modo === "editar",
+  });
+
+  const restaurarVersion = useMutation({
+    mutationFn: async (version_no: number) => {
+      const { data, error } = await api.POST(
+        "/api/v1/contenidos/{contenido_id}/versiones/{version_no}/restaurar",
+        { params: { path: { contenido_id: id!, version_no } } },
+      );
+      if (error || !data) throw new Error(mensajeError(error));
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-contenidos"] });
+      qc.invalidateQueries({ queryKey: ["contenido", id] });
+      qc.invalidateQueries({ queryKey: ["versiones", id] });
+    },
+    onError: (e: unknown) => setError(e instanceof Error ? e.message : "Error inesperado."),
+  });
+
   if (modo === "editar" && isLoading)
     return <div className="cms-spinner" role="status" aria-label="Cargando" />;
 
@@ -196,6 +233,63 @@ export function ContenidoFormPage() {
           />
           {subirHtml.isPending && (
             <p className="cms-muted" style={{ marginTop: ".5rem" }}>Subiendo…</p>
+          )}
+        </section>
+      )}
+
+      {modo === "editar" && (
+        <section className="cms-card" style={{ marginTop: "2rem" }}>
+          <h2 className="cms-h2">Historial de versiones</h2>
+          <p className="cms-muted">
+            Cada cambio guarda una versión. Puedes restaurar el contenido a un estado anterior;
+            restaurar <strong>no borra</strong> el historial (se crea una versión nueva).
+          </p>
+          {versionesQ.isLoading ? (
+            <div className="cms-spinner" role="status" aria-label="Cargando" />
+          ) : !versionesQ.data?.length ? (
+            <p className="cms-muted" style={{ marginTop: ".5rem" }}>Aún no hay versiones.</p>
+          ) : (
+            <table className="cms-table" style={{ marginTop: ".75rem" }}>
+              <thead>
+                <tr>
+                  <th>Versión</th>
+                  <th>Título</th>
+                  <th>Fecha</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...versionesQ.data]
+                  .sort((a, b) => b.version_no - a.version_no)
+                  .map((v, idx) => {
+                    const esActual = idx === 0; // la más reciente = estado actual
+                    return (
+                      <tr key={v.version_no}>
+                        <td>
+                          v{v.version_no}
+                          {esActual && (
+                            <span className="cms-badge" style={{ marginLeft: ".4rem" }}>actual</span>
+                          )}
+                        </td>
+                        <td>{v.titulo}</td>
+                        <td style={{ whiteSpace: "nowrap" }}>{fechaLegible(v.created_at)}</td>
+                        <td>
+                          {!esActual && (
+                            <button
+                              type="button"
+                              className="cms-btn cms-btn-ghost cms-btn-sm"
+                              disabled={restaurarVersion.isPending}
+                              onClick={() => { setError(null); restaurarVersion.mutate(v.version_no); }}
+                            >
+                              Restaurar
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
           )}
         </section>
       )}
