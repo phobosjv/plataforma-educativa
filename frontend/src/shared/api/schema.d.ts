@@ -635,6 +635,33 @@ export interface components {
              * @default 🌟
              */
             aula_abierta_emoji: string;
+            /**
+             * Catalogo Titulo
+             * @default ¿En qué curso estás?
+             */
+            catalogo_titulo: string;
+            /**
+             * Catalogo Subtitulo
+             * @default Toca tu curso para ver las actividades
+             */
+            catalogo_subtitulo: string;
+            /** Donaciones */
+            donaciones?: components["schemas"]["DonacionRequest"][];
+            /**
+             * Publicidad Activa
+             * @default false
+             */
+            publicidad_activa: boolean;
+            /**
+             * Publicidad Html Izquierda
+             * @default
+             */
+            publicidad_html_izquierda: string;
+            /**
+             * Publicidad Html Derecha
+             * @default
+             */
+            publicidad_html_derecha: string;
         };
         /** AsignaturaResponse */
         AsignaturaResponse: {
@@ -757,6 +784,18 @@ export interface components {
             aula_abierta_label: string;
             /** Aula Abierta Emoji */
             aula_abierta_emoji: string;
+            /** Catalogo Titulo */
+            catalogo_titulo: string;
+            /** Catalogo Subtitulo */
+            catalogo_subtitulo: string;
+            /** Donaciones */
+            donaciones: components["schemas"]["DonacionResponse"][];
+            /** Publicidad Activa */
+            publicidad_activa: boolean;
+            /** Publicidad Html Izquierda */
+            publicidad_html_izquierda: string;
+            /** Publicidad Html Derecha */
+            publicidad_html_derecha: string;
             /** Paletas Personalizadas */
             paletas_personalizadas: components["schemas"]["PaletaResponse"][];
         };
@@ -907,6 +946,20 @@ export interface components {
             ciclo_id: string;
             /** Orden */
             orden: number;
+        };
+        /** DonacionRequest */
+        DonacionRequest: {
+            /** Etiqueta */
+            etiqueta: string;
+            /** Url */
+            url: string;
+        };
+        /** DonacionResponse */
+        DonacionResponse: {
+            /** Etiqueta */
+            etiqueta: string;
+            /** Url */
+            url: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {

@@ -13,6 +13,8 @@ import { aplicarFondo } from "./backgrounds";
 
 type ConfigDTO = components["schemas"]["ConfiguracionResponse"];
 type PaletaDTO = components["schemas"]["PaletaResponse"];
+type AjustesGenerales = components["schemas"]["AjustesGeneralesRequest"];
+type Donacion = components["schemas"]["DonacionResponse"];
 
 function toFrontendPalette(p: PaletaDTO): Palette {
   return {
@@ -63,6 +65,12 @@ export function useConfig() {
     logo_url: data?.logo_url ?? "",
     aula_abierta_label: data?.aula_abierta_label ?? "Aula Abierta",
     aula_abierta_emoji: data?.aula_abierta_emoji ?? "🌟",
+    catalogo_titulo: data?.catalogo_titulo ?? "¿En qué curso estás?",
+    catalogo_subtitulo: data?.catalogo_subtitulo ?? "Toca tu curso para ver las actividades",
+    donaciones: (data?.donaciones ?? []) as Donacion[],
+    publicidad_activa: data?.publicidad_activa ?? false,
+    publicidad_html_izquierda: data?.publicidad_html_izquierda ?? "",
+    publicidad_html_derecha: data?.publicidad_html_derecha ?? "",
     todasLasPaletas,
     personalizadas,
   };
@@ -81,26 +89,8 @@ export function useConfigMutations() {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["site-config"] });
 
-  async function guardarAjustesGenerales(
-    nombre_sitio: string,
-    fuente_activa: string,
-    fondo_activo: string,
-    fondo_estilo: string,
-    logo_url: string,
-    aula_abierta_label: string,
-    aula_abierta_emoji: string,
-  ) {
-    const { data, error } = await api.PUT("/api/v1/config/general", {
-      body: {
-        nombre_sitio,
-        fuente_activa,
-        fondo_activo,
-        fondo_estilo,
-        logo_url,
-        aula_abierta_label,
-        aula_abierta_emoji,
-      },
-    });
+  async function guardarAjustesGenerales(ajustes: AjustesGenerales) {
+    const { data, error } = await api.PUT("/api/v1/config/general", { body: ajustes });
     if (error || !data) throw new Error(mensajeError(error));
     aplicarFuente(data.fuente_activa);
     aplicarFondo(data.fondo_activo, data.fondo_estilo);

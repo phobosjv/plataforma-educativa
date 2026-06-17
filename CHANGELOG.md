@@ -6,6 +6,30 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.16.0] - 2026-06-17
+
+### Añadido (donaciones, publicidad y textos del catálogo configurables)
+- **Enlaces de donación.** Desde Apariencia se configura una lista de enlaces (PayPal, Ko-fi, etc.,
+  con etiqueta + URL). Se muestran como botones en el **pie de la web pública**. La URL debe ser web
+  (`http(s)://`); se rechazan esquemas peligrosos.
+- **Publicidad en los márgenes.** Anuncios (código HTML de la red de anuncios) en los márgenes
+  izquierdo y derecho, **solo en las pantallas de navegación del catálogo** (zona de adultos, §10).
+  **Nunca** durante un ejercicio/artículo (lo usa un menor) ni en el panel admin. Activable y con
+  código independiente por lado. Se ocultan en pantallas estrechas.
+- **Textos de la portada del catálogo configurables.** «¿En qué curso estás?» (título) y «Toca tu
+  curso para ver las actividades» (subtítulo) se editan desde Apariencia; pensados para dirigirse a
+  las familias cuando hay publicidad.
+
+### Persistencia / migraciones
+- `site_config` gana: `catalogo_titulo`, `catalogo_subtitulo`, `donaciones_json`, `publicidad_activa`,
+  `publicidad_html_izquierda`, `publicidad_html_derecha`. Migración Alembic `014`.
+- Todo se guarda por el endpoint existente `PUT /config/general` (contrato y cliente OpenAPI ampliados).
+
+### Notas
+- 192 tests de backend (6 nuevos) + 9 E2E en verde. Type-check de frontend limpio. API version → `0.16.0`.
+
+---
+
 ## [V-0.15.0] - 2026-06-17
 
 ### Añadido (auditoría — contexto `auditing`)

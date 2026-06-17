@@ -28,6 +28,12 @@ class SqlAlchemyConfiguracionRepository:
         model.logo_url = config.logo_url
         model.aula_abierta_label = config.aula_abierta_label
         model.aula_abierta_emoji = config.aula_abierta_emoji
+        model.catalogo_titulo = config.catalogo_titulo
+        model.catalogo_subtitulo = config.catalogo_subtitulo
+        model.donaciones_json = config.donaciones_json
+        model.publicidad_activa = config.publicidad_activa
+        model.publicidad_html_izquierda = config.publicidad_html_izquierda
+        model.publicidad_html_derecha = config.publicidad_html_derecha
 
     def _get_or_create_model(self) -> ConfiguracionModel:
         """Obtiene la fila singleton, creándola si no existe.
@@ -51,6 +57,12 @@ class SqlAlchemyConfiguracionRepository:
                 logo_url="",
                 aula_abierta_label="Aula Abierta",
                 aula_abierta_emoji="🌟",
+                catalogo_titulo="¿En qué curso estás?",
+                catalogo_subtitulo="Toca tu curso para ver las actividades",
+                donaciones_json="[]",
+                publicidad_activa=False,
+                publicidad_html_izquierda="",
+                publicidad_html_derecha="",
             )
             self._session.add(model)
             self._session.flush()
@@ -69,4 +81,10 @@ class SqlAlchemyConfiguracionRepository:
             logo_url=m.logo_url,
             aula_abierta_label=m.aula_abierta_label,
             aula_abierta_emoji=m.aula_abierta_emoji,
+            catalogo_titulo=m.catalogo_titulo,
+            catalogo_subtitulo=m.catalogo_subtitulo,
+            donaciones_json=m.donaciones_json,
+            publicidad_activa=m.publicidad_activa,
+            publicidad_html_izquierda=m.publicidad_html_izquierda,
+            publicidad_html_derecha=m.publicidad_html_derecha,
         )

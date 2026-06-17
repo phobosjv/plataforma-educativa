@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import String, Text
+from sqlalchemy import Boolean, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.infrastructure.database import Base
@@ -19,3 +19,11 @@ class ConfiguracionModel(Base):
     logo_url: Mapped[str] = mapped_column(String(500), default="")
     aula_abierta_label: Mapped[str] = mapped_column(String(40), default="Aula Abierta")
     aula_abierta_emoji: Mapped[str] = mapped_column(String(16), default="🌟")
+    catalogo_titulo: Mapped[str] = mapped_column(String(120), default="¿En qué curso estás?")
+    catalogo_subtitulo: Mapped[str] = mapped_column(
+        String(120), default="Toca tu curso para ver las actividades"
+    )
+    donaciones_json: Mapped[str] = mapped_column(Text, default="[]")
+    publicidad_activa: Mapped[bool] = mapped_column(Boolean, default=False)
+    publicidad_html_izquierda: Mapped[str] = mapped_column(Text, default="")
+    publicidad_html_derecha: Mapped[str] = mapped_column(Text, default="")

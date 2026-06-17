@@ -39,7 +39,7 @@ function tarjetaContenido(c: Contenido) {
 
 export function CatalogoPage() {
   const [params, setParams] = useSearchParams();
-  const { aula_abierta_label, aula_abierta_emoji } = useConfig();
+  const { aula_abierta_label, aula_abierta_emoji, catalogo_titulo, catalogo_subtitulo } = useConfig();
   const cicloSel = params.get("ciclo");
   const cursoSel = params.get("curso");
   const asigSel = params.get("asignatura");
@@ -420,9 +420,9 @@ export function CatalogoPage() {
       {cicloSel && crumbs}
       {buscador}
       <div className="cms-cat-head">
-        <p className="cms-cat-title">¿En qué curso estás?</p>
+        <p className="cms-cat-title">{catalogo_titulo}</p>
         <p className="cms-cat-sub">
-          {cicloActual ? `Cursos de ${cicloActual.nombre}` : "Toca tu curso para ver las actividades"}
+          {cicloActual ? `Cursos de ${cicloActual.nombre}` : catalogo_subtitulo}
         </p>
       </div>
 

@@ -78,6 +78,24 @@ body::before {
   font-size: .8rem;
   color: var(--cms-color-muted);
 }
+/* Enlaces de donación en el pie de la web pública */
+.cms-footer-donaciones {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: .5rem; margin-top: .75rem;
+}
+
+/* Rieles de publicidad en los márgenes (solo navegación pública del catálogo).
+   Fijos a los lados; se ocultan en pantallas estrechas para no tapar el contenido. */
+.cms-ad-rail {
+  position: fixed; top: 64px; bottom: 0; width: 160px;
+  overflow: auto; padding: 1rem .5rem; z-index: 5;
+  display: none;
+}
+.cms-ad-rail-left { left: 0; }
+.cms-ad-rail-right { right: 0; }
+@media (min-width: 1240px) {
+  .cms-ad-rail { display: block; }
+}
 
 /* ── Admin layout ────────────────────────────────────── */
 .cms-admin-shell { display: flex; min-height: 100vh; }
@@ -144,6 +162,7 @@ body::before {
 .cms-btn-danger:hover  { background: #b91c1c; }
 .cms-btn-ghost   { background: transparent; color: var(--cms-color-fg); border: 1px solid var(--cms-color-border); }
 .cms-btn-ghost:hover { background: var(--cms-color-bg); }
+.cms-btn-sm { padding: .3rem .6rem; font-size: .8rem; }
 
 .cms-form-group { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1rem; }
 .cms-label { font-size: .875rem; font-weight: 500; }

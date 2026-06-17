@@ -42,6 +42,27 @@ LONGITUD_MAX_LOGO_URL = 500
 # IP de los menores a terceros (CLAUDE.md §10) ni inyectar un origen arbitrario en la cabecera.
 PREFIJO_LOGO_PERMITIDO = "/media/"
 
+LONGITUD_MAX_CATALOGO_TEXTO = 120
+# Tope del fragmento HTML de un anuncio (código de la red de anuncios pegado por el admin).
+LONGITUD_MAX_PUBLICIDAD = 8000
+MAX_ENLACES_DONACION = 12
+LONGITUD_MAX_DONACION_ETIQUETA = 40
+LONGITUD_MAX_URL = 500
+# Las URLs de donación las pega el admin y se renderizan como enlaces en la zona pública.
+# Solo se admiten esquemas web para no abrir un vector de inyección (javascript:, data:, …).
+ESQUEMAS_URL_PERMITIDOS = ("https://", "http://")
+
+
+@dataclass
+class EnlaceDonacion:
+    """Enlace a una plataforma de donación (p. ej. PayPal, Ko-fi). Mostrado en la zona pública."""
+
+    etiqueta: str
+    url: str
+
+    def to_dict(self) -> dict[str, str]:
+        return {"etiqueta": self.etiqueta, "url": self.url}
+
 
 @dataclass
 class PaletaPersonalizada:
@@ -79,6 +100,17 @@ class ConfiguracionSitio(Entity):
     # términos que puedan estigmatizar al alumnado con esas necesidades.
     aula_abierta_label: str = "Aula Abierta"
     aula_abierta_emoji: str = "🌟"
+    # Textos de la pantalla inicial del catálogo. Configurables porque, si hay publicidad,
+    # se redactan dirigidos a los padres (no al alumnado).
+    catalogo_titulo: str = "¿En qué curso estás?"
+    catalogo_subtitulo: str = "Toca tu curso para ver las actividades"
+    # Enlaces de donación (PayPal y otras plataformas) mostrados en la zona pública.
+    donaciones_json: str = "[]"
+    # Publicidad en los márgenes de las pantallas públicas de navegación (zona de adultos,
+    # §10). Nunca se muestra durante un ejercicio (lo usa un menor) ni en el panel.
+    publicidad_activa: bool = False
+    publicidad_html_izquierda: str = ""
+    publicidad_html_derecha: str = ""
 
     @classmethod
     def singleton(cls) -> "ConfiguracionSitio":
@@ -87,6 +119,10 @@ class ConfiguracionSitio(Entity):
     @property
     def paletas_personalizadas(self) -> list[PaletaPersonalizada]:
         return [PaletaPersonalizada(**p) for p in json.loads(self.paletas_json)]
+
+    @property
+    def donaciones(self) -> list[EnlaceDonacion]:
+        return [EnlaceDonacion(**d) for d in json.loads(self.donaciones_json)]
 
     def cambiar_nombre(self, nombre: str) -> None:
         nombre = nombre.strip()
@@ -123,6 +159,50 @@ class ConfiguracionSitio(Entity):
         if not logo_url.startswith(PREFIJO_LOGO_PERMITIDO):
             raise DomainError("El logo debe ser una imagen subida al propio sitio.")
         self.logo_url = logo_url
+
+    def cambiar_textos_catalogo(self, titulo: str, subtitulo: str) -> None:
+        titulo = titulo.strip()
+        subtitulo = subtitulo.strip()
+        if not titulo:
+            raise DomainError("El título del catálogo no puede estar vacío.")
+        if len(titulo) > LONGITUD_MAX_CATALOGO_TEXTO or len(subtitulo) > LONGITUD_MAX_CATALOGO_TEXTO:
+            raise DomainError(
+                f"Los textos del catálogo no pueden superar {LONGITUD_MAX_CATALOGO_TEXTO} caracteres."
+            )
+        self.catalogo_titulo = titulo
+        self.catalogo_subtitulo = subtitulo
+
+    def cambiar_donaciones(self, enlaces: list[EnlaceDonacion]) -> None:
+        if len(enlaces) > MAX_ENLACES_DONACION:
+            raise DomainError(f"No se permiten más de {MAX_ENLACES_DONACION} enlaces de donación.")
+        normalizados: list[EnlaceDonacion] = []
+        for e in enlaces:
+            etiqueta = e.etiqueta.strip()
+            url = e.url.strip()
+            if not etiqueta or not url:
+                raise DomainError("Cada enlace de donación necesita una etiqueta y una URL.")
+            if len(etiqueta) > LONGITUD_MAX_DONACION_ETIQUETA:
+                raise DomainError(
+                    f"La etiqueta de donación no puede superar {LONGITUD_MAX_DONACION_ETIQUETA} caracteres."
+                )
+            if len(url) > LONGITUD_MAX_URL or not url.startswith(ESQUEMAS_URL_PERMITIDOS):
+                raise DomainError("La URL de donación debe empezar por http:// o https://.")
+            normalizados.append(EnlaceDonacion(etiqueta=etiqueta, url=url))
+        self.donaciones_json = json.dumps(
+            [e.to_dict() for e in normalizados], ensure_ascii=False
+        )
+
+    def cambiar_publicidad(self, activa: bool, html_izquierda: str, html_derecha: str) -> None:
+        if (
+            len(html_izquierda) > LONGITUD_MAX_PUBLICIDAD
+            or len(html_derecha) > LONGITUD_MAX_PUBLICIDAD
+        ):
+            raise DomainError(
+                f"El código de publicidad no puede superar {LONGITUD_MAX_PUBLICIDAD} caracteres."
+            )
+        self.publicidad_activa = activa
+        self.publicidad_html_izquierda = html_izquierda
+        self.publicidad_html_derecha = html_derecha
 
     def cambiar_aula_abierta(self, label: str, emoji: str) -> None:
         label = label.strip()

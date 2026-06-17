@@ -8,7 +8,7 @@ from app.contexts.configuration.application.commands import (
     EliminarPaletaCommand,
 )
 from app.contexts.configuration.application.dtos import ConfiguracionDTO, config_to_dto
-from app.contexts.configuration.domain.model import PaletaPersonalizada
+from app.contexts.configuration.domain.model import EnlaceDonacion, PaletaPersonalizada
 from app.contexts.configuration.domain.ports import ConfiguracionRepository
 from app.shared.infrastructure.unit_of_work import UnitOfWork
 
@@ -34,6 +34,13 @@ class ActualizarAjustesGeneralesHandler:
         config.cambiar_estilo_fondo(cmd.fondo_estilo)
         config.cambiar_logo(cmd.logo_url)
         config.cambiar_aula_abierta(cmd.aula_abierta_label, cmd.aula_abierta_emoji)
+        config.cambiar_textos_catalogo(cmd.catalogo_titulo, cmd.catalogo_subtitulo)
+        config.cambiar_donaciones(
+            [EnlaceDonacion(etiqueta=etq, url=url) for etq, url in cmd.donaciones]
+        )
+        config.cambiar_publicidad(
+            cmd.publicidad_activa, cmd.publicidad_html_izquierda, cmd.publicidad_html_derecha
+        )
         self._repo.save(config)
         self._uow.commit()
         return config_to_dto(config)

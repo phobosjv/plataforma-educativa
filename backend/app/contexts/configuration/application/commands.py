@@ -12,6 +12,13 @@ class ActualizarAjustesGeneralesCommand:
     logo_url: str = ""
     aula_abierta_label: str = "Aula Abierta"
     aula_abierta_emoji: str = "🌟"
+    catalogo_titulo: str = "¿En qué curso estás?"
+    catalogo_subtitulo: str = "Toca tu curso para ver las actividades"
+    # Pares (etiqueta, url); tupla para que el command sea inmutable/hashable.
+    donaciones: tuple[tuple[str, str], ...] = ()
+    publicidad_activa: bool = False
+    publicidad_html_izquierda: str = ""
+    publicidad_html_derecha: str = ""
 
 
 @dataclass(frozen=True)

@@ -3,6 +3,10 @@ import { useConfig, useConfigMutations } from "../../app/config/useConfig";
 import { PALETAS_PREDEFINIDAS, type Palette } from "../../app/config/palettes";
 import { FUENTES } from "../../app/config/fonts";
 import { ESTILOS_FONDO, FONDOS, patronFondo } from "../../app/config/backgrounds";
+import type { components } from "../../shared/api/schema";
+
+type AjustesGeneralesPayload = components["schemas"]["AjustesGeneralesRequest"];
+type Donacion = components["schemas"]["DonacionResponse"];
 
 // ── Ajustes generales: nombre del sitio + fuente + fondo ──────────────────────
 
@@ -14,6 +18,12 @@ function AjustesGenerales({
   logoInicial,
   aulaLabelInicial,
   aulaEmojiInicial,
+  catTituloInicial,
+  catSubtituloInicial,
+  donacionesInicial,
+  publiActivaInicial,
+  publiIzqInicial,
+  publiDerInicial,
   onGuardar,
 }: {
   nombreInicial: string;
@@ -23,15 +33,13 @@ function AjustesGenerales({
   logoInicial: string;
   aulaLabelInicial: string;
   aulaEmojiInicial: string;
-  onGuardar: (
-    nombre: string,
-    fuente: string,
-    fondo: string,
-    estilo: string,
-    logo: string,
-    aulaLabel: string,
-    aulaEmoji: string,
-  ) => Promise<void>;
+  catTituloInicial: string;
+  catSubtituloInicial: string;
+  donacionesInicial: Donacion[];
+  publiActivaInicial: boolean;
+  publiIzqInicial: string;
+  publiDerInicial: string;
+  onGuardar: (ajustes: AjustesGeneralesPayload) => Promise<void>;
 }) {
   const [nombre, setNombre] = useState(nombreInicial);
   const [fuente, setFuente] = useState(fuenteInicial);
@@ -42,6 +50,12 @@ function AjustesGenerales({
   const [errorLogo, setErrorLogo] = useState<string | null>(null);
   const [aulaLabel, setAulaLabel] = useState(aulaLabelInicial);
   const [aulaEmoji, setAulaEmoji] = useState(aulaEmojiInicial);
+  const [catTitulo, setCatTitulo] = useState(catTituloInicial);
+  const [catSubtitulo, setCatSubtitulo] = useState(catSubtituloInicial);
+  const [donaciones, setDonaciones] = useState<Donacion[]>(donacionesInicial);
+  const [publiActiva, setPubliActiva] = useState(publiActivaInicial);
+  const [publiIzq, setPubliIzq] = useState(publiIzqInicial);
+  const [publiDer, setPubliDer] = useState(publiDerInicial);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
 
@@ -53,15 +67,27 @@ function AjustesGenerales({
   useEffect(() => setLogo(logoInicial), [logoInicial]);
   useEffect(() => setAulaLabel(aulaLabelInicial), [aulaLabelInicial]);
   useEffect(() => setAulaEmoji(aulaEmojiInicial), [aulaEmojiInicial]);
+  useEffect(() => setCatTitulo(catTituloInicial), [catTituloInicial]);
+  useEffect(() => setCatSubtitulo(catSubtituloInicial), [catSubtituloInicial]);
+  useEffect(() => setDonaciones(donacionesInicial), [donacionesInicial]);
+  useEffect(() => setPubliActiva(publiActivaInicial), [publiActivaInicial]);
+  useEffect(() => setPubliIzq(publiIzqInicial), [publiIzqInicial]);
+  useEffect(() => setPubliDer(publiDerInicial), [publiDerInicial]);
 
-  const sucio =
-    nombre.trim() !== nombreInicial ||
-    fuente !== fuenteInicial ||
-    fondo !== fondoInicial ||
-    estilo !== estiloInicial ||
-    logo !== logoInicial ||
-    aulaLabel.trim() !== aulaLabelInicial ||
-    aulaEmoji !== aulaEmojiInicial;
+  const tocado = () => setGuardado(false);
+
+  function actualizarDonacion(i: number, campo: keyof Donacion, valor: string) {
+    setDonaciones((prev) => prev.map((d, j) => (j === i ? { ...d, [campo]: valor } : d)));
+    tocado();
+  }
+  function anadirDonacion() {
+    setDonaciones((prev) => [...prev, { etiqueta: "", url: "" }]);
+    tocado();
+  }
+  function quitarDonacion(i: number) {
+    setDonaciones((prev) => prev.filter((_, j) => j !== i));
+    tocado();
+  }
 
   // Sube la imagen al propio origen (contexto MEDIA, content-addressed, sin SVG) y
   // guarda la URL devuelta como logo. No se persiste hasta pulsar "Guardar cambios".
@@ -91,12 +117,44 @@ function AjustesGenerales({
     }
   }
 
+  const sucio =
+    nombre.trim() !== nombreInicial ||
+    fuente !== fuenteInicial ||
+    fondo !== fondoInicial ||
+    estilo !== estiloInicial ||
+    logo !== logoInicial ||
+    aulaLabel.trim() !== aulaLabelInicial ||
+    aulaEmoji !== aulaEmojiInicial ||
+    catTitulo.trim() !== catTituloInicial ||
+    catSubtitulo.trim() !== catSubtituloInicial ||
+    JSON.stringify(donaciones) !== JSON.stringify(donacionesInicial) ||
+    publiActiva !== publiActivaInicial ||
+    publiIzq !== publiIzqInicial ||
+    publiDer !== publiDerInicial;
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!nombre.trim() || !aulaLabel.trim() || guardando) return;
+    if (!nombre.trim() || !aulaLabel.trim() || !catTitulo.trim() || guardando) return;
     setGuardando(true);
     setGuardado(false);
-    onGuardar(nombre.trim(), fuente, fondo, estilo, logo, aulaLabel.trim(), aulaEmoji.trim())
+    onGuardar({
+      nombre_sitio: nombre.trim(),
+      fuente_activa: fuente,
+      fondo_activo: fondo,
+      fondo_estilo: estilo,
+      logo_url: logo,
+      aula_abierta_label: aulaLabel.trim(),
+      aula_abierta_emoji: aulaEmoji.trim(),
+      catalogo_titulo: catTitulo.trim(),
+      catalogo_subtitulo: catSubtitulo.trim(),
+      // Descarta filas de donación incompletas (sin etiqueta o sin URL).
+      donaciones: donaciones
+        .map((d) => ({ etiqueta: d.etiqueta.trim(), url: d.url.trim() }))
+        .filter((d) => d.etiqueta && d.url),
+      publicidad_activa: publiActiva,
+      publicidad_html_izquierda: publiIzq,
+      publicidad_html_derecha: publiDer,
+    })
       .then(() => setGuardado(true))
       .catch(() => setGuardado(false)) // el error se muestra a nivel de página
       .finally(() => setGuardando(false));
@@ -396,6 +454,125 @@ function AjustesGenerales({
         </div>
       </div>
 
+      <label className="cms-label" style={{ display: "block", marginTop: "1.5rem", marginBottom: ".4rem" }}>
+        Textos de la portada del catálogo
+      </label>
+      <p className="cms-text-muted" style={{ marginBottom: ".6rem" }}>
+        Títulos de la pantalla inicial del catálogo. Si activas la publicidad, conviene redactarlos
+        dirigidos a las familias (los anuncios solo se ven en estas pantallas, nunca en los ejercicios).
+      </p>
+      <div className="cms-form-group" style={{ maxWidth: 480 }}>
+        <label className="cms-label" htmlFor="cms-cat-titulo">Título</label>
+        <input
+          id="cms-cat-titulo"
+          className="cms-input"
+          value={catTitulo}
+          maxLength={120}
+          onChange={(e) => { setCatTitulo(e.target.value); tocado(); }}
+          placeholder="¿En qué curso estás?"
+          required
+        />
+      </div>
+      <div className="cms-form-group" style={{ maxWidth: 480, marginBottom: "1.5rem" }}>
+        <label className="cms-label" htmlFor="cms-cat-subtitulo">Subtítulo</label>
+        <input
+          id="cms-cat-subtitulo"
+          className="cms-input"
+          value={catSubtitulo}
+          maxLength={120}
+          onChange={(e) => { setCatSubtitulo(e.target.value); tocado(); }}
+          placeholder="Toca tu curso para ver las actividades"
+        />
+      </div>
+
+      <label className="cms-label" style={{ display: "block", marginBottom: ".4rem" }}>
+        Enlaces de donación
+      </label>
+      <p className="cms-text-muted" style={{ marginBottom: ".6rem" }}>
+        Botones de donación que aparecen en el pie de la web pública (PayPal, Ko-fi, etc.). La URL debe
+        empezar por https://
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: ".5rem", marginBottom: ".75rem" }}>
+        {donaciones.map((d, i) => (
+          <div key={i} style={{ display: "flex", gap: ".5rem", flexWrap: "wrap", alignItems: "center" }}>
+            <input
+              className="cms-input"
+              style={{ width: 150 }}
+              value={d.etiqueta}
+              maxLength={40}
+              onChange={(e) => actualizarDonacion(i, "etiqueta", e.target.value)}
+              placeholder="PayPal"
+              aria-label={`Etiqueta del enlace ${i + 1}`}
+            />
+            <input
+              className="cms-input"
+              style={{ flex: 1, minWidth: 220 }}
+              value={d.url}
+              maxLength={500}
+              onChange={(e) => actualizarDonacion(i, "url", e.target.value)}
+              placeholder="https://paypal.me/tucuenta"
+              aria-label={`URL del enlace ${i + 1}`}
+            />
+            <button type="button" className="cms-btn cms-btn-ghost" onClick={() => quitarDonacion(i)}>
+              Quitar
+            </button>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="cms-btn cms-btn-ghost"
+        style={{ marginBottom: "1.5rem" }}
+        onClick={anadirDonacion}
+      >
+        + Añadir enlace de donación
+      </button>
+
+      <label className="cms-label" style={{ display: "block", marginBottom: ".4rem" }}>
+        Publicidad en los márgenes (zona pública)
+      </label>
+      <p className="cms-text-muted" style={{ marginBottom: ".6rem" }}>
+        Anuncios en los márgenes izquierdo y derecho, <strong>solo en las pantallas de navegación</strong>
+        {" "}del catálogo. Nunca se muestran durante un ejercicio (lo usa un menor) ni en el panel. Pega
+        aquí el código HTML de tu red de anuncios.
+      </p>
+      <label
+        style={{ display: "flex", alignItems: "center", gap: ".5rem", marginBottom: ".75rem", cursor: "pointer" }}
+      >
+        <input
+          type="checkbox"
+          checked={publiActiva}
+          onChange={(e) => { setPubliActiva(e.target.checked); tocado(); }}
+        />
+        <span>Mostrar publicidad en las pantallas de navegación</span>
+      </label>
+      <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
+        <div className="cms-form-group" style={{ marginBottom: 0, flex: 1, minWidth: 260 }}>
+          <label className="cms-label" htmlFor="cms-publi-izq">Código del margen izquierdo</label>
+          <textarea
+            id="cms-publi-izq"
+            className="cms-textarea"
+            rows={4}
+            value={publiIzq}
+            maxLength={8000}
+            onChange={(e) => { setPubliIzq(e.target.value); tocado(); }}
+            placeholder="<script>…</script> o <ins>…</ins>"
+          />
+        </div>
+        <div className="cms-form-group" style={{ marginBottom: 0, flex: 1, minWidth: 260 }}>
+          <label className="cms-label" htmlFor="cms-publi-der">Código del margen derecho</label>
+          <textarea
+            id="cms-publi-der"
+            className="cms-textarea"
+            rows={4}
+            value={publiDer}
+            maxLength={8000}
+            onChange={(e) => { setPubliDer(e.target.value); tocado(); }}
+            placeholder="<script>…</script> o <ins>…</ins>"
+          />
+        </div>
+      </div>
+
       <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
         <button type="submit" className="cms-btn cms-btn-primary" disabled={!sucio || guardando}>
           {guardando ? "Guardando…" : "Guardar cambios"}
@@ -631,6 +808,12 @@ export function ConfiguracionPage() {
     logo_url,
     aula_abierta_label,
     aula_abierta_emoji,
+    catalogo_titulo,
+    catalogo_subtitulo,
+    donaciones,
+    publicidad_activa,
+    publicidad_html_izquierda,
+    publicidad_html_derecha,
     paleta_activa,
     personalizadas,
     isLoading,
@@ -682,11 +865,15 @@ export function ConfiguracionPage() {
         logoInicial={logo_url}
         aulaLabelInicial={aula_abierta_label}
         aulaEmojiInicial={aula_abierta_emoji}
-        onGuardar={(nombre, fuente, fondo, estilo, logo, aulaLabel, aulaEmoji) => {
+        catTituloInicial={catalogo_titulo}
+        catSubtituloInicial={catalogo_subtitulo}
+        donacionesInicial={donaciones}
+        publiActivaInicial={publicidad_activa}
+        publiIzqInicial={publicidad_html_izquierda}
+        publiDerInicial={publicidad_html_derecha}
+        onGuardar={(ajustes) => {
           setError(null);
-          return guardarAjustesGenerales(
-            nombre, fuente, fondo, estilo, logo, aulaLabel, aulaEmoji,
-          ).catch((e: unknown) => {
+          return guardarAjustesGenerales(ajustes).catch((e: unknown) => {
             setError(e instanceof Error ? e.message : "Error inesperado.");
             throw e;
           });

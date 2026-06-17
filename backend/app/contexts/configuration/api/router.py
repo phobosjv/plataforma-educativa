@@ -7,6 +7,7 @@ from app.contexts.configuration.api.schemas import (
     ActivarPaletaRequest,
     AjustesGeneralesRequest,
     ConfiguracionResponse,
+    DonacionResponse,
     PaletaRequest,
     PaletaResponse,
 )
@@ -66,6 +67,12 @@ def _dto_to_response(dto: object) -> ConfiguracionResponse:
         logo_url=dto.logo_url,
         aula_abierta_label=dto.aula_abierta_label,
         aula_abierta_emoji=dto.aula_abierta_emoji,
+        catalogo_titulo=dto.catalogo_titulo,
+        catalogo_subtitulo=dto.catalogo_subtitulo,
+        donaciones=[DonacionResponse(etiqueta=d.etiqueta, url=d.url) for d in dto.donaciones],
+        publicidad_activa=dto.publicidad_activa,
+        publicidad_html_izquierda=dto.publicidad_html_izquierda,
+        publicidad_html_derecha=dto.publicidad_html_derecha,
         paletas_personalizadas=[
             PaletaResponse(**p.__dict__) for p in dto.paletas_personalizadas
         ],
@@ -96,6 +103,12 @@ def actualizar_ajustes_generales(
                 logo_url=body.logo_url,
                 aula_abierta_label=body.aula_abierta_label,
                 aula_abierta_emoji=body.aula_abierta_emoji,
+                catalogo_titulo=body.catalogo_titulo,
+                catalogo_subtitulo=body.catalogo_subtitulo,
+                donaciones=tuple((d.etiqueta, d.url) for d in body.donaciones),
+                publicidad_activa=body.publicidad_activa,
+                publicidad_html_izquierda=body.publicidad_html_izquierda,
+                publicidad_html_derecha=body.publicidad_html_derecha,
             )
         )
     )

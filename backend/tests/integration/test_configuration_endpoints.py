@@ -198,6 +198,93 @@ def test_logo_externo_rechazado(client: TestClient, admin_token: str) -> None:
     assert resp.status_code == 400
 
 
+def test_textos_catalogo_por_defecto(client: TestClient) -> None:
+    body = client.get("/api/v1/config/").json()
+    assert body["catalogo_titulo"] == "¿En qué curso estás?"
+    assert body["catalogo_subtitulo"] == "Toca tu curso para ver las actividades"
+    assert body["donaciones"] == []
+    assert body["publicidad_activa"] is False
+
+
+def test_actualizar_textos_catalogo(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "catalogo_titulo": "¿Quién va a jugar hoy?",
+            "catalogo_subtitulo": "Elige el curso de tu hijo/a",
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 200
+    assert resp.json()["catalogo_titulo"] == "¿Quién va a jugar hoy?"
+    publico = client.get("/api/v1/config/").json()
+    assert publico["catalogo_subtitulo"] == "Elige el curso de tu hijo/a"
+
+
+def test_catalogo_titulo_vacio_devuelve_error(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={"nombre_sitio": "Mi Cole", "fuente_activa": "sistema", "catalogo_titulo": "   "},
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 400
+
+
+def test_actualizar_donaciones(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "donaciones": [
+                {"etiqueta": "PayPal", "url": "https://paypal.me/micole"},
+                {"etiqueta": "Ko-fi", "url": "https://ko-fi.com/micole"},
+            ],
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 200
+    donaciones = resp.json()["donaciones"]
+    assert [d["etiqueta"] for d in donaciones] == ["PayPal", "Ko-fi"]
+    assert client.get("/api/v1/config/").json()["donaciones"][0]["url"] == "https://paypal.me/micole"
+
+
+def test_donacion_url_no_web_se_rechaza(client: TestClient, admin_token: str) -> None:
+    # Una URL con esquema peligroso (javascript:) debe rechazarse: se renderiza como enlace.
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "donaciones": [{"etiqueta": "Malo", "url": "javascript:alert(1)"}],
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 400
+
+
+def test_actualizar_publicidad(client: TestClient, admin_token: str) -> None:
+    resp = client.put(
+        "/api/v1/config/general",
+        json={
+            "nombre_sitio": "Mi Cole",
+            "fuente_activa": "sistema",
+            "publicidad_activa": True,
+            "publicidad_html_izquierda": "<div>anuncio izq</div>",
+            "publicidad_html_derecha": "<div>anuncio der</div>",
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["publicidad_activa"] is True
+    assert body["publicidad_html_izquierda"] == "<div>anuncio izq</div>"
+    publico = client.get("/api/v1/config/").json()
+    assert publico["publicidad_html_derecha"] == "<div>anuncio der</div>"
+
+
 def test_actualizar_fondo(client: TestClient, admin_token: str) -> None:
     resp = client.put(
         "/api/v1/config/general",

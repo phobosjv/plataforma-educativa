@@ -1,10 +1,24 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../app/auth/AuthContext";
 import { useConfig } from "../../app/config/useConfig";
 
 export function PublicLayout() {
   const { user } = useAuth();
-  const { nombre_sitio, logo_url } = useConfig();
+  const {
+    nombre_sitio,
+    logo_url,
+    donaciones,
+    publicidad_activa,
+    publicidad_html_izquierda,
+    publicidad_html_derecha,
+  } = useConfig();
+  const { pathname } = useLocation();
+
+  // La publicidad (zona de adultos, §10) solo se muestra en las pantallas de navegación del
+  // catálogo (ruta "/"). NUNCA durante un ejercicio/artículo (/contenido/:id, lo usa un menor)
+  // ni en el login, ni en el panel admin (que usa otro layout).
+  const enCatalogo = pathname === "/";
+  const mostrarPublicidad = publicidad_activa && enCatalogo;
 
   return (
     <div className="cms-shell">
@@ -40,11 +54,43 @@ export function PublicLayout() {
           </NavLink>
         )}
       </nav>
+
+      {mostrarPublicidad && publicidad_html_izquierda && (
+        <aside
+          className="cms-ad-rail cms-ad-rail-left"
+          aria-label="Publicidad"
+          dangerouslySetInnerHTML={{ __html: publicidad_html_izquierda }}
+        />
+      )}
+      {mostrarPublicidad && publicidad_html_derecha && (
+        <aside
+          className="cms-ad-rail cms-ad-rail-right"
+          aria-label="Publicidad"
+          dangerouslySetInnerHTML={{ __html: publicidad_html_derecha }}
+        />
+      )}
+
       <main className="cms-main">
         <Outlet />
       </main>
       <footer className="cms-footer">
-        {nombre_sitio} — contenidos para infantil y primaria
+        <div>{nombre_sitio} — contenidos para infantil y primaria</div>
+        {donaciones.length > 0 && (
+          <div className="cms-footer-donaciones">
+            <span className="cms-text-muted">¿Te gusta el proyecto? Puedes apoyarlo:</span>
+            {donaciones.map((d, i) => (
+              <a
+                key={i}
+                href={d.url}
+                className="cms-btn cms-btn-ghost cms-btn-sm"
+                target="_blank"
+                rel="noopener noreferrer external"
+              >
+                ❤ {d.etiqueta}
+              </a>
+            ))}
+          </div>
+        )}
       </footer>
     </div>
   );
