@@ -109,9 +109,12 @@ export function TaxonomiaPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ciclos"] }),
   });
   const borrarCiclo = useMutation({
-    mutationFn: (id: string) =>
-      api.DELETE("/api/v1/taxonomy/ciclos/{ciclo_id}", { params: { path: { ciclo_id: id } } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["ciclos"] }); qc.invalidateQueries({ queryKey: ["cursos"] }); },
+    mutationFn: async (id: string) => {
+      const { error } = await api.DELETE("/api/v1/taxonomy/ciclos/{ciclo_id}", { params: { path: { ciclo_id: id } } });
+      if (error) throw new Error((error as { detail?: string })?.detail ?? "No se pudo eliminar el ciclo.");
+    },
+    onSuccess: () => { setError(""); qc.invalidateQueries({ queryKey: ["ciclos"] }); qc.invalidateQueries({ queryKey: ["cursos"] }); },
+    onError: (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo eliminar el ciclo."),
   });
 
   // Cursos
@@ -126,9 +129,12 @@ export function TaxonomiaPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cursos"] }),
   });
   const borrarCurso = useMutation({
-    mutationFn: (id: string) =>
-      api.DELETE("/api/v1/taxonomy/cursos/{curso_id}", { params: { path: { curso_id: id } } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cursos"] }),
+    mutationFn: async (id: string) => {
+      const { error } = await api.DELETE("/api/v1/taxonomy/cursos/{curso_id}", { params: { path: { curso_id: id } } });
+      if (error) throw new Error((error as { detail?: string })?.detail ?? "No se pudo eliminar el curso.");
+    },
+    onSuccess: () => { setError(""); qc.invalidateQueries({ queryKey: ["cursos"] }); },
+    onError: (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo eliminar el curso."),
   });
 
   // Asignaturas
@@ -147,11 +153,15 @@ export function TaxonomiaPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["asignaturas"] }),
   });
   const borrarAsig = useMutation({
-    mutationFn: (id: string) =>
-      api.DELETE("/api/v1/taxonomy/asignaturas/{asignatura_id}", { params: { path: { asignatura_id: id } } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["asignaturas"] }),
+    mutationFn: async (id: string) => {
+      const { error } = await api.DELETE("/api/v1/taxonomy/asignaturas/{asignatura_id}", { params: { path: { asignatura_id: id } } });
+      if (error) throw new Error((error as { detail?: string })?.detail ?? "No se pudo eliminar la asignatura.");
+    },
+    onSuccess: () => { setError(""); qc.invalidateQueries({ queryKey: ["asignaturas"] }); },
+    onError: (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo eliminar la asignatura."),
   });
 
+  const [error, setError] = useState("");
   const [nombreCiclo, setNombreCiclo] = useState("");
   const [nombreCurso, setNombreCurso] = useState("");
   const [cicloSeleccionado, setCicloSeleccionado] = useState("");
@@ -186,6 +196,10 @@ export function TaxonomiaPage() {
       <div className="cms-admin-header">
         <h1 className="cms-h1">Taxonomía</h1>
       </div>
+
+      {error && (
+        <p className="cms-error" role="alert" style={{ marginBottom: "1.5rem" }}>{error}</p>
+      )}
 
       {/* ── Ciclos ── */}
       <section style={{ marginBottom: "2.5rem" }}>

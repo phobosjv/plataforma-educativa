@@ -303,11 +303,19 @@ def test_import_restaura_bd_y_media(
     monkeypatch.setattr(settings, "media_dir", str(dest_media))
     monkeypatch.setattr(settings, "backup_dir", str(tmp_path / "backups"))
 
+    # Visitas en memoria del sitio anterior: deben descartarse al importar (no volcarse en
+    # el sitio nuevo como filas huérfanas).
+    from app.contexts.analytics.infrastructure.buffer import buffer_visitas
+    from uuid import uuid4
+
+    buffer_visitas.registrar(uuid4())
+
     r = client.post(
         "/api/v1/admin/import", headers=_auth(admin_token), **_import_files(export_bytes)
     )
 
     assert r.status_code == 200, r.text
+    assert buffer_visitas.pendientes() == 0
     cuerpo = r.json()
     assert cuerpo["ok"] is True
     assert cuerpo["num_ficheros_media"] == 1

@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from app.contexts.content.domain.model import ContentVersion, Contenido, TipoContenido
@@ -160,6 +160,28 @@ class SqlAlchemyContenidoRepository:
             created_at=contenido.created_at,
             updated_at=contenido.updated_at,
         )
+
+
+class SqlAlchemyContenidoEnTaxonomia:
+    """Adapter del puerto ``taxonomy.ContenidoEnTaxonomia``: cuenta contenidos por taxonomía.
+
+    Cuenta TODO el contenido no purgado (incluida la papelera): un contenido en papelera puede
+    restaurarse, así que su referencia a curso/asignatura sigue vigente e impide borrar esa
+    taxonomía y dejar la referencia colgando (SQLite no fuerza las claves foráneas).
+    """
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def cuenta_por_curso(self, curso_id: UUID) -> int:
+        return self._contar(ContenidoModel.curso_id == str(curso_id))
+
+    def cuenta_por_asignatura(self, asignatura_id: UUID) -> int:
+        return self._contar(ContenidoModel.asignatura_id == str(asignatura_id))
+
+    def _contar(self, condicion: object) -> int:
+        stmt = select(func.count()).select_from(ContenidoModel).where(condicion)
+        return int(self._session.execute(stmt).scalar_one())
 
 
 class SqlAlchemyContentVersionRepository:

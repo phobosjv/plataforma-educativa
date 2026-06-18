@@ -32,8 +32,13 @@ from app.contexts.taxonomy.application.queries import (
     ObtenerCursoQuery,
 )
 from app.contexts.taxonomy.domain.model import Asignatura, Ciclo, Curso
-from app.contexts.taxonomy.domain.ports import AsignaturaRepository, CicloRepository, CursoRepository
-from app.shared.domain.base import NotFoundError
+from app.contexts.taxonomy.domain.ports import (
+    AsignaturaRepository,
+    CicloRepository,
+    ContenidoEnTaxonomia,
+    CursoRepository,
+)
+from app.shared.domain.base import DomainError, NotFoundError
 from app.shared.infrastructure.unit_of_work import UnitOfWork
 
 
@@ -68,13 +73,23 @@ class ActualizarCicloHandler:
 
 
 class EliminarCicloHandler:
-    def __init__(self, repo: CicloRepository, uow: UnitOfWork) -> None:
+    def __init__(
+        self, repo: CicloRepository, curso_repo: CursoRepository, uow: UnitOfWork
+    ) -> None:
         self._repo = repo
+        self._curso_repo = curso_repo
         self._uow = uow
 
     def handle(self, cmd: EliminarCicloCommand) -> None:
         if self._repo.get(cmd.ciclo_id) is None:
             raise NotFoundError(f"Ciclo {cmd.ciclo_id} no encontrado.")
+        # Integridad referencial: no dejar cursos colgando (SQLite no fuerza las FK).
+        cursos = self._curso_repo.list_by_ciclo(cmd.ciclo_id)
+        if cursos:
+            raise DomainError(
+                f"No se puede eliminar el ciclo: tiene {len(cursos)} curso(s) asociado(s). "
+                "Borra o reasigna esos cursos primero."
+            )
         self._repo.delete(cmd.ciclo_id)
         self._uow.commit()
 
@@ -134,13 +149,23 @@ class ActualizarCursoHandler:
 
 
 class EliminarCursoHandler:
-    def __init__(self, repo: CursoRepository, uow: UnitOfWork) -> None:
+    def __init__(
+        self, repo: CursoRepository, contenido: ContenidoEnTaxonomia, uow: UnitOfWork
+    ) -> None:
         self._repo = repo
+        self._contenido = contenido
         self._uow = uow
 
     def handle(self, cmd: EliminarCursoCommand) -> None:
         if self._repo.get(cmd.curso_id) is None:
             raise NotFoundError(f"Curso {cmd.curso_id} no encontrado.")
+        # Integridad referencial: no dejar contenidos con un curso inexistente.
+        n = self._contenido.cuenta_por_curso(cmd.curso_id)
+        if n > 0:
+            raise DomainError(
+                f"No se puede eliminar el curso: tiene {n} contenido(s) asociado(s) "
+                "(incluida la papelera). Reasigna o elimina ese contenido primero."
+            )
         self._repo.delete(cmd.curso_id)
         self._uow.commit()
 
@@ -200,13 +225,23 @@ class ActualizarAsignaturaHandler:
 
 
 class EliminarAsignaturaHandler:
-    def __init__(self, repo: AsignaturaRepository, uow: UnitOfWork) -> None:
+    def __init__(
+        self, repo: AsignaturaRepository, contenido: ContenidoEnTaxonomia, uow: UnitOfWork
+    ) -> None:
         self._repo = repo
+        self._contenido = contenido
         self._uow = uow
 
     def handle(self, cmd: EliminarAsignaturaCommand) -> None:
         if self._repo.get(cmd.asignatura_id) is None:
             raise NotFoundError(f"Asignatura {cmd.asignatura_id} no encontrada.")
+        # Integridad referencial: no dejar contenidos con una asignatura inexistente.
+        n = self._contenido.cuenta_por_asignatura(cmd.asignatura_id)
+        if n > 0:
+            raise DomainError(
+                f"No se puede eliminar la asignatura: tiene {n} contenido(s) asociado(s) "
+                "(incluida la papelera). Reasigna o elimina ese contenido primero."
+            )
         self._repo.delete(cmd.asignatura_id)
         self._uow.commit()
 

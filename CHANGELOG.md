@@ -6,6 +6,30 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.20.1] - 2026-06-18
+
+### Corregido (hallazgos de una auditoría de lógica)
+- **Integridad referencial al borrar taxonomía.** SQLite no fuerza las claves foráneas, así que borrar
+  un **ciclo** con cursos, o un **curso/asignatura** referenciado por contenidos, dejaba referencias
+  colgando y hacía que ese contenido **desapareciera silenciosamente** de la navegación del catálogo.
+  Ahora el borrado se **bloquea** con un `409 Conflict` y un mensaje claro ("…tiene N curso(s)/
+  contenido(s) asociado(s)"). Se cuenta también el contenido en la papelera (puede restaurarse). La
+  página de Taxonomía muestra el motivo del bloqueo (antes el borrado fallido no daba ninguna pista).
+- **No se puede publicar un ejercicio interactivo sin su fichero HTML.** Antes podía publicarse un
+  ejercicio "a medias" que en público mostraba una página vacía; ahora `publicar()` lo rechaza con un
+  mensaje claro.
+- **Importar ya no arrastra visitas del sitio anterior.** Tras una importación, el contador de visitas
+  en memoria (con IDs del sitio antiguo) se descarta, para no volcarlo como filas huérfanas en el sitio
+  recién importado.
+
+### Detalles técnicos
+- Nuevo puerto `ContenidoEnTaxonomia` (dominio de `taxonomy`) implementado por un adapter en `content`
+  y cableado en el router: TAXONOMÍA no depende de CONTENIDO (se respeta la regla de dependencia).
+- Sin cambios de esquema ni de contrato (los modelos de respuesta no cambian). 216 tests de backend
+  (6 nuevos) + 9 E2E en verde. Type-check de frontend limpio.
+
+---
+
 ## [V-0.20.0] - 2026-06-18
 
 ### Añadido (importar / restaurar el sitio)

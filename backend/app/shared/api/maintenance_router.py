@@ -19,6 +19,7 @@ from pydantic import BaseModel
 from starlette.background import BackgroundTask
 
 from app.config import settings
+from app.contexts.analytics.infrastructure.buffer import buffer_visitas
 from app.contexts.identity.api.dependencies import require_admin
 from app.contexts.identity.application.dtos import UsuarioDTO
 from app.shared.domain.base import DomainError
@@ -165,6 +166,9 @@ async def importar_todo(
         )
         result = service.importar(tmp_path)
         _migrar_bd_a_head()
+        # Descartar las visitas en memoria del sitio ANTERIOR: sus IDs de contenido no
+        # corresponden a la BD recién importada (si no, se volcarían como filas huérfanas).
+        buffer_visitas.drenar()
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
     finally:

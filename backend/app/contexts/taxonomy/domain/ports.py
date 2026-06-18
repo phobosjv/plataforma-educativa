@@ -31,3 +31,16 @@ class AsignaturaRepository(Protocol):
     def save(self, asignatura: Asignatura) -> None: ...
     def delete(self, asignatura_id: UUID) -> None: ...
     def list_all(self) -> list[Asignatura]: ...
+
+
+class ContenidoEnTaxonomia(Protocol):
+    """Puerto para saber cuántos contenidos referencian una taxonomía (lo implementa CONTENIDO).
+
+    Permite a los casos de uso de borrado proteger la integridad referencial sin que TAXONOMÍA
+    dependa del contexto CONTENIDO: el adapter vive en infraestructura de ``content`` y se cablea
+    en la capa de composición (el router). Cuenta todo el contenido NO purgado (incluida la
+    papelera), porque un contenido en papelera puede restaurarse y su referencia sigue vigente.
+    """
+
+    def cuenta_por_curso(self, curso_id: UUID) -> int: ...
+    def cuenta_por_asignatura(self, asignatura_id: UUID) -> int: ...

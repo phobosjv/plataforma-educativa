@@ -259,3 +259,88 @@ def test_eliminar_asignatura(client: TestClient, admin_token: str) -> None:
 
     resp = client.get(f"/api/v1/taxonomy/asignaturas/{uid}")
     assert resp.status_code == 404
+
+
+# ── Integridad referencial al borrar (no dejar referencias colgando) ────────────
+
+
+def _crear_contenido(
+    client: TestClient,
+    token: str,
+    *,
+    curso_id: str | None = None,
+    asignatura_id: str | None = None,
+) -> str:
+    body = {"titulo": "Ficha", "tipo": "texto", "body_html": "<p>x</p>"}
+    if curso_id:
+        body["curso_id"] = curso_id
+    if asignatura_id:
+        body["asignatura_id"] = asignatura_id
+    r = client.post("/api/v1/contenidos/", json=body, headers=auth_headers(token))
+    assert r.status_code == 201, r.text
+    return r.json()["id"]
+
+
+def test_no_elimina_ciclo_con_cursos(client: TestClient, admin_token: str) -> None:
+    ciclo_id = client.post(
+        "/api/v1/taxonomy/ciclos/", json={"nombre": "Primaria"}, headers=auth_headers(admin_token)
+    ).json()["id"]
+    client.post(
+        "/api/v1/taxonomy/cursos/",
+        json={"nombre": "1º", "ciclo_id": ciclo_id},
+        headers=auth_headers(admin_token),
+    )
+
+    resp = client.delete(f"/api/v1/taxonomy/ciclos/{ciclo_id}", headers=auth_headers(admin_token))
+    assert resp.status_code == 409
+    assert "curso" in resp.json()["detail"].lower()
+    # El ciclo sigue existiendo (no se borró).
+    assert client.get(f"/api/v1/taxonomy/ciclos/{ciclo_id}").status_code == 200
+
+
+def test_no_elimina_curso_con_contenido(client: TestClient, admin_token: str) -> None:
+    ciclo_id = client.post(
+        "/api/v1/taxonomy/ciclos/", json={"nombre": "Primaria"}, headers=auth_headers(admin_token)
+    ).json()["id"]
+    curso_id = client.post(
+        "/api/v1/taxonomy/cursos/",
+        json={"nombre": "1º", "ciclo_id": ciclo_id},
+        headers=auth_headers(admin_token),
+    ).json()["id"]
+    _crear_contenido(client, admin_token, curso_id=curso_id)
+
+    resp = client.delete(f"/api/v1/taxonomy/cursos/{curso_id}", headers=auth_headers(admin_token))
+    assert resp.status_code == 409
+    assert "contenido" in resp.json()["detail"].lower()
+    assert client.get(f"/api/v1/taxonomy/cursos/{curso_id}").status_code == 200
+
+
+def test_no_elimina_asignatura_con_contenido(client: TestClient, admin_token: str) -> None:
+    asig_id = client.post(
+        "/api/v1/taxonomy/asignaturas/",
+        json={"nombre": "Mates"},
+        headers=auth_headers(admin_token),
+    ).json()["id"]
+    _crear_contenido(client, admin_token, asignatura_id=asig_id)
+
+    resp = client.delete(
+        f"/api/v1/taxonomy/asignaturas/{asig_id}", headers=auth_headers(admin_token)
+    )
+    assert resp.status_code == 409
+    assert "contenido" in resp.json()["detail"].lower()
+    assert client.get(f"/api/v1/taxonomy/asignaturas/{asig_id}").status_code == 200
+
+
+def test_elimina_curso_sin_contenido(client: TestClient, admin_token: str) -> None:
+    ciclo_id = client.post(
+        "/api/v1/taxonomy/ciclos/", json={"nombre": "Primaria"}, headers=auth_headers(admin_token)
+    ).json()["id"]
+    curso_id = client.post(
+        "/api/v1/taxonomy/cursos/",
+        json={"nombre": "Libre", "ciclo_id": ciclo_id},
+        headers=auth_headers(admin_token),
+    ).json()["id"]
+
+    resp = client.delete(f"/api/v1/taxonomy/cursos/{curso_id}", headers=auth_headers(admin_token))
+    assert resp.status_code == 204
+    assert client.get(f"/api/v1/taxonomy/cursos/{curso_id}").status_code == 404

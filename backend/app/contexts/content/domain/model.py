@@ -99,6 +99,10 @@ class Contenido(Entity):
     def publicar(self) -> ContenidoPublicado:
         if self.borrado:
             raise DomainError("No se puede publicar un contenido borrado.")
+        # Un ejercicio interactivo sin su fichero HTML mostraría una página vacía en público;
+        # exigir el fichero evita publicar un ejercicio a medias.
+        if self.tipo is TipoContenido.INTERACTIVO and not self.hash_html:
+            raise DomainError("No se puede publicar un ejercicio interactivo sin su fichero HTML.")
         self.publicado = True
         return ContenidoPublicado(contenido_id=self.id)
 

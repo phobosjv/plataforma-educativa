@@ -141,6 +141,18 @@ class TestContenidoCRUD:
         assert r.status_code == 200
         assert r.json()["publicado"] is True
 
+    def test_no_publica_interactivo_sin_html(self, client: TestClient, editor_token: str) -> None:
+        uid = client.post(
+            "/api/v1/contenidos/",
+            json={"titulo": "Ejercicio sin fichero", "tipo": "interactivo"},
+            headers=_headers(editor_token),
+        ).json()["id"]
+        r = client.post(f"/api/v1/contenidos/{uid}/publicar", headers=_headers(editor_token))
+        assert r.status_code == 400
+        assert "fichero" in r.json()["detail"].lower()
+        # No quedó publicado.
+        assert client.get(f"/api/v1/contenidos/{uid}").json()["publicado"] is False
+
 
 class TestAdminEndpoints:
     def test_admin_ve_papelera(

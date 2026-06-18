@@ -61,6 +61,7 @@ from app.contexts.taxonomy.infrastructure.repositories import (
     SqlAlchemyCicloRepository,
     SqlAlchemyCursoRepository,
 )
+from app.contexts.content.infrastructure.repositories import SqlAlchemyContenidoEnTaxonomia
 from app.contexts.auditing.infrastructure.recorder import registrar_auditoria
 from app.shared.domain.base import DomainError, NotFoundError
 from app.shared.infrastructure.database import get_db
@@ -140,11 +141,13 @@ def eliminar_ciclo(
     db: Session = Depends(get_db),
 ) -> None:
     try:
-        EliminarCicloHandler(SqlAlchemyCicloRepository(db), UnitOfWork(db)).handle(
-            EliminarCicloCommand(ciclo_id=ciclo_id)
-        )
+        EliminarCicloHandler(
+            SqlAlchemyCicloRepository(db), SqlAlchemyCursoRepository(db), UnitOfWork(db)
+        ).handle(EliminarCicloCommand(ciclo_id=ciclo_id))
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except DomainError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     _auditar(db, current, "borrar", "ciclo", str(ciclo_id))
 
 
@@ -214,11 +217,13 @@ def eliminar_curso(
     db: Session = Depends(get_db),
 ) -> None:
     try:
-        EliminarCursoHandler(SqlAlchemyCursoRepository(db), UnitOfWork(db)).handle(
-            EliminarCursoCommand(curso_id=curso_id)
-        )
+        EliminarCursoHandler(
+            SqlAlchemyCursoRepository(db), SqlAlchemyContenidoEnTaxonomia(db), UnitOfWork(db)
+        ).handle(EliminarCursoCommand(curso_id=curso_id))
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except DomainError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     _auditar(db, current, "borrar", "curso", str(curso_id))
 
 
@@ -302,9 +307,11 @@ def eliminar_asignatura(
     db: Session = Depends(get_db),
 ) -> None:
     try:
-        EliminarAsignaturaHandler(SqlAlchemyAsignaturaRepository(db), UnitOfWork(db)).handle(
-            EliminarAsignaturaCommand(asignatura_id=asignatura_id)
-        )
+        EliminarAsignaturaHandler(
+            SqlAlchemyAsignaturaRepository(db), SqlAlchemyContenidoEnTaxonomia(db), UnitOfWork(db)
+        ).handle(EliminarAsignaturaCommand(asignatura_id=asignatura_id))
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except DomainError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     _auditar(db, current, "borrar", "asignatura", str(asignatura_id))
