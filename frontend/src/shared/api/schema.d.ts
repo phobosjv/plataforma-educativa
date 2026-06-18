@@ -595,6 +595,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Importar Todo
+         * @description Restaura el sitio (BD + media) desde una exportación ``.tar.gz`` (solo admin).
+         *
+         *     Operación **destructiva**: reemplaza la base de datos y restaura la media. Exige escribir
+         *     ``IMPORTAR`` en ``confirmacion`` y crea automáticamente una copia de seguridad de la BD
+         *     actual antes de sobrescribir. Tras importar, la BD se migra al esquema actual. La sesión
+         *     del administrador puede dejar de ser válida (el usuario procede de la BD importada).
+         */
+        post: operations["importar_todo_api_v1_admin_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -761,6 +786,13 @@ export interface components {
              * Format: date-time
              */
             creado_en: string;
+        };
+        /** Body_importar_todo_api_v1_admin_import_post */
+        Body_importar_todo_api_v1_admin_import_post: {
+            /** Fichero */
+            fichero: string;
+            /** Confirmacion */
+            confirmacion: string;
         };
         /** Body_login_api_v1_auth_token_post */
         Body_login_api_v1_auth_token_post: {
@@ -1014,6 +1046,19 @@ export interface components {
         ImagenSubidaResponse: {
             /** Url */
             url: string;
+        };
+        /** ImportResponse */
+        ImportResponse: {
+            /** Ok */
+            ok: boolean;
+            /** Num Ficheros Media */
+            num_ficheros_media: number;
+            /** App Version Importada */
+            app_version_importada: string;
+            /** Backup Seguridad */
+            backup_seguridad: string | null;
+            /** Detalle */
+            detalle: string;
         };
         /** PaletaRequest */
         PaletaRequest: {
@@ -2485,6 +2530,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    importar_todo_api_v1_admin_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_importar_todo_api_v1_admin_import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

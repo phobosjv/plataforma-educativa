@@ -6,6 +6,29 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.20.0] - 2026-06-18
+
+### Añadido (importar / restaurar el sitio)
+- **Importación completa del sitio (admin).** Operación inversa de «Exportar todo»: el administrador
+  sube el archivo `.tar.gz` de exportación (BD + media + `manifest.json`) y el sitio destino queda
+  restaurado/migrado con ese contenido. Pensado para **poner en marcha una web en blanco** con el
+  contenido de otra, o **recuperar tras un fallo total**. Endpoint `POST /api/v1/admin/import` (solo
+  admin), con sección propia en «Copias de seguridad».
+- **Confirmación y seguridad.** La importación es destructiva (reemplaza la BD y restaura la media), así
+  que exige escribir `IMPORTAR` para confirmar y crea **automáticamente una copia de seguridad de la BD
+  actual** antes de sobrescribir (rollback). Tras importar, la BD se lleva al esquema actual
+  (`alembic upgrade head`), de modo que una exportación de una versión anterior queda **migrada**.
+
+### Detalles técnicos / seguridad
+- `ImportService` (infra) valida el `manifest` (formato) y la integridad SQLite del archivo, extrae de
+  forma **segura** (sin path traversal: solo `data/`, `media/`, `manifest.json`; nunca enlaces), cierra
+  las conexiones del pool (`engine.dispose()`) y sustituye el fichero de BD con un `os.replace` atómico
+  (las conexiones abiertas conservan el inodo antiguo; las nuevas abren ya la BD importada).
+- Cliente OpenAPI regenerado (nuevo endpoint). Sin cambios de esquema propios de esta versión (no hay
+  migración nueva). 211 tests de backend (6 nuevos de importación) + 9 E2E en verde. Type-check limpio.
+
+---
+
 ## [V-0.19.2] - 2026-06-17
 
 ### Cambiado (UI / visibilidad)

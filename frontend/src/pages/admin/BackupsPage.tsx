@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../shared/api/client";
+import { useAuth } from "../../app/auth/AuthContext";
 import type { components } from "../../shared/api/schema";
 
 type Backup = components["schemas"]["BackupResponse"];
@@ -37,6 +39,8 @@ function descargarBlob(blob: Blob, nombre: string): void {
 
 export function BackupsPage() {
   const qc = useQueryClient();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["backups"],
     queryFn: fetchBackups,
@@ -45,6 +49,51 @@ export function BackupsPage() {
   const [error, setError] = useState("");
   const [descargando, setDescargando] = useState<string | null>(null);
   const [exportando, setExportando] = useState(false);
+
+  // Importación / restauración completa (operación destructiva, con confirmación).
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [confirmacion, setConfirmacion] = useState("");
+  const [importando, setImportando] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
+
+  const puedeImportar = !!importFile && confirmacion.trim() === "IMPORTAR" && !importando;
+
+  async function importarTodo() {
+    if (!puedeImportar || !importFile) return;
+    setError("");
+    setImportMsg("");
+    setImportando(true);
+    try {
+      const fd = new FormData();
+      fd.append("fichero", importFile);
+      fd.append("confirmacion", confirmacion.trim());
+      const token = localStorage.getItem("auth_token");
+      const r = await fetch("/api/v1/admin/import", {
+        method: "POST",
+        body: fd,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      const cuerpo = await r.json().catch(() => null);
+      if (!r.ok) {
+        setError(cuerpo?.detail ?? "No se pudo importar el archivo.");
+        return;
+      }
+      setImportMsg(
+        `Sitio restaurado: ${cuerpo.num_ficheros_media} ficheros de media` +
+          (cuerpo.backup_seguridad ? ` (copia previa: ${cuerpo.backup_seguridad})` : "") +
+          ". Vas a salir de la sesión; inicia sesión con las credenciales del sitio importado.",
+      );
+      // La sesión actual puede haber dejado de ser válida (el usuario viene de la BD importada).
+      setTimeout(() => {
+        logout();
+        navigate("/login");
+      }, 3500);
+    } catch {
+      setError("No se pudo importar el archivo.");
+    } finally {
+      setImportando(false);
+    }
+  }
 
   async function descargar(nombre: string) {
     setError("");
@@ -169,6 +218,61 @@ export function BackupsPage() {
       ) : (
         <p className="cms-text-muted">Aún no hay copias de seguridad.</p>
       )}
+
+      <section className="cms-card" style={{ marginTop: "2.5rem", borderColor: "var(--cms-color-danger)" }}>
+        <h2 className="cms-h2">Importar / restaurar el sitio</h2>
+        <p className="cms-text-muted">
+          Sube un archivo de <strong>«Exportar todo» (.tar.gz)</strong> para restaurar o migrar el sitio
+          entero (base de datos + media). Es la operación inversa de la exportación: ideal para poner en
+          marcha una web en blanco con el contenido de otra.
+        </p>
+        <p className="cms-error" style={{ marginTop: ".5rem" }}>
+          ⚠️ Operación destructiva: <strong>reemplaza la base de datos actual</strong> y restaura la media.
+          Se crea una copia de seguridad automática antes de sobrescribir. Tras importar, deberás iniciar
+          sesión con las credenciales del sitio importado.
+        </p>
+
+        <div className="cms-form-group" style={{ marginTop: "1rem" }}>
+          <label className="cms-label" htmlFor="import-file">Archivo de exportación (.tar.gz)</label>
+          <input
+            id="import-file"
+            type="file"
+            accept=".gz,.tgz,application/gzip"
+            disabled={importando}
+            onChange={(e) => { setImportMsg(""); setImportFile(e.target.files?.[0] ?? null); }}
+          />
+        </div>
+
+        <div className="cms-form-group">
+          <label className="cms-label" htmlFor="import-confirm">
+            Escribe <code>IMPORTAR</code> para confirmar
+          </label>
+          <input
+            id="import-confirm"
+            className="cms-input"
+            value={confirmacion}
+            disabled={importando}
+            placeholder="IMPORTAR"
+            onChange={(e) => setConfirmacion(e.target.value)}
+            style={{ maxWidth: "220px" }}
+          />
+        </div>
+
+        <button
+          type="button"
+          className="cms-btn cms-btn-primary"
+          onClick={importarTodo}
+          disabled={!puedeImportar}
+        >
+          {importando ? "Importando…" : "Importar y reemplazar el sitio"}
+        </button>
+
+        {importMsg && (
+          <p className="cms-text" role="status" style={{ marginTop: ".75rem", color: "var(--cms-color-primary)" }}>
+            {importMsg}
+          </p>
+        )}
+      </section>
     </>
   );
 }
