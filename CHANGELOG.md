@@ -6,6 +6,26 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.21.1] - 2026-06-18
+
+### Corregido (contador de visitas — hallazgos de la auditoría)
+- **No se cuentan visitas de contenido inexistente.** El endpoint público de visitas acepta cualquier
+  ID; al **volcar** el contador a la BD se descartan ahora los conteos de IDs que no corresponden a
+  ningún contenido (UUID arbitrarios o contenido ya purgado), de modo que `content_views` no acumula
+  **filas huérfanas** ni se infla el total mostrado en el panel.
+- **No se pierde el lote si falla la persistencia.** Antes, el volcado vaciaba el buffer en memoria
+  *antes* de confirmar la transacción: si el commit fallaba, ese lote se perdía. Ahora, si la
+  persistencia falla, los conteos **vuelven al buffer** y se reintentan en el siguiente volcado.
+
+### Detalles técnicos
+- Nuevo puerto `ContenidosConocidos` (dominio de `analytics`) implementado por un adapter en `content`
+  y cableado en la tarea de volcado: ANALYTICS no depende de CONTENIDO (regla de dependencia). El
+  filtrado se hace una vez por lote (no por petición, §8). Sin cambios de esquema ni de contrato.
+- 222 tests de backend (3 nuevos: descartar contenido desconocido, durabilidad del volcado, y un test
+  de integración del filtrado) + 9 E2E en verde.
+
+---
+
 ## [V-0.21.0] - 2026-06-18
 
 ### Añadido (ejercicios tipo "Examen")

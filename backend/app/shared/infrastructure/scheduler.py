@@ -26,7 +26,10 @@ from app.contexts.analytics.infrastructure.buffer import buffer_visitas
 from app.contexts.analytics.infrastructure.repositories import SqlAlchemyVisitasRepository
 from app.contexts.content.application.commands import PurgarPapeleraVencidaCommand
 from app.contexts.content.application.handlers import PurgarPapeleraVencidaHandler
-from app.contexts.content.infrastructure.repositories import SqlAlchemyContenidoRepository
+from app.contexts.content.infrastructure.repositories import (
+    SqlAlchemyContenidoRepository,
+    SqlAlchemyContenidosConocidos,
+)
 from app.shared.infrastructure.backup import SqliteBackupService
 from app.shared.infrastructure.database import SessionLocal
 from app.shared.infrastructure.media_backup import MediaMirrorService
@@ -67,7 +70,10 @@ def volcar_visitas() -> None:
     session = SessionLocal()
     try:
         handler = VolcarVisitasHandler(
-            buffer_visitas, SqlAlchemyVisitasRepository(session), UnitOfWork(session)
+            buffer_visitas,
+            SqlAlchemyVisitasRepository(session),
+            UnitOfWork(session),
+            SqlAlchemyContenidosConocidos(session),
         )
         visitas = handler.handle()
         if visitas:

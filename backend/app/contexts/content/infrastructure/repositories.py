@@ -187,6 +187,25 @@ class SqlAlchemyContenidoEnTaxonomia:
         return int(self._session.execute(stmt).scalar_one())
 
 
+class SqlAlchemyContenidosConocidos:
+    """Adapter del puerto ``analytics.ContenidosConocidos``: filtra IDs a los que existen.
+
+    Se usa al volcar el contador de visitas para descartar conteos de contenido inexistente
+    (UUID arbitrarios o ya purgado), de modo que ``content_views`` no acumule filas huérfanas.
+    """
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def filtrar_existentes(self, ids: set[UUID]) -> set[UUID]:
+        if not ids:
+            return set()
+        stmt = select(ContenidoModel.id).where(
+            ContenidoModel.id.in_([str(i) for i in ids])
+        )
+        return {UUID(row) for row in self._session.execute(stmt).scalars()}
+
+
 class SqlAlchemyContentVersionRepository:
     def __init__(self, session: Session) -> None:
         self._session = session

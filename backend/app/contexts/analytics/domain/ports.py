@@ -33,3 +33,13 @@ class VisitasRepository(Protocol):
     def total_por_contenido(self) -> dict[UUID, int]: ...
 
     def total(self) -> int: ...
+
+
+class ContenidosConocidos(Protocol):
+    """Filtra un conjunto de IDs y devuelve solo los de un contenido existente (lo implementa
+    CONTENIDO). Permite descartar al volcar las visitas de IDs que no corresponden a ningún
+    contenido (UUID arbitrarios recibidos por el endpoint público, o contenido ya purgado),
+    evitando filas huérfanas e inflado del total en ``content_views``.
+    """
+
+    def filtrar_existentes(self, ids: set[UUID]) -> set[UUID]: ...

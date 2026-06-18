@@ -11,9 +11,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from datetime import datetime, timezone
+
 from app.contexts.analytics.application.handlers import VolcarVisitasHandler
 from app.contexts.analytics.infrastructure.buffer import buffer_visitas
 from app.contexts.analytics.infrastructure.repositories import SqlAlchemyVisitasRepository
+from app.contexts.content.infrastructure.models import ContenidoModel
+from app.contexts.content.infrastructure.repositories import SqlAlchemyContenidosConocidos
 from app.contexts.identity.domain.model import Rol, Usuario
 from app.contexts.identity.infrastructure.auth_service import ArgonAuthService
 from app.contexts.identity.infrastructure.repositories import SqlAlchemyUsuarioRepository
@@ -69,7 +73,27 @@ def _h(token: str) -> dict[str, str]:
 
 def _volcar(db: Session) -> None:
     """Fuerza el volcado del buffer a la BD del test (lo que hace la tarea de fondo)."""
-    VolcarVisitasHandler(buffer_visitas, SqlAlchemyVisitasRepository(db), UnitOfWork(db)).handle()
+    VolcarVisitasHandler(
+        buffer_visitas,
+        SqlAlchemyVisitasRepository(db),
+        UnitOfWork(db),
+        SqlAlchemyContenidosConocidos(db),
+    ).handle()
+
+
+def _crear_contenido(db: Session) -> str:
+    """Inserta un contenido real y devuelve su id (las visitas solo se cuentan si existe)."""
+    cid = str(uuid4())
+    ahora = datetime.now(timezone.utc)
+    db.add(
+        ContenidoModel(
+            id=cid, tipo="texto", titulo="Ficha", descripcion="", idioma="es",
+            is_published=True, is_deleted=False, is_exam=False, tags_json="[]",
+            created_at=ahora, updated_at=ahora,
+        )
+    )
+    db.commit()
+    return cid
 
 
 def test_registrar_visita_es_publico_y_no_escribe_en_bd(client: TestClient) -> None:
@@ -82,7 +106,7 @@ def test_registrar_visita_es_publico_y_no_escribe_en_bd(client: TestClient) -> N
 def test_visitas_no_aparecen_hasta_el_volcado(
     client: TestClient, db_session: Session
 ) -> None:
-    cid = str(uuid4())
+    cid = _crear_contenido(db_session)
     client.post(f"/api/v1/analytics/visitas/{cid}")
     admin = _token(db_session, client, "admin@test.es", Rol.ADMIN)
 
@@ -98,7 +122,7 @@ def test_visitas_no_aparecen_hasta_el_volcado(
 
 
 def test_varias_visitas_se_suman(client: TestClient, db_session: Session) -> None:
-    cid = str(uuid4())
+    cid = _crear_contenido(db_session)
     for _ in range(3):
         client.post(f"/api/v1/analytics/visitas/{cid}")
     _volcar(db_session)
@@ -106,6 +130,24 @@ def test_varias_visitas_se_suman(client: TestClient, db_session: Session) -> Non
     body = client.get("/api/v1/analytics/visitas", headers=_h(admin)).json()
     assert body["total"] == 3
     assert body["por_contenido"][cid] == 3
+
+
+def test_visitas_de_contenido_inexistente_se_descartan(
+    client: TestClient, db_session: Session
+) -> None:
+    # Una visita a un contenido real se cuenta; una a un UUID inexistente (arbitrario o ya
+    # purgado) se descarta al volcar, sin crear filas huérfanas ni inflar el total.
+    real = _crear_contenido(db_session)
+    fantasma = str(uuid4())
+    client.post(f"/api/v1/analytics/visitas/{real}")
+    client.post(f"/api/v1/analytics/visitas/{fantasma}")
+
+    _volcar(db_session)
+
+    admin = _token(db_session, client, "admin@test.es", Rol.ADMIN)
+    body = client.get("/api/v1/analytics/visitas", headers=_h(admin)).json()
+    assert body["total"] == 1
+    assert body["por_contenido"] == {real: 1}
 
 
 def test_consultar_visitas_sin_auth_devuelve_401(client: TestClient) -> None:
