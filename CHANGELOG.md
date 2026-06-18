@@ -6,6 +6,23 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.19.2] - 2026-06-17
+
+### Cambiado (UI / visibilidad)
+- **Pie de la web pública siempre visible sin scroll.** El pie (apoyo/donaciones, «{sitio} — contenidos
+  para infantil y primaria» y los iconos de redes) se ancla al fondo del viewport mientras se navega y,
+  al llegar al final del documento, queda en su sitio natural (no tapa el contenido). Fondo opaco y por
+  debajo del ejercicio maximizado y de la barra de navegación.
+- **Acciones de admin/editor siempre visibles.** La barra lateral del panel queda fija a la altura del
+  viewport, de modo que «Ver la web» y «Cerrar sesión» (al fondo) están siempre accesibles sin bajar; si
+  la lista de secciones no cupiera, esa zona hace scroll propio.
+
+### Notas
+- Cambio **solo de CSS** (`frontend/src/styles/tokens.css`), sin tocar componentes, API ni esquema.
+  205 tests de backend + 9 E2E en verde. Type-check de frontend limpio.
+
+---
+
 ## [V-0.19.1] - 2026-06-17
 
 ### Seguridad (endurecimiento de imágenes)

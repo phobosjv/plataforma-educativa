@@ -72,6 +72,14 @@ body::before {
 .cms-main { flex: 1; padding: 2rem 1.5rem; max-width: 1200px; margin: 0 auto; width: 100%; }
 
 .cms-footer {
+  /* Pie SIEMPRE visible sin scroll: se ancla al fondo del viewport mientras se navega y, al
+     llegar al final del documento, queda en su sitio natural (no tapa el contenido final). Fondo
+     opaco para no transparentar el contenido que pasa por detrás. Queda por debajo del ejercicio
+     maximizado (z-index 1000) y de la barra de navegación (z-index 100). */
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
+  background: var(--cms-color-surface);
   border-top: 1px solid var(--cms-color-border);
   padding: 1rem 1.5rem;
   text-align: center;
@@ -116,6 +124,12 @@ body::before {
   border-right: 1px solid var(--cms-color-border);
   display: flex; flex-direction: column;
   padding: 1rem 0;
+  /* La barra lateral se mantiene fija a la altura del viewport mientras el contenido hace
+     scroll, de modo que las acciones del fondo ('Ver la web' y 'Cerrar sesión') están SIEMPRE
+     visibles sin necesidad de bajar. Si la lista de enlaces no cupiera, esta zona scrollea. */
+  position: sticky; top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 .cms-sidebar-brand { font-weight: 700; color: var(--cms-color-primary); padding: .5rem 1.25rem 1rem; font-size: 1rem; display: flex; align-items: center; gap: .5rem; }
 .cms-sidebar-link {
