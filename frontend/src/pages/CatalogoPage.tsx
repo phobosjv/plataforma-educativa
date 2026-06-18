@@ -23,13 +23,28 @@ function emojiTipo(tipo: string): string {
   return tipo === "interactivo" ? "🎮" : "📖";
 }
 
+// Coloca los ejercicios marcados como examen (simulacro) al FINAL de la lista, conservando el
+// orden relativo del resto (Array.sort es estable). Se usa en las pantallas de navegación del
+// catálogo (no en la búsqueda, donde manda la relevancia).
+function examenesAlFinal(items: Contenido[]): Contenido[] {
+  return [...items].sort((a, b) => Number(!!a.es_examen) - Number(!!b.es_examen));
+}
+
 // Tarjeta de un contenido (ejercicio / artículo). Pura: solo depende de ``c``, por lo que
 // vive a nivel de módulo y la reutilizan tanto las pantallas del catálogo como la búsqueda.
 function tarjetaContenido(c: Contenido) {
+  const examen = !!c.es_examen;
   return (
-    <Link key={c.id} to={`/contenido/${c.id}`} className="cms-card">
-      <span className={`cms-badge cms-badge-${c.tipo}`} style={{ marginBottom: ".5rem" }}>
-        {emojiTipo(c.tipo)} {c.tipo}
+    <Link
+      key={c.id}
+      to={`/contenido/${c.id}`}
+      className={"cms-card" + (examen ? " cms-card-examen" : "")}
+    >
+      <span
+        className={`cms-badge cms-badge-${examen ? "examen" : c.tipo}`}
+        style={{ marginBottom: ".5rem" }}
+      >
+        {examen ? "📝 examen" : `${emojiTipo(c.tipo)} ${c.tipo}`}
       </span>
       <p className="cms-h3" style={{ marginTop: ".4rem" }}>{c.titulo}</p>
       {c.descripcion && <p className="cms-muted" style={{ marginTop: ".4rem" }}>{c.descripcion}</p>}
@@ -268,7 +283,7 @@ export function CatalogoPage() {
         {items.length === 0 ? (
           <p className="cms-empty">Todavía no hay actividades aquí. ¡Vuelve pronto!</p>
         ) : (
-          <div className="cms-grid">{items.map(tarjetaContenido)}</div>
+          <div className="cms-grid">{examenesAlFinal(items).map(tarjetaContenido)}</div>
         )}
       </>
     );
@@ -318,7 +333,7 @@ export function CatalogoPage() {
         {contenidos.length === 0 ? (
           <p className="cms-empty">Aún no hay contenidos publicados.</p>
         ) : (
-          <div className="cms-grid">{contenidos.map(tarjetaContenido)}</div>
+          <div className="cms-grid">{examenesAlFinal(contenidos).map(tarjetaContenido)}</div>
         )}
       </>
     );
@@ -344,7 +359,7 @@ export function CatalogoPage() {
         {items.length === 0 ? (
           <p className="cms-empty">Todavía no hay actividades aquí. ¡Vuelve pronto!</p>
         ) : (
-          <div className="cms-grid">{items.map(tarjetaContenido)}</div>
+          <div className="cms-grid">{examenesAlFinal(items).map(tarjetaContenido)}</div>
         )}
       </>
     );

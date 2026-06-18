@@ -33,6 +33,7 @@ class SqlAlchemyContenidoRepository:
         model.descripcion = contenido.descripcion
         model.is_published = contenido.publicado
         model.is_deleted = contenido.borrado
+        model.is_exam = contenido.es_examen
         model.ciclo_id = str(contenido.ciclo_id) if contenido.ciclo_id else None
         model.curso_id = str(contenido.curso_id) if contenido.curso_id else None
         model.asignatura_id = str(contenido.asignatura_id) if contenido.asignatura_id else None
@@ -134,6 +135,7 @@ class SqlAlchemyContenidoRepository:
             etiquetas=json.loads(model.tags_json),
             publicado=model.is_published,
             borrado=model.is_deleted,
+            es_examen=model.is_exam,
             hash_html=model.hash_html,
             body_html=model.body_html,
             created_at=model.created_at,
@@ -154,6 +156,7 @@ class SqlAlchemyContenidoRepository:
             idioma=contenido.idioma,
             is_published=contenido.publicado,
             is_deleted=contenido.borrado,
+            is_exam=contenido.es_examen,
             hash_html=contenido.hash_html,
             body_html=contenido.body_html,
             tags_json=json.dumps(contenido.etiquetas, ensure_ascii=False),

@@ -6,6 +6,28 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.21.0] - 2026-06-18
+
+### Añadido (ejercicios tipo "Examen")
+- **Marca de "Examen" (simulacro) en los ejercicios interactivos.** Al crear/editar un contenido de
+  tipo interactivo aparece un check **«Examen»** (no aplica a artículos de texto; el dominio rechaza
+  marcar un texto como examen). En el **catálogo**, los ejercicios marcados como examen se muestran
+  **al final** de cada lista (navegación por ciclo/curso/asignatura, Aula Abierta y «Ver todo») y con
+  un **icono/badge distinto** que indica que es una simulación de examen. La fusión de varios
+  ejercicios en uno la hace a mano el diseñador del examen; la app solo aporta la marca, el orden y el
+  icono.
+
+### Persistencia / migraciones
+- `content` gana la columna `is_exam` (Boolean, default false). Migración Alembic **016**. Invariante de
+  dominio: solo un interactivo puede marcarse como examen. Cliente OpenAPI regenerado (campo `es_examen`
+  en `ContenidoResponse` y en los request de crear/actualizar).
+
+### Notas
+- 219 tests de backend (3 nuevos: crear interactivo examen, rechazo de texto-examen, marcar/desmarcar) +
+  9 E2E en verde. Type-check de frontend limpio. API version → `0.21.0`.
+
+---
+
 ## [V-0.20.1] - 2026-06-18
 
 ### Corregido (hallazgos de una auditoría de lógica)

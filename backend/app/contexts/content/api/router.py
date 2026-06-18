@@ -88,6 +88,7 @@ def _dto_to_response(dto: ContenidoDTO) -> ContenidoResponse:
         autor_id=dto.autor_id,
         publicado=dto.publicado,
         borrado=dto.borrado,
+        es_examen=dto.es_examen,
         idioma=dto.idioma,
         etiquetas=list(dto.etiquetas),
         ciclo_id=dto.ciclo_id,
@@ -162,6 +163,7 @@ def crear_contenido(
                 curso_id=body.curso_id,
                 asignatura_id=body.asignatura_id,
                 body_html=body.body_html,
+                es_examen=body.es_examen,
             )
         )
     except DomainError as e:
@@ -195,6 +197,7 @@ def actualizar_contenido(
                 descripcion=body.descripcion,
                 body_html=body.body_html,
                 etiquetas=tuple(body.etiquetas) if body.etiquetas is not None else None,
+                es_examen=body.es_examen,
                 actualizar_taxonomia=actualizar_taxonomia,
                 ciclo_id=body.ciclo_id,
                 curso_id=body.curso_id,

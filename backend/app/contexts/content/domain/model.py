@@ -77,12 +77,24 @@ class Contenido(Entity):
     borrado: bool = False
     hash_html: str | None = None  # solo para INTERACTIVO
     body_html: str | None = None  # solo para TEXTO
+    # Marca de "simulacro de examen": solo aplica a ejercicios interactivos. En el catálogo,
+    # los exámenes se listan al final y con un icono propio (la fusión de varios ejercicios en
+    # uno la hace a mano el diseñador; aquí es solo una marca para ordenar y distinguir).
+    es_examen: bool = False
     created_at: datetime = field(default_factory=now)
     updated_at: datetime = field(default_factory=now)
 
     def __post_init__(self) -> None:
         if not self.titulo.strip():
             raise DomainError("El contenido requiere un título.")
+        if self.es_examen and self.tipo is not TipoContenido.INTERACTIVO:
+            raise DomainError("Solo un ejercicio interactivo puede marcarse como examen.")
+
+    def marcar_examen(self, valor: bool) -> None:
+        """Marca o desmarca el contenido como examen (solo válido en interactivos)."""
+        if valor and self.tipo is not TipoContenido.INTERACTIVO:
+            raise DomainError("Solo un ejercicio interactivo puede marcarse como examen.")
+        self.es_examen = valor
 
     def adjuntar_html_interactivo(self, file_hash: str) -> None:
         """Asocia el fichero HTML (por hash) a un ejercicio interactivo.

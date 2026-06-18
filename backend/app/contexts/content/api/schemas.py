@@ -17,6 +17,7 @@ class ContenidoResponse(BaseModel):
     autor_id: UUID | None
     publicado: bool
     borrado: bool
+    es_examen: bool
     idioma: str
     etiquetas: list[str]
     ciclo_id: UUID | None
@@ -51,6 +52,8 @@ class CrearContenidoRequest(BaseModel):
     ciclo_id: UUID | None = None
     curso_id: UUID | None = None
     asignatura_id: UUID | None = None
+    # Solo aplica a tipo "interactivo"; el dominio rechaza marcar un texto como examen.
+    es_examen: bool = False
 
 
 class ActualizarContenidoRequest(BaseModel):
@@ -58,6 +61,7 @@ class ActualizarContenidoRequest(BaseModel):
     descripcion: str | None = None
     body_html: str | None = None
     etiquetas: list[str] | None = None
+    es_examen: bool | None = None
     # La clasificación puede reasignarse al editar. Para poder DESasignar (null) sin que
     # ello se confunda con "no tocar", el router usa model_fields_set (ver router.py).
     ciclo_id: UUID | None = None

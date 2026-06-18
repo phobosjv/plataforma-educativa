@@ -19,6 +19,7 @@ export interface ContenidoFormValues {
   ciclo_id: string | null;
   curso_id: string | null;
   asignatura_id: string | null;
+  es_examen: boolean;
 }
 
 const VACIO: ContenidoFormValues = {
@@ -30,6 +31,7 @@ const VACIO: ContenidoFormValues = {
   ciclo_id: null,
   curso_id: null,
   asignatura_id: null,
+  es_examen: false,
 };
 
 export function ContenidoForm({
@@ -93,7 +95,9 @@ export function ContenidoForm({
     const taxonomia = esTransversal
       ? { ciclo_id: null, curso_id: null }
       : { ciclo_id: v.ciclo_id, curso_id: v.curso_id };
-    onSubmit({ ...v, ...taxonomia, titulo: v.titulo.trim(), etiquetas });
+    // "Examen" solo aplica a interactivos: nunca lo enviamos en un artículo de texto.
+    const es_examen = v.tipo === "interactivo" ? v.es_examen : false;
+    onSubmit({ ...v, ...taxonomia, titulo: v.titulo.trim(), etiquetas, es_examen });
   }
 
   return (
@@ -210,6 +214,23 @@ export function ContenidoForm({
           placeholder="bosque, animales, otoño (separadas por comas)"
         />
       </div>
+
+      {v.tipo === "interactivo" && (
+        <div className="cms-form-group">
+          <label className="cms-label" style={{ display: "flex", alignItems: "center", gap: ".5rem", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={v.es_examen}
+              onChange={(e) => set("es_examen", e.target.checked)}
+            />
+            Examen (simulacro)
+          </label>
+          <p className="cms-muted" style={{ marginTop: ".3rem" }}>
+            Márcalo si este ejercicio es una simulación de examen. En el catálogo aparecerá al final
+            de la lista y con un icono distinto.
+          </p>
+        </div>
+      )}
 
       {v.tipo === "texto" && (
         <div className="cms-form-group">

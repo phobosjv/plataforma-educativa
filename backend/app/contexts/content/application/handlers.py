@@ -88,6 +88,7 @@ class CrearContenidoHandler:
             idioma=cmd.idioma,
             etiquetas=list(cmd.etiquetas),
             body_html=body_html,
+            es_examen=cmd.es_examen,
         )
         version = _make_version(contenido, version_no=1, created_by=cmd.autor_id)
         self._repo.add(contenido)
@@ -129,6 +130,8 @@ class ActualizarContenidoHandler:
             )
         if cmd.etiquetas is not None:
             contenido.etiquetas = list(cmd.etiquetas)
+        if cmd.es_examen is not None:
+            contenido.marcar_examen(cmd.es_examen)
         if cmd.actualizar_taxonomia:
             contenido.ciclo_id = cmd.ciclo_id
             contenido.curso_id = cmd.curso_id

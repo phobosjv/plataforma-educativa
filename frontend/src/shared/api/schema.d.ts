@@ -655,6 +655,8 @@ export interface components {
             body_html?: string | null;
             /** Etiquetas */
             etiquetas?: string[] | null;
+            /** Es Examen */
+            es_examen?: boolean | null;
             /** Ciclo Id */
             ciclo_id?: string | null;
             /** Curso Id */
@@ -894,6 +896,8 @@ export interface components {
             publicado: boolean;
             /** Borrado */
             borrado: boolean;
+            /** Es Examen */
+            es_examen: boolean;
             /** Idioma */
             idioma: string;
             /** Etiquetas */
@@ -978,6 +982,11 @@ export interface components {
             curso_id?: string | null;
             /** Asignatura Id */
             asignatura_id?: string | null;
+            /**
+             * Es Examen
+             * @default false
+             */
+            es_examen: boolean;
         };
         /** CrearCursoRequest */
         CrearCursoRequest: {

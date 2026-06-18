@@ -18,6 +18,7 @@ class ContenidoDTO:
     autor_id: UUID | None
     publicado: bool
     borrado: bool
+    es_examen: bool
     idioma: str
     etiquetas: tuple[str, ...]
     ciclo_id: UUID | None
@@ -58,6 +59,7 @@ def contenido_to_dto(c: Contenido) -> ContenidoDTO:
         autor_id=c.autor_id,
         publicado=c.publicado,
         borrado=c.borrado,
+        es_examen=c.es_examen,
         idioma=c.idioma,
         etiquetas=tuple(c.etiquetas),
         ciclo_id=c.ciclo_id,

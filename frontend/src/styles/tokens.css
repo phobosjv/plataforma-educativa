@@ -169,6 +169,9 @@ body::before {
 }
 .cms-badge-interactivo { background: #dbeafe; color: #1d4ed8; }
 .cms-badge-texto       { background: #d1fae5; color: #065f46; }
+/* Examen (simulacro): destaca sobre los ejercicios normales (van al final de la lista). */
+.cms-badge-examen      { background: #fae8ff; color: #86198f; }
+.cms-card-examen       { border-color: #e9b3f0; }
 .cms-badge-borrador    { background: #fef9c3; color: #713f12; }
 .cms-badge-publicado   { background: #d1fae5; color: #065f46; }
 .cms-badge-archivado   { background: #f3f4f6; color: #374151; }

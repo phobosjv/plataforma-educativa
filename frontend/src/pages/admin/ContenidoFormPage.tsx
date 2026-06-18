@@ -61,6 +61,7 @@ export function ContenidoFormPage() {
             ciclo_id: v.ciclo_id,
             curso_id: v.curso_id,
             asignatura_id: v.asignatura_id,
+            es_examen: v.es_examen,
           },
         });
         if (error || !data) throw new Error(mensajeError(error));
@@ -76,6 +77,7 @@ export function ContenidoFormPage() {
           ciclo_id: v.ciclo_id,
           curso_id: v.curso_id,
           asignatura_id: v.asignatura_id,
+          es_examen: v.es_examen,
         },
       });
       if (error || !data) throw new Error(mensajeError(error));
@@ -189,6 +191,7 @@ export function ContenidoFormPage() {
                 ciclo_id: existente.ciclo_id ?? null,
                 curso_id: existente.curso_id ?? null,
                 asignatura_id: existente.asignatura_id ?? null,
+                es_examen: existente.es_examen,
               }
             : { tipo: tipoInicial }
         }

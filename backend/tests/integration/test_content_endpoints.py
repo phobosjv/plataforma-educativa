@@ -153,6 +153,45 @@ class TestContenidoCRUD:
         # No quedó publicado.
         assert client.get(f"/api/v1/contenidos/{uid}").json()["publicado"] is False
 
+    def test_crear_interactivo_marcado_examen(self, client: TestClient, editor_token: str) -> None:
+        r = client.post(
+            "/api/v1/contenidos/",
+            json={"titulo": "Simulacro", "tipo": "interactivo", "es_examen": True},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 201
+        assert r.json()["es_examen"] is True
+
+    def test_no_marca_texto_como_examen(self, client: TestClient, editor_token: str) -> None:
+        r = client.post(
+            "/api/v1/contenidos/",
+            json={"titulo": "Art", "tipo": "texto", "body_html": "<p>x</p>", "es_examen": True},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 400
+        assert "examen" in r.json()["detail"].lower()
+
+    def test_actualizar_marca_examen(self, client: TestClient, editor_token: str) -> None:
+        uid = client.post(
+            "/api/v1/contenidos/",
+            json={"titulo": "Ej", "tipo": "interactivo"},
+            headers=_headers(editor_token),
+        ).json()["id"]
+        r = client.put(
+            f"/api/v1/contenidos/{uid}",
+            json={"es_examen": True},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 200
+        assert r.json()["es_examen"] is True
+        # Desmarcar también funciona.
+        r2 = client.put(
+            f"/api/v1/contenidos/{uid}",
+            json={"es_examen": False},
+            headers=_headers(editor_token),
+        )
+        assert r2.json()["es_examen"] is False
+
 
 class TestAdminEndpoints:
     def test_admin_ve_papelera(

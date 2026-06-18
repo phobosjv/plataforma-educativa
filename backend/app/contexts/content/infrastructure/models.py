@@ -24,6 +24,7 @@ class ContenidoModel(Base):
     idioma: Mapped[str] = mapped_column(nullable=False, default="es")
     is_published: Mapped[bool] = mapped_column(nullable=False, default=False)
     is_deleted: Mapped[bool] = mapped_column(nullable=False, default=False)
+    is_exam: Mapped[bool] = mapped_column(nullable=False, default=False)
     hash_html: Mapped[str | None] = mapped_column(nullable=True)
     body_html: Mapped[str | None] = mapped_column(nullable=True)
     tags_json: Mapped[str] = mapped_column(nullable=False, default="[]")

@@ -18,6 +18,7 @@ class CrearContenidoCommand:
     curso_id: UUID | None = None
     asignatura_id: UUID | None = None
     body_html: str | None = None
+    es_examen: bool = False
 
 
 @dataclass(frozen=True)
@@ -28,6 +29,7 @@ class ActualizarContenidoCommand:
     descripcion: str | None = None
     body_html: str | None = None
     etiquetas: tuple[str, ...] | None = None
+    es_examen: bool | None = None
     # La taxonomía solo se aplica si actualizar_taxonomia es True (permite asignar y desasignar
     # sin confundir "poner a null" con "no tocar").
     actualizar_taxonomia: bool = False
