@@ -18,9 +18,17 @@ class ContenidoModel(Base):
     titulo: Mapped[str] = mapped_column(nullable=False)
     descripcion: Mapped[str] = mapped_column(nullable=False, default="")
     autor_id: Mapped[str | None] = mapped_column(nullable=True)
-    ciclo_id: Mapped[str | None] = mapped_column(nullable=True)
-    curso_id: Mapped[str | None] = mapped_column(nullable=True)
-    asignatura_id: Mapped[str | None] = mapped_column(nullable=True)
+    # FK con ON DELETE RESTRICT: la BD impide borrar una taxonomía referenciada por contenido
+    # (refuerza, a nivel de motor, la guarda de dominio de los handlers de borrado).
+    ciclo_id: Mapped[str | None] = mapped_column(
+        ForeignKey("ciclo.id", ondelete="RESTRICT"), nullable=True
+    )
+    curso_id: Mapped[str | None] = mapped_column(
+        ForeignKey("curso.id", ondelete="RESTRICT"), nullable=True
+    )
+    asignatura_id: Mapped[str | None] = mapped_column(
+        ForeignKey("asignatura.id", ondelete="RESTRICT"), nullable=True
+    )
     idioma: Mapped[str] = mapped_column(nullable=False, default="es")
     is_published: Mapped[bool] = mapped_column(nullable=False, default=False)
     is_deleted: Mapped[bool] = mapped_column(nullable=False, default=False)

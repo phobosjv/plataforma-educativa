@@ -6,6 +6,25 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.21.2] - 2026-06-18
+
+### Seguridad / robustez (integridad referencial a nivel de BD)
+- **SQLite hace cumplir ahora las claves foráneas.** Cada conexión activa `PRAGMA foreign_keys=ON`
+  (antes solo se activaba WAL), de modo que las FK ya declaradas pasan a aplicarse: `curso.ciclo_id →
+  ciclo` y `content_version.content_id → content`.
+- **`content` gana FK a la taxonomía** (`ciclo_id`, `curso_id`, `asignatura_id` → con `ON DELETE
+  RESTRICT`). Es una segunda capa, a nivel de motor, sobre la guarda de dominio: la base de datos
+  rechaza dejar un contenido apuntando a una taxonomía inexistente. Migración Alembic **017** (recrea
+  `content`; el índice FTS5 se suelta y se reconstruye alrededor, ya que mapea por `rowid`).
+
+### Notas
+- La purga de contenido sigue borrando sus versiones por la cascada del ORM (el orden de borrado
+  satisface la FK). Sin cambios de API ni de contrato. La migración 017 se validó sobre la BD de
+  desarrollo (FK presentes, datos intactos, búsqueda FTS operativa, roundtrip downgrade/upgrade).
+- 225 tests de backend (3 nuevos de integridad referencial con FK activas) + 9 E2E en verde.
+
+---
+
 ## [V-0.21.1] - 2026-06-18
 
 ### Corregido (contador de visitas — hallazgos de la auditoría)
