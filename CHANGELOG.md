@@ -6,6 +6,22 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.21.3] - 2026-06-18
+
+### Cambiado (organización del panel)
+- **Nueva sección de administración «Monetización y RRSS».** Los enlaces de donación, las redes
+  sociales y la publicidad se han movido de «Apariencia» a una página propia (`/admin/monetizacion`).
+  «Apariencia» se queda con nombre del sitio, logo, fuente, fondo, Aula Abierta y textos del catálogo.
+- Solo frontend. Ambas páginas guardan a través del mismo `PUT /config/general`: cada una parte de la
+  configuración actual completa y solo sobrescribe su sección, de modo que guardar en una **no altera**
+  los ajustes de la otra (`useConfig` expone `ajustesActuales` como base).
+
+### Notas
+- Sin cambios de backend, API ni esquema. Type-check de frontend limpio + 9 E2E en verde (225 tests de
+  backend sin cambios).
+
+---
+
 ## [V-0.21.2] - 2026-06-18
 
 ### Seguridad / robustez (integridad referencial a nivel de BD)

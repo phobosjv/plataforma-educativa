@@ -12,6 +12,7 @@ import { ContenidoFormPage } from "../pages/admin/ContenidoFormPage";
 import { TaxonomiaPage } from "../pages/admin/TaxonomiaPage";
 import { UsuariosPage } from "../pages/admin/UsuariosPage";
 import { ConfiguracionPage } from "../pages/admin/ConfiguracionPage";
+import { MonetizacionPage } from "../pages/admin/MonetizacionPage";
 import { BackupsPage } from "../pages/admin/BackupsPage";
 import { AuditoriaPage } from "../pages/admin/AuditoriaPage";
 import { PublicLayout } from "../shared/ui/PublicLayout";
@@ -48,6 +49,7 @@ function AppRoutes() {
         <Route path="contenidos/:id/editar" element={<ContenidoFormPage />} />
         <Route path="taxonomia" element={<TaxonomiaPage />} />
         <Route path="configuracion" element={<ConfiguracionPage />} />
+        <Route path="monetizacion" element={<MonetizacionPage />} />
         <Route
           path="usuarios"
           element={

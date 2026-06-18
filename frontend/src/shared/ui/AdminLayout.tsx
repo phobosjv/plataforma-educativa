@@ -54,6 +54,14 @@ export function AdminLayout() {
         >
           Apariencia
         </NavLink>
+        <NavLink
+          to="/admin/monetizacion"
+          className={({ isActive }) =>
+            "cms-sidebar-link" + (isActive ? " cms-sidebar-link-active" : "")
+          }
+        >
+          Monetización y RRSS
+        </NavLink>
         {user?.rol === "admin" && (
           <>
             <NavLink

@@ -55,7 +55,28 @@ export function useConfig() {
   const personalizadas = (data?.paletas_personalizadas ?? []).map(toFrontendPalette);
   const todasLasPaletas: Palette[] = [...PALETAS_PREDEFINIDAS, ...personalizadas];
 
+  // La config actual como objeto de "ajustes generales" (lo que espera PUT /config/general).
+  // El endpoint REEMPLAZA todo, así que cada pantalla de admin parte de esta base y solo
+  // sobrescribe SU sección; así no se pisan los ajustes de las demás pantallas.
+  const ajustesActuales: AjustesGenerales = {
+    nombre_sitio: data?.nombre_sitio ?? "Plataforma Educativa",
+    fuente_activa: data?.fuente_activa ?? "sistema",
+    fondo_activo: data?.fondo_activo ?? "ninguno",
+    fondo_estilo: data?.fondo_estilo ?? "ordenado",
+    logo_url: data?.logo_url ?? "",
+    aula_abierta_label: data?.aula_abierta_label ?? "Aula Abierta",
+    aula_abierta_emoji: data?.aula_abierta_emoji ?? "🌟",
+    catalogo_titulo: data?.catalogo_titulo ?? "¿En qué curso estás?",
+    catalogo_subtitulo: data?.catalogo_subtitulo ?? "Toca tu curso para ver las actividades",
+    donaciones: (data?.donaciones ?? []).map((d) => ({ etiqueta: d.etiqueta, url: d.url })),
+    redes_sociales: (data?.redes_sociales ?? []).map((r) => ({ red: r.red, url: r.url })),
+    publicidad_activa: data?.publicidad_activa ?? false,
+    publicidad_html_izquierda: data?.publicidad_html_izquierda ?? "",
+    publicidad_html_derecha: data?.publicidad_html_derecha ?? "",
+  };
+
   return {
+    ajustesActuales,
     config: data,
     isLoading,
     nombre_sitio: data?.nombre_sitio ?? "Plataforma Educativa",
