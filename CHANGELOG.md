@@ -6,6 +6,26 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.21.4] - 2026-06-19
+
+### Añadido (tabla de contenidos del panel)
+- **Columnas de taxonomía** en la tabla de administración de contenidos: **Ciclo**, **Curso** y
+  **Asignatura**. Los nombres se resuelven en el frontend a partir de los IDs que ya devolvía la API
+  (reutilizando la caché de taxonomía del catálogo); el contenido sin clasificar muestra «—».
+- **Ordenación por columna**: al pulsar cualquier cabecera (Título, Tipo, Ciclo, Curso, Asignatura,
+  Estado, Visitas) la tabla se ordena por ese campo; un segundo clic invierte el sentido. Indicador
+  ▲/▼ en la columna activa y `aria-sort` para accesibilidad. Las cadenas comparan con configuración
+  regional española; los registros sin valor caen al final.
+- **Paginación de 10 en 10**: barra con botones **« Primero**, **‹ Anterior**, **Siguiente ›**,
+  **Último »** e indicación «Página X de Y» entre medias. Los botones se deshabilitan en los extremos
+  y la barra solo aparece cuando hay más de una página.
+
+### Notas
+- Solo frontend. Sin cambios de backend, API ni esquema. Type-check de frontend limpio (225 tests de
+  backend y 9 E2E sin cambios). Verificado en navegador con Playwright (columnas, orden y paginación).
+
+---
+
 ## [V-0.21.3] - 2026-06-18
 
 ### Cambiado (organización del panel)

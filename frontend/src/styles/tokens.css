@@ -209,6 +209,16 @@ body::before {
 .cms-table th { text-align: left; padding: .6rem .75rem; border-bottom: 2px solid var(--cms-color-border); font-weight: 600; color: var(--cms-color-muted); }
 .cms-table td { padding: .6rem .75rem; border-bottom: 1px solid var(--cms-color-border); }
 .cms-table tr:hover td { background: var(--cms-color-bg); }
+.cms-th-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+.cms-th-sortable:hover { color: var(--cms-color-fg); }
+.cms-sort-arrow { margin-left: .35rem; font-size: .7rem; color: var(--cms-color-primary); }
+
+.cms-pagination {
+  display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.cms-pagination-info { margin: 0 .5rem; font-size: .875rem; color: var(--cms-color-muted); }
+.cms-pagination .cms-btn:disabled { opacity: .45; cursor: default; }
 
 .cms-spinner {
   width: 32px; height: 32px; border: 3px solid var(--cms-color-border);
