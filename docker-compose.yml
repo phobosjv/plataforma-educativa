@@ -16,6 +16,11 @@ services:
       - APP_DOMAIN=${APP_DOMAIN}
       - SANDBOX_DOMAIN=${SANDBOX_DOMAIN}
       - ACME_EMAIL=${ACME_EMAIL}
+      # Subdominios OPCIONALES para paneles de administración (Webmin/Portainer). Si no se
+      # definen en el .env, se usa un *.localhost: Caddy lo sirve con cert interno (sin pedirlo
+      # a Let's Encrypt) y el bloque del Caddyfile queda inerte. Ver caddy/Caddyfile.
+      - WEBMIN_DOMAIN=${WEBMIN_DOMAIN:-webmin.localhost}
+      - PORTAINER_DOMAIN=${PORTAINER_DOMAIN:-portainer.localhost}
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data      # certificados (¡persistir para no agotar el rate limit de Let's Encrypt!)
@@ -24,6 +29,10 @@ services:
       - "80:80"
       - "443:443"
       - "443:443/udp"         # HTTP/3 (cae a TCP si el UDP está bloqueado)
+    extra_hosts:
+      # Permite a Caddy alcanzar servicios del HOST (p. ej. Webmin en :10000 o un puerto
+      # publicado por otro contenedor, como Portainer :9443) vía host.docker.internal.
+      - "host.docker.internal:host-gateway"
     depends_on:
       - frontend
       - sandbox

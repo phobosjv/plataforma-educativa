@@ -6,6 +6,28 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.21.5] - 2026-06-19
+
+### Añadido (despliegue)
+- **Proxy inverso opcional para paneles de administración del servidor** vía Caddy. Dos subdominios
+  nuevos, configurables desde el `.env`, que Caddy sirve con HTTPS de Let's Encrypt y reenvía a
+  herramientas que corren fuera del stack:
+  - `WEBMIN_DOMAIN` → Webmin en el **host** (puerto 10000).
+  - `PORTAINER_DOMAIN` → Portainer (contenedor que publica el 9443 en el host).
+- Ambos destinos hablan HTTPS con certificado autofirmado en su puerto; el bloque usa
+  `tls_insecure_skip_verify` (el cifrado de cara a internet lo aporta Caddy). Se añade
+  `extra_hosts: host.docker.internal:host-gateway` al servicio `caddy` para alcanzar el host.
+
+### Notas
+- Las variables son **opcionales**: si no se definen, `docker-compose` pasa un `*.localhost` y Caddy
+  sirve ese bloque con un certificado interno (no lo pide a Let's Encrypt), quedando inerte. Así no
+  afecta a despliegues que no usen Webmin/Portainer.
+- Permite entrar por `https://webmin.…` y `https://portainer.…` sin el puerto y **cerrar 10000/9443
+  a internet**. Sin cambios de backend, API, esquema ni código de la aplicación. Documentado en
+  `.env.example`, `caddy/Caddyfile` y `docker-compose.yml`.
+
+---
+
 ## [V-0.21.4] - 2026-06-19
 
 ### Añadido (tabla de contenidos del panel)

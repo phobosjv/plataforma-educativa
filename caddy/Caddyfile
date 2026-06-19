@@ -28,3 +28,31 @@
 	encode zstd gzip
 	reverse_proxy sandbox:80
 }
+
+# --- Paneles de administración del servidor (OPCIONAL) ---
+# Proxy inverso a herramientas que corren FUERA de este stack, para servirlas por HTTPS con
+# un subdominio en lugar de su puerto (y poder cerrar esos puertos a internet). Ambas hablan
+# HTTPS con certificado AUTOFIRMADO en su puerto, por eso se omite la verificación TLS interna:
+# el cifrado de cara a internet lo pone Caddy con su certificado de Let's Encrypt.
+#
+#   WEBMIN_DOMAIN     -> Webmin (en el HOST, puerto 10000)
+#   PORTAINER_DOMAIN  -> Portainer (contenedor que PUBLICA el 9443 en el host)
+#
+# `host.docker.internal` apunta al host (requiere el extra_hosts del docker-compose). Si NO
+# defines el dominio en el .env, docker-compose pasa un valor *.localhost: Caddy lo sirve con
+# un certificado interno (NO lo pide a Let's Encrypt) y el bloque queda inerte, sin uso.
+{$WEBMIN_DOMAIN} {
+	reverse_proxy https://host.docker.internal:10000 {
+		transport http {
+			tls_insecure_skip_verify
+		}
+	}
+}
+
+{$PORTAINER_DOMAIN} {
+	reverse_proxy https://host.docker.internal:9443 {
+		transport http {
+			tls_insecure_skip_verify
+		}
+	}
+}
