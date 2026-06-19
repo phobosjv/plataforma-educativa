@@ -82,6 +82,9 @@ cd portal-educacion && docker compose up -d --build
 Caddy puede servir tus paneles de administración del servidor por subdominio HTTPS (y así puedes
 cerrar sus puertos a internet). Define en el `.env` solo los que uses:
 
+> Plantilla reutilizable (sirve también para otros servidores con este mismo patrón Caddy+Docker,
+> aunque la web sea otro proyecto), con prompt copy-paste incluido: **`docs/proxy-webmin-portainer.md`**.
+
 ```bash
 WEBMIN_DOMAIN=webmin.tudominio.com
 PORTAINER_DOMAIN=portainer.tudominio.com
