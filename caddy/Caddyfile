@@ -31,16 +31,19 @@
 
 # --- Paneles de administración del servidor (OPCIONAL) ---
 # Proxy inverso a herramientas que corren FUERA de este stack, para servirlas por HTTPS con
-# un subdominio en lugar de su puerto (y poder cerrar esos puertos a internet). Ambas hablan
-# HTTPS con certificado AUTOFIRMADO en su puerto, por eso se omite la verificación TLS interna:
-# el cifrado de cara a internet lo pone Caddy con su certificado de Let's Encrypt.
+# un subdominio en lugar de su puerto (y poder cerrar esos puertos a internet). Si NO defines
+# el dominio en el .env, docker-compose pasa un valor *.localhost: Caddy lo sirve con un
+# certificado interno (NO lo pide a Let's Encrypt) y el bloque queda inerte, sin uso.
 #
-#   WEBMIN_DOMAIN     -> Webmin (en el HOST, puerto 10000)
-#   PORTAINER_DOMAIN  -> Portainer (contenedor que PUBLICA el 9443 en el host)
-#
-# `host.docker.internal` apunta al host (requiere el extra_hosts del docker-compose). Si NO
-# defines el dominio en el .env, docker-compose pasa un valor *.localhost: Caddy lo sirve con
-# un certificado interno (NO lo pide a Let's Encrypt) y el bloque queda inerte, sin uso.
+#   WEBMIN_DOMAIN     -> Webmin (proceso del HOST, puerto 10000)
+#   PORTAINER_DOMAIN  -> Portainer (contenedor)
+
+# Webmin corre en el HOST: se alcanza por host.docker.internal:10000 (requiere el extra_hosts
+# del docker-compose). Habla HTTPS con cert autofirmado, por eso se omite la verificación TLS
+# interna (tls_insecure_skip_verify); el cifrado de cara a internet lo pone Caddy con Let's Encrypt.
+# NOTA Webmin (en el HOST, /etc/webmin/, una sola vez): para que no de "Trusted Referrers" ni
+# obligue a recargar, en /etc/webmin/miniserv.conf -> redirect_ssl=1, y en /etc/webmin/config ->
+# referers=<tu webmin.dominio> host.docker.internal ; luego systemctl restart webmin.
 {$WEBMIN_DOMAIN} {
 	reverse_proxy https://host.docker.internal:10000 {
 		transport http {
@@ -49,10 +52,16 @@
 	}
 }
 
+# Portainer corre como CONTENEDOR. NO se usa host.docker.internal:9443 a propósito: por ahí
+# Portainer recibiría un Host interno y su protección CSRF rechazaría las acciones de escritura
+# ("Forbidden - origin invalid"); además el doble TLS lo hace más lento. En su lugar se le habla
+# por la RED INTERNA del stack, por NOMBRE de contenedor y por su puerto HTTP (9000), forzando el
+# Host público con header_up. Requiere conectar UNA vez el contenedor 'portainer' a la red de este
+# stack:  ./connect-portainer.sh  (Portainer es externo al compose y no se puede declarar aquí).
 {$PORTAINER_DOMAIN} {
-	reverse_proxy https://host.docker.internal:9443 {
-		transport http {
-			tls_insecure_skip_verify
-		}
+	reverse_proxy portainer:9000 {
+		header_up Host {host}
+		header_up X-Forwarded-Host {host}
+		header_up X-Forwarded-Proto https
 	}
 }

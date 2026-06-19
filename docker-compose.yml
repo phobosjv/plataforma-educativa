@@ -30,8 +30,9 @@ services:
       - "443:443"
       - "443:443/udp"         # HTTP/3 (cae a TCP si el UDP está bloqueado)
     extra_hosts:
-      # Permite a Caddy alcanzar servicios del HOST (p. ej. Webmin en :10000 o un puerto
-      # publicado por otro contenedor, como Portainer :9443) vía host.docker.internal.
+      # Permite a Caddy alcanzar servicios del HOST (p. ej. Webmin en :10000) vía
+      # host.docker.internal. (Portainer, al ser contenedor, se alcanza por la red interna
+      # del stack — ver caddy/Caddyfile y connect-portainer.sh, no por aquí.)
       - "host.docker.internal:host-gateway"
     depends_on:
       - frontend

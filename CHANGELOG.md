@@ -6,6 +6,32 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.21.6] - 2026-06-19
+
+### Cambiado (despliegue)
+- **Proxy inverso de Portainer reescrito** para que funcione de verdad detrás de Caddy. El bloque
+  `PORTAINER_DOMAIN` ya no apunta a `https://host.docker.internal:9443`, sino a `portainer:9000`
+  (HTTP, por la **red interna** del stack y por nombre de contenedor), forzando el `Host` público
+  con `header_up`. Motivo: por el puerto publicado, Portainer recibía un `Host` interno y su
+  protección CSRF (2.20+) rechazaba las acciones de escritura con `Forbidden - origin invalid`;
+  además el doble TLS lo hacía lento.
+- El bloque de **Webmin** se mantiene vía `host.docker.internal:10000` (es un proceso del host).
+
+### Añadido (despliegue)
+- **`connect-portainer.sh`**: script de post-despliegue que conecta el contenedor `portainer`
+  (externo al stack) a la red de Caddy. Se ejecuta **una vez** tras desplegar; idempotente.
+- **`docs/despliegue.md`**: guía de despliegue con los comandos de **primera instalación en un
+  servidor recién instalado**, actualizaciones sin perder contenido y el alta opcional de
+  Webmin/Portainer por HTTPS (incluye los ajustes de Webmin en `/etc/webmin/`).
+
+### Notas
+- Solo despliegue: sin cambios de backend, API, esquema ni código de la aplicación.
+- Webmin tras el proxy requiere, una vez en el host: `redirect_ssl=1` en
+  `/etc/webmin/miniserv.conf` y `referers=<webmin.dominio> host.docker.internal` en
+  `/etc/webmin/config` (documentado en `docs/despliegue.md` y `caddy/Caddyfile`).
+
+---
+
 ## [V-0.21.5] - 2026-06-19
 
 ### Añadido (despliegue)

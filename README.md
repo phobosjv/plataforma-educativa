@@ -20,6 +20,15 @@ cp .env.example .env        # ajusta los valores
 docker compose up --build   # api:8000 · sandbox:8080 · frontend:5173
 ```
 
+## Despliegue en producción
+Guía completa (primera instalación en servidor recién instalado, actualizaciones sin perder
+contenido, y opcionalmente Webmin/Portainer por HTTPS): **`docs/despliegue.md`**. Resumen:
+```bash
+cp .env.example .env        # dominios reales, ACME_EMAIL, SECRET_KEY, admin inicial
+docker compose up -d --build
+# (opcional) si usas Portainer detrás del proxy, una vez: ./connect-portainer.sh && docker compose restart caddy
+```
+
 ## Estructura
 ```
 backend/app/contexts/<contexto>/{domain,application,infrastructure,api}
