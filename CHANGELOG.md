@@ -6,6 +6,28 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.22.5] - 2026-06-21
+
+### Corregido
+- **El worker de PDF.js ahora se emite como `.js` (fix definitivo del MIME).** El badge de versión
+  confirmó que el frontend SÍ se desplegaba, pero el worker seguía sirviéndose como
+  `application/octet-stream`. Causa real doble: (1) el fichero del worker conserva el mismo nombre
+  entre versiones (su contenido no cambia), así que la respuesta vieja con MIME incorrecto quedaba
+  **cacheada como `immutable`** (1 año) y se seguía sirviendo; (2) depender de que nginx mapee `.mjs`
+  es frágil entre despliegues. Solución: Vite ahora emite el worker con extensión **`.js`** (vía
+  `build.rollupOptions.output.assetFileNames`), que está mapeada por defecto a `application/javascript`
+  en cualquier nginx. Cambiar la extensión cambia la URL → **rompe la caché** envenenada. Ya no
+  depende de configuración especial de nginx.
+
+### Notas
+- Requiere reconstruir el frontend: `docker compose up -d --build`. Tras desplegar, la versión junto
+  al nombre debe ser **v0.22.5** y el worker se pedirá como `…/pdf.worker.min-*.js` (nuevo nombre,
+  sin caché vieja). Recargar con Ctrl+F5.
+- Se mantiene el manejo de `.mjs`/`.wasm` en `nginx/frontend.conf` como red de seguridad, pero ya no
+  es imprescindible para PDF.js.
+
+---
+
 ## [V-0.22.4] - 2026-06-21
 
 ### Añadido

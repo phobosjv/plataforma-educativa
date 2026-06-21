@@ -17,6 +17,23 @@ const allowedHosts =
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        // El worker de PDF.js se importa con `?url` y Vite lo emite como asset .mjs. nginx NO
+        // mapea la extensión .mjs en su mime.types, así que lo servía como application/octet-stream
+        // y el navegador RECHAZA un module script con ese MIME. En vez de depender de la config de
+        // nginx (frágil entre despliegues + caché immutable que envenena el tipo), forzamos que el
+        // asset salga con extensión .js, que SÍ está mapeada por defecto (application/javascript).
+        // Cambiar la extensión cambia además el nombre del fichero -> rompe la caché vieja.
+        assetFileNames: (info) => {
+          const name = info.name ?? "";
+          if (name.endsWith(".mjs")) return "assets/[name]-[hash].js";
+          return "assets/[name]-[hash][extname]";
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     // strictPort: si 5173 está ocupado, fallar en vez de saltar a 5174.
