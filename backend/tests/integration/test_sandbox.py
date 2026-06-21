@@ -82,6 +82,8 @@ def test_sirve_ficha_pdf_inline_por_defecto(tmp_path, monkeypatch) -> None:  # t
     csp = r.headers["content-security-policy"]
     assert "default-src 'none'" in csp and "frame-ancestors" in csp
     assert r.headers["x-content-type-options"] == "nosniff"
+    # CORS: el visor PDF.js (origen de la app) lee el fichero por fetch cross-origin.
+    assert r.headers["access-control-allow-origin"] == "*"
 
 
 def test_ficha_pdf_descarga_attachment_con_nombre_seguro(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]

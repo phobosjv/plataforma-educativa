@@ -48,6 +48,9 @@ server {
         add_header Referrer-Policy "no-referrer" always;
         add_header Cache-Control "public, max-age=31536000, immutable";
         add_header Content-Disposition $pdf_disposition;
+        # El visor PDF.js (origen de la app) lee el fichero por fetch cross-origin. El PDF es
+        # público (sin auth/cookies), así que permitir cualquier origen de lectura es seguro.
+        add_header Access-Control-Allow-Origin "*" always;
         try_files /$h2/$h2$rest.pdf =404;
     }
 

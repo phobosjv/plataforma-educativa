@@ -60,20 +60,37 @@ EJERCICIO_HTML = b"""<!doctype html>
 </html>
 """
 
-# PDF mínimo válido (empieza por %PDF-, una página con un texto). Sirve para el flujo E2E de
-# ficha PDF: el visor lo embebe y el botón de descarga apunta al sandbox.
-FICHA_PDF = (
-    b"%PDF-1.1\n"
-    b"1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
-    b"2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
-    b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 144]"
-    b"/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj\n"
-    b"4 0 obj<</Length 41>>stream\n"
-    b"BT /F1 24 Tf 20 100 Td (Ficha PDF E2E) Tj ET\n"
-    b"endstream endobj\n"
-    b"5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj\n"
-    b"trailer<</Root 1 0 R>>\n%%EOF"
-)
+def _pdf_minimo() -> bytes:
+    """Construye un PDF mínimo VÁLIDO (una página, un texto) con tabla xref correcta.
+
+    Se genera con offsets reales para que PDF.js (el visor del frontend) lo renderice sin recurrir
+    a su modo de recuperación: así el test E2E puede comprobar que aparece el canvas del PDF.
+    """
+    objetos = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 144] /Contents 4 0 R "
+        b"/Resources << /Font << /F1 5 0 R >> >> >>",
+        b"<< /Length 44 >>\nstream\nBT /F1 24 Tf 20 100 Td (Ficha PDF E2E) Tj ET\nendstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    cuerpo = bytearray(b"%PDF-1.4\n")
+    offsets: list[int] = []
+    for i, contenido in enumerate(objetos, start=1):
+        offsets.append(len(cuerpo))
+        cuerpo += f"{i} 0 obj\n".encode() + contenido + b"\nendobj\n"
+    xref_pos = len(cuerpo)
+    total = len(objetos) + 1
+    cuerpo += f"xref\n0 {total}\n".encode()
+    cuerpo += b"0000000000 65535 f \n"
+    for off in offsets:
+        cuerpo += f"{off:010d} 00000 n \n".encode()
+    cuerpo += b"trailer\n" + f"<< /Size {total} /Root 1 0 R >>\n".encode()
+    cuerpo += f"startxref\n{xref_pos}\n%%EOF".encode()
+    return bytes(cuerpo)
+
+
+FICHA_PDF = _pdf_minimo()
 
 
 def main() -> None:

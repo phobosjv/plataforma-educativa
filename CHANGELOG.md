@@ -6,6 +6,29 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.22.1] - 2026-06-21
+
+### Corregido
+- **Compatibilidad del visor de PDF en móviles.** Muchos navegadores móviles (iOS Safari, Android
+  Chrome) no renderizan un PDF embebido dentro de un `<iframe>` y lo dejaban en blanco (aunque la
+  descarga sí funcionaba). Ahora la ficha PDF se renderiza con **PDF.js** dentro de un `<div>`
+  (un `<canvas>` por página), que funciona en prácticamente todos los navegadores, incluidos los
+  móviles. Se mantienen los botones **Maximizar** y **Descargar / Imprimir**.
+
+### Cambiado
+- El servidor sandbox añade `Access-Control-Allow-Origin: *` a las respuestas de `/ficha/*.pdf`
+  para que el visor PDF.js (que corre en el origen de la app) pueda leer el fichero por fetch.
+  El PDF es contenido público (sin auth ni cookies), así que abrir su lectura es seguro.
+- PDF.js se sirve **self-hosted** (bundle de Vite, sin CDN — CLAUDE.md §10), con su build *legacy*
+  (transpilado para navegadores antiguos) y **cargado bajo demanda** (no penaliza el resto de
+  páginas: solo se descarga al abrir una ficha PDF).
+
+### Notas
+- Sin cambios de esquema ni de contrato de la API (la mejora es de frontend + una cabecera CORS en
+  el sandbox). No requiere migración.
+
+---
+
 ## [V-0.22.0] - 2026-06-21
 
 ### Añadido

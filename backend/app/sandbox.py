@@ -100,5 +100,12 @@ def servir_ficha_pdf(file_hash: str, descargar: int = 0, nombre: str | None = No
         disposition = f'attachment; filename="{_nombre_descarga_seguro(nombre)}"'
     else:
         disposition = "inline"
-    headers = {**_SECURITY_HEADERS, "Content-Disposition": disposition}
+    headers = {
+        **_SECURITY_HEADERS,
+        "Content-Disposition": disposition,
+        # El visor PDF.js corre en el origen de la app y lee el fichero por fetch cross-origin.
+        # El PDF es contenido público (sin auth ni cookies), así que permitir cualquier origen de
+        # lectura es seguro y evita tener que sincronizar la lista de orígenes de la app.
+        "Access-Control-Allow-Origin": "*",
+    }
     return Response(content=ruta.read_bytes(), media_type="application/pdf", headers=headers)

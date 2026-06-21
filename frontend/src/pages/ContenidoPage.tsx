@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import DOMPurify from "dompurify";
@@ -6,6 +6,12 @@ import { api } from "../shared/api/client";
 import { useConfig } from "../app/config/useConfig";
 import { detectarRed, iconoRedSVG } from "../app/config/redesSociales";
 import type { components } from "../shared/api/schema";
+
+// PDF.js es pesado y solo hace falta en las fichas PDF: se carga bajo demanda (no penaliza el
+// catálogo ni el resto de páginas).
+const PdfViewer = lazy(() =>
+  import("../features/content/PdfViewer").then((m) => ({ default: m.PdfViewer })),
+);
 
 type Contenido = components["schemas"]["ContenidoResponse"];
 type Ciclo = components["schemas"]["CicloResponse"];
@@ -213,12 +219,11 @@ export function ContenidoPage() {
                 </button>
               </div>
             )}
-            <iframe
-              className="cms-exercise-frame"
-              src={data.pdf_url}
-              title={data.titulo}
-              loading="lazy"
-            />
+            <Suspense
+              fallback={<div className="cms-spinner" role="status" aria-label="Cargando el visor" />}
+            >
+              <PdfViewer url={data.pdf_url} titulo={data.titulo} />
+            </Suspense>
             {!maximizado && (
               <div className="cms-pdf-actions">
                 {data.pdf_descarga_url && (

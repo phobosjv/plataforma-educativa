@@ -316,6 +316,29 @@ body::before {
   margin-top: .75rem;
 }
 
+/* Visor de PDF con PDF.js (canvas por página). Se usa en lugar del iframe nativo porque muchos
+   navegadores móviles no renderizan un PDF embebido en un iframe. */
+.cms-pdf-viewer {
+  position: relative;
+  width: 100%; height: 75vh;
+  overflow: auto;
+  background: var(--cms-color-bg);
+  border: 1px solid var(--cms-color-border);
+  border-radius: var(--cms-radius);
+}
+.cms-exercise-wrap--max .cms-pdf-viewer {
+  flex: 1; height: auto; border: 0; border-radius: 0;
+}
+.cms-pdf-pages {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .75rem; padding: .75rem;
+  max-width: 900px; margin: 0 auto;
+}
+.cms-pdf-page {
+  width: 100%; height: auto;
+  background: #fff; box-shadow: var(--cms-shadow);
+}
+
 /* Modo maximizado: ocupa casi toda la pantalla con una barra superior fina. */
 .cms-exercise-wrap--max {
   position: fixed; inset: 0; z-index: 1000;

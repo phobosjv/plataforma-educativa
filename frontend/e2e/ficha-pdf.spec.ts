@@ -9,20 +9,16 @@ async function abrirFichaPdf(page: Page): Promise<{ id: string; pdf_url: string 
   return ficha!;
 }
 
-// Ficha PDF (V-0.22.0): el visor embebido apunta al origen sandbox, hay botón de descarga
-// y se puede maximizar igual que un ejercicio.
-test("la ficha PDF se ve embebida, se descarga y se maximiza", async ({ page }) => {
-  const ficha = await abrirFichaPdf(page);
+// Ficha PDF (V-0.22.x): el PDF se renderiza con PDF.js dentro de un <div>/canvas (compatible con
+// móviles donde el iframe nativo no carga), hay botón de descarga y se puede maximizar.
+test("la ficha PDF se renderiza con PDF.js, se descarga y se maximiza", async ({ page }) => {
+  await abrirFichaPdf(page);
 
   await expect(page.getByRole("heading", { name: "Ficha PDF E2E" })).toBeVisible();
 
-  // El iframe del visor apunta al sandbox /ficha/<hash>.pdf (origen aislado).
-  const iframe = page.locator("iframe.cms-exercise-frame");
-  await expect(iframe).toBeVisible();
-  const src = await iframe.getAttribute("src");
-  expect(src).toContain("/ficha/");
-  expect(src).toContain(".pdf");
-  expect(src).toBe(ficha.pdf_url);
+  // El visor PDF.js pinta cada página en un <canvas> dentro del contenedor (no es un iframe).
+  await expect(page.locator(".cms-pdf-viewer")).toBeVisible();
+  await expect(page.locator("canvas.cms-pdf-page").first()).toBeVisible({ timeout: 15000 });
 
   // Botón de descarga (fuerza attachment vía ?descargar=1 en el sandbox).
   const descarga = page.getByRole("link", { name: /Descargar/ });
