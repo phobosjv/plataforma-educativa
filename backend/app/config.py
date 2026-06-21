@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     # Origen aislado desde el que se sirven los HTML de ejercicios interactivos (§10).
     # En dev lo sirve `app.sandbox:sandbox_app` en :8002; en prod, `sandbox.<dominio>`.
     sandbox_base_url: str = "http://localhost:8002"
+    # URL base para las fichas PDF. En dev se deja vacío ("") para que la url sea relativa
+    # (/ficha/<hash>.pdf) y Vite la proxee al backend sin necesitar el servidor sandbox.
+    # En prod docker-compose la sobreescribe con https://<sandbox_domain>.
+    pdf_base_url: str = ""
     # Orígenes de la app autorizados a embeber el iframe del sandbox (CSP frame-ancestors).
     app_origins: str = "http://localhost:5173"
     default_admin_email: str = "admin@plataforma.local"

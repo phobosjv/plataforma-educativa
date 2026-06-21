@@ -48,7 +48,8 @@ export function PdfViewer({ url, titulo }: { url: string; titulo: string }) {
           await page.render({ canvasContext: ctx, viewport }).promise;
         }
         if (!cancelado) setEstado("ok");
-      } catch {
+      } catch (err) {
+        console.error("[PdfViewer] Error al cargar el PDF:", err, "url:", url);
         if (!cancelado) setEstado("error");
       }
     })();

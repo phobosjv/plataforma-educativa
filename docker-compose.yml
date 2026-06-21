@@ -47,6 +47,7 @@ services:
       - PYTHONPATH=/app
       # Derivados de los dominios (sobre-escriben lo que hubiera en .env):
       - SANDBOX_BASE_URL=https://${SANDBOX_DOMAIN}
+      - PDF_BASE_URL=https://${SANDBOX_DOMAIN}
       - APP_ORIGINS=https://${APP_DOMAIN}
       - CORS_ALLOW_ORIGINS=https://${APP_DOMAIN}
     volumes:

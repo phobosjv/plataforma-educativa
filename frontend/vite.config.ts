@@ -36,6 +36,12 @@ export default defineConfig({
         target: API_TARGET,
         changeOrigin: true,
       },
+      // Fichas PDF: en dev el backend las sirve directamente (sin sandbox separado).
+      // En prod, pdf_base_url apunta al subdominio sandbox; este proxy no interviene.
+      "/ficha": {
+        target: API_TARGET,
+        changeOrigin: true,
+      },
     },
   },
 });

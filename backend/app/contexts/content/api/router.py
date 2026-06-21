@@ -101,7 +101,8 @@ def _dto_to_response(dto: ContenidoDTO) -> ContenidoResponse:
     pdf_url: str | None = None
     pdf_descarga_url: str | None = None
     if dto.tipo == "pdf" and dto.hash_pdf:
-        pdf_url = f"{settings.sandbox_base_url}/ficha/{dto.hash_pdf}.pdf"
+        pdf_base = settings.pdf_base_url  # "" en dev → URL relativa; dominio sandbox en prod
+        pdf_url = f"{pdf_base}/ficha/{dto.hash_pdf}.pdf"
         nombre = quote(_slug_descarga(dto.titulo))
         pdf_descarga_url = f"{pdf_url}?descargar=1&nombre={nombre}"
     return ContenidoResponse(

@@ -6,6 +6,36 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.22.2] - 2026-06-21
+
+### Corregido
+- **Visor PDF no cargaba en dev ni desde móvil en red local.** La `pdf_url` apuntaba a
+  `http://localhost:8002` (el servidor sandbox), que en dev no suele estar arrancado y que desde
+  un móvil en LAN no es accesible (el móvil resuelve `localhost` como él mismo, no el PC de
+  desarrollo).
+- La nueva configuración `pdf_base_url` (vacía por defecto) hace que la URL del PDF sea relativa
+  (`/ficha/<hash>.pdf`). Vite la proxea al backend principal, que ahora expone el endpoint
+  `GET /ficha/{hash}.pdf` para servir la ficha sin necesitar el servidor sandbox separado.
+
+### Añadido
+- Endpoint `GET /ficha/{file_hash}.pdf` en la app principal (`app.main`): sirve fichas PDF desde
+  el directorio `media/`, con `Content-Disposition`, `Cache-Control` y `Access-Control-Allow-Origin: *`.
+  En producción (`pdf_base_url = https://sandbox.<dominio>`) este endpoint nunca se llama porque
+  la URL ya es absoluta y el sandbox nginx la sirve directamente.
+- Proxy Vite `/ficha → backend` en `vite.config.ts`: en dev las peticiones del visor PDF.js a
+  `/ficha/` se enrutan al backend sin necesitar un servidor sandbox separado.
+- Nueva variable de entorno `PDF_BASE_URL` (docker-compose la fija a `https://${SANDBOX_DOMAIN}`
+  en producción; en dev se deja vacía).
+- Logging de error en `PdfViewer.tsx`: `console.error` con el mensaje y la URL para facilitar
+  la depuración futura.
+
+### Notas
+- Sin cambios de esquema ni de migración. Solo backend (un nuevo endpoint) + frontend (Vite proxy).
+- Para actualizar en producción no hace falta reconstruir el frontend (el proxy Vite es solo para
+  dev). Basta con reiniciar el contenedor `api` para que lea `PDF_BASE_URL` del compose.
+
+---
+
 ## [V-0.22.1] - 2026-06-21
 
 ### Corregido

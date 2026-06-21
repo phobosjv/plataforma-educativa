@@ -5,12 +5,14 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from starlette.staticfiles import StaticFiles
 
 import app.bootstrap  # noqa: F401 — registra modelos ORM con Base.metadata
@@ -87,6 +89,40 @@ class _NoSniffStaticFiles(StaticFiles):
         resp = super().file_response(*args, **kwargs)  # type: ignore[arg-type]
         resp.headers["X-Content-Type-Options"] = "nosniff"
         return resp
+
+
+_HASH_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+@app.get("/ficha/{file_hash}.pdf")
+def servir_ficha_pdf_dev(
+    file_hash: str, descargar: int = 0, nombre: str | None = None
+) -> Response:
+    """Sirve una ficha PDF desde el origen de la app.
+
+    En dev: Vite proxea /ficha/ aquí, evitando la necesidad del servidor sandbox en :8002.
+    En prod: pdf_base_url apunta al subdominio sandbox (nginx), este endpoint no se llega a usar.
+    """
+    if not _HASH_RE.match(file_hash):
+        raise HTTPException(status_code=400, detail="Hash inválido.")
+    ruta = Path(settings.media_dir) / file_hash[:2] / f"{file_hash}.pdf"
+    if not ruta.is_file():
+        raise HTTPException(status_code=404, detail="Ficha no encontrada.")
+    if descargar:
+        safe = "".join(c for c in (nombre or "") if c.isalnum() or c in " -_.").strip()
+        safe_name = (safe[:100] or "ficha") + ".pdf"
+        disposition = f'attachment; filename="{safe_name}"'
+    else:
+        disposition = "inline"
+    return Response(
+        content=ruta.read_bytes(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": disposition,
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
 
 
 # Imágenes de artículos: servidas desde el origen de la app (contenido seguro).
