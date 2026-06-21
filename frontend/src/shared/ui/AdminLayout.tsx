@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/auth/AuthContext";
 import { useConfig } from "../../app/config/useConfig";
+import { APP_VERSION } from "../../version";
 
 export function AdminLayout() {
   const { user, logout } = useAuth();
@@ -20,6 +21,9 @@ export function AdminLayout() {
             <img src={logo_url} alt="" className="cms-nav-logo" aria-hidden />
           )}
           {nombre_sitio}
+          <span className="cms-version" title="Versión de la aplicación">
+            v{APP_VERSION}
+          </span>
         </div>
         <NavLink
           to="/admin"

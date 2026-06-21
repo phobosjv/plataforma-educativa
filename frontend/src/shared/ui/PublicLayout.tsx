@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../app/auth/AuthContext";
 import { useConfig } from "../../app/config/useConfig";
 import { IconoRed, defRed } from "../../app/config/redesSociales";
+import { APP_VERSION } from "../../version";
 
 export function PublicLayout() {
   const { user } = useAuth();
@@ -30,6 +31,9 @@ export function PublicLayout() {
             <img src={logo_url} alt="" className="cms-nav-logo" aria-hidden />
           )}
           {nombre_sitio}
+          <span className="cms-version" title="Versión de la aplicación">
+            v{APP_VERSION}
+          </span>
         </NavLink>
         <span className="cms-nav-spacer" />
         <NavLink

@@ -213,6 +213,11 @@ Seguir semver estricto (`V-MAJOR.MINOR.PATCH`):
 
 La versión actual se lee de `CHANGELOG.md` (última entrada) o se inicializa en `V-0.0.1`.
 
+Al asignar versión, actualizar **AMBAS** fuentes de verdad de la versión (deben coincidir):
+- `backend/app/version.py` (`__version__`) — la expone FastAPI.
+- `frontend/src/version.ts` (`APP_VERSION`) — se hornea en el bundle y se muestra junto al nombre
+  del sitio (cabecera/barra lateral), para verificar de un vistazo qué build está desplegado.
+
 ### 19.2 Actualizar CHANGELOG.md
 
 Fichero en la raíz del proyecto. Formato:

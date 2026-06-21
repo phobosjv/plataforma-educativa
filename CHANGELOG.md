@@ -6,6 +6,34 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.22.4] - 2026-06-21
+
+### Añadido
+- **Versión de la app visible junto al nombre del sitio.** En la cabecera pública y en la barra
+  lateral de administración, al lado del nombre ("Aprende y Juega"), se muestra la versión actual
+  en pequeño y atenuada (p. ej. `v0.22.4`). La versión se **hornea en el bundle del frontend en
+  build-time** (`frontend/src/version.ts`), así que sirve para verificar de un vistazo qué build
+  está realmente desplegado: si tras un despliegue NO aparece el número nuevo, la imagen del
+  frontend no se reconstruyó.
+
+### Corregido
+- **El worker de PDF.js seguía sin cargar en producción.** El arreglo de MIME de V-0.22.3 estaba
+  bien, pero un `docker compose up -d` a secas **no recrea** el contenedor del frontend si la imagen
+  no cambió, de modo que nginx seguía con la config vieja en memoria y los assets horneados (el
+  worker `.mjs`) eran los antiguos. Ahora el badge de versión deja claro cuándo el frontend se ha
+  reconstruido de verdad. **El despliegue correcto es `docker compose up -d --build`** (reconstruye
+  la imagen, recrea el contenedor y recarga la config nginx).
+- Endurecido el manejo de tipos en `nginx/frontend.conf`: `.mjs` se sirve como `text/javascript` y
+  se añade `.wasm` como `application/wasm` (ambos con `try_files`), por si PDF.js carga WebAssembly.
+
+### Notas
+- Cambio de frontend (badge + assets) → requiere **reconstruir** la imagen del frontend:
+  `docker compose up -d --build`. La nueva config nginx se recoge en la misma operación.
+- `backend/app/version.py` y `frontend/src/version.ts` son las dos fuentes de verdad de la versión;
+  se mantienen sincronizadas en cada release (CLAUDE.md §19).
+
+---
+
 ## [V-0.22.3] - 2026-06-21
 
 ### Corregido

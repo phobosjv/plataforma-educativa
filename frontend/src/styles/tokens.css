@@ -64,6 +64,13 @@ body::before {
 .cms-nav-brand { font-weight: 700; font-size: 1.1rem; color: var(--cms-color-primary); text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; }
 /* Logo del sitio junto al nombre, en cabecera pública y barra lateral admin. */
 .cms-nav-logo { height: 2rem; width: auto; max-width: 8rem; object-fit: contain; display: block; }
+/* Versión de la app, pequeña y atenuada, junto al nombre del sitio (cabecera y barra lateral).
+   Permite verificar de un vistazo qué build está desplegado. No es un enlace. */
+.cms-version {
+  font-weight: 500; font-size: .65rem; line-height: 1;
+  color: var(--cms-color-fg); opacity: .45;
+  letter-spacing: .02em; align-self: center; white-space: nowrap;
+}
 .cms-nav-spacer { flex: 1; }
 .cms-nav-link { color: var(--cms-color-fg); text-decoration: none; font-size: .9rem; padding: .4rem .6rem; border-radius: var(--cms-radius-sm); }
 .cms-nav-link:hover { background: var(--cms-color-bg); }
