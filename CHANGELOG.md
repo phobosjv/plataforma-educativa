@@ -6,6 +6,23 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.22.3] - 2026-06-21
+
+### Corregido
+- **El worker de PDF.js no cargaba en producción (MIME type incorrecto).** El nginx del frontend
+  servía `assets/pdf.worker.min-*.mjs` como `application/octet-stream` porque su `mime.types` no
+  mapea la extensión `.mjs`. Los navegadores rechazan un *module script* con ese MIME (comprobación
+  estricta de tipo), así que PDF.js no podía arrancar su worker y la ficha PDF quedaba en blanco con
+  el mensaje "No se ha podido mostrar el PDF aquí". Ahora `nginx/frontend.conf` sirve los `.mjs` como
+  `text/javascript`.
+
+### Notas
+- Solo afecta a producción (Docker). En desarrollo, Vite ya sirve los `.mjs` con el MIME correcto.
+- `nginx/frontend.conf` se monta como volumen, así que **no hace falta reconstruir** la imagen: basta
+  con `docker compose up -d` (o reiniciar el contenedor `frontend`) para que recoja la nueva config.
+
+---
+
 ## [V-0.22.2] - 2026-06-21
 
 ### Corregido
