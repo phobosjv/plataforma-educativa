@@ -16,6 +16,7 @@ from app.contexts.content.application.commands import (
     RestaurarContenidoCommand,
     RestaurarVersionCommand,
     SubirHtmlContenidoCommand,
+    SubirPdfContenidoCommand,
 )
 from app.contexts.content.application.dtos import (
     ContenidoDTO,
@@ -35,6 +36,7 @@ from app.contexts.content.domain.ports import (
     ContentVersionRepository,
     HtmlSanitizer,
     HtmlStorage,
+    PdfStorage,
 )
 from app.shared.domain.base import DomainError, NotFoundError, now
 from app.shared.infrastructure.unit_of_work import UnitOfWork
@@ -55,6 +57,7 @@ def _make_version(contenido: Contenido, version_no: int, created_by: UUID) -> Co
         created_by=created_by,
         body_html=contenido.body_html,
         hash_html=contenido.hash_html,
+        hash_pdf=contenido.hash_pdf,
     )
 
 
@@ -182,6 +185,42 @@ class SubirHtmlContenidoHandler:
         return contenido_to_dto(contenido)
 
 
+class SubirPdfContenidoHandler:
+    """Sube el fichero PDF de una ficha y lo asocia por hash.
+
+    El PDF es binario: NO se sanea (CLAUDE.md §10); se sirve aislado desde el origen sandbox.
+    Cada subida crea una versión nueva, igual que el HTML de los ejercicios interactivos.
+    """
+
+    def __init__(
+        self,
+        repo: ContenidoRepository,
+        version_repo: ContentVersionRepository,
+        uow: UnitOfWork,
+        storage: PdfStorage,
+    ) -> None:
+        self._repo = repo
+        self._version_repo = version_repo
+        self._uow = uow
+        self._storage = storage
+
+    def handle(self, cmd: SubirPdfContenidoCommand) -> ContenidoDTO:
+        contenido = self._repo.get(cmd.contenido_id)
+        if contenido is None or contenido.borrado:
+            raise NotFoundError(f"Contenido {cmd.contenido_id} no encontrado.")
+
+        file_hash = self._storage.save(cmd.raw_pdf)  # content-addressed, sin sanear
+        contenido.adjuntar_pdf(file_hash)
+        contenido.updated_at = now()
+
+        versiones = self._version_repo.list_for_contenido(cmd.contenido_id)
+        version = _make_version(contenido, version_no=len(versiones) + 1, created_by=cmd.editor_id)
+        self._repo.save(contenido)
+        self._version_repo.add(version)
+        self._uow.commit()
+        return contenido_to_dto(contenido)
+
+
 class PublicarContenidoHandler:
     def __init__(self, repo: ContenidoRepository, uow: UnitOfWork) -> None:
         self._repo = repo
@@ -290,6 +329,7 @@ class RestaurarVersionHandler:
         contenido.etiquetas = list(snap.get("etiquetas", contenido.etiquetas))
         contenido.body_html = objetivo.body_html
         contenido.hash_html = objetivo.hash_html
+        contenido.hash_pdf = objetivo.hash_pdf
         contenido.updated_at = now()
 
         version = _make_version(

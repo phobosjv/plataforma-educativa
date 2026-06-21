@@ -26,9 +26,11 @@ export function ContenidoFormPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [error, setError] = useState<string | null>(null);
-  // Tipo preseleccionado al crear (?tipo=interactivo desde el botón de la lista).
+  // Tipo preseleccionado al crear (?tipo=interactivo|pdf desde el botón de la lista).
   const [searchParams] = useSearchParams();
-  const tipoInicial = searchParams.get("tipo") === "interactivo" ? "interactivo" : "texto";
+  const tipoParam = searchParams.get("tipo");
+  const tipoInicial =
+    tipoParam === "interactivo" ? "interactivo" : tipoParam === "pdf" ? "pdf" : "texto";
 
   // En edición, cargar el contenido para precargar el formulario.
   const { data: existente, isLoading } = useQuery<Contenido>({
@@ -86,8 +88,8 @@ export function ContenidoFormPage() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["admin-contenidos"] });
       qc.invalidateQueries({ queryKey: ["contenido", id] });
-      // Un interactivo recién creado aún no tiene HTML: ir a su edición para subirlo.
-      if (modo === "crear" && data.tipo === "interactivo") {
+      // Un interactivo/PDF recién creado aún no tiene fichero: ir a su edición para subirlo.
+      if (modo === "crear" && (data.tipo === "interactivo" || data.tipo === "pdf")) {
         navigate(`/admin/contenidos/${data.id}/editar`, { replace: true });
         return;
       }
@@ -103,6 +105,30 @@ export function ContenidoFormPage() {
       fd.append("fichero", file);
       const token = localStorage.getItem("auth_token");
       const r = await fetch(`/api/v1/contenidos/${id}/html`, {
+        method: "POST",
+        body: fd,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!r.ok) {
+        const cuerpo = await r.json().catch(() => null);
+        throw new Error(mensajeError(cuerpo));
+      }
+      return (await r.json()) as Contenido;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-contenidos"] });
+      qc.invalidateQueries({ queryKey: ["contenido", id] });
+    },
+    onError: (e: unknown) => setError(e instanceof Error ? e.message : "Error inesperado."),
+  });
+
+  // Subida del fichero PDF de una ficha (multipart; se sirve aislado desde el sandbox, §10).
+  const subirPdf = useMutation({
+    mutationFn: async (file: File) => {
+      const fd = new FormData();
+      fd.append("fichero", file);
+      const token = localStorage.getItem("auth_token");
+      const r = await fetch(`/api/v1/contenidos/${id}/pdf`, {
         method: "POST",
         body: fd,
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -156,14 +182,19 @@ export function ContenidoFormPage() {
     return <div className="cms-spinner" role="status" aria-label="Cargando" />;
 
   const esInteractivo = existente?.tipo === "interactivo";
+  const esPdf = existente?.tipo === "pdf";
   const titulo =
     modo === "crear"
       ? tipoInicial === "interactivo"
         ? "Nuevo ejercicio interactivo"
-        : "Nuevo artículo"
+        : tipoInicial === "pdf"
+          ? "Nueva ficha PDF"
+          : "Nuevo artículo"
       : esInteractivo
         ? "Editar ejercicio interactivo"
-        : "Editar artículo";
+        : esPdf
+          ? "Editar ficha PDF"
+          : "Editar artículo";
 
   return (
     <>
@@ -185,7 +216,7 @@ export function ContenidoFormPage() {
             ? {
                 titulo: existente.titulo,
                 descripcion: existente.descripcion,
-                tipo: existente.tipo as "texto" | "interactivo",
+                tipo: existente.tipo as "texto" | "interactivo" | "pdf",
                 etiquetas: existente.etiquetas,
                 body_html: existente.body_html ?? "",
                 ciclo_id: existente.ciclo_id ?? null,
@@ -235,6 +266,47 @@ export function ContenidoFormPage() {
             }}
           />
           {subirHtml.isPending && (
+            <p className="cms-muted" style={{ marginTop: ".5rem" }}>Subiendo…</p>
+          )}
+        </section>
+      )}
+
+      {modo === "editar" && esPdf && (
+        <section className="cms-card" style={{ marginTop: "2rem" }}>
+          <h2 className="cms-h2">Fichero PDF de la ficha</h2>
+          <p className="cms-muted">
+            Sube el documento PDF. Se sirve aislado desde un origen distinto y se podrá ver
+            embebido y descargar para imprimir. <strong>No se modifica</strong>: súbelo solo desde
+            fuentes de confianza.
+          </p>
+          {existente?.hash_pdf ? (
+            <p className="cms-text" style={{ margin: ".5rem 0" }}>
+              Fichero actual: <code>{existente.hash_pdf.slice(0, 12)}…</code>
+              {existente.pdf_url && (
+                <>
+                  {" — "}
+                  <a href={existente.pdf_url} target="_blank" rel="noreferrer">
+                    Previsualizar
+                  </a>
+                </>
+              )}
+            </p>
+          ) : (
+            <p className="cms-muted" style={{ margin: ".5rem 0" }}>
+              Todavía no hay ningún fichero subido.
+            </p>
+          )}
+          <input
+            type="file"
+            accept=".pdf,application/pdf"
+            disabled={subirPdf.isPending}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) { setError(null); subirPdf.mutate(file); }
+              e.target.value = "";
+            }}
+          />
+          {subirPdf.isPending && (
             <p className="cms-muted" style={{ marginTop: ".5rem" }}>Subiendo…</p>
           )}
         </section>

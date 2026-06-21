@@ -17,7 +17,7 @@ import re
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 
 from app.config import settings
 
@@ -69,3 +69,36 @@ def servir_ejercicio(file_hash: str) -> HTMLResponse:
     if not ruta.is_file():
         raise HTTPException(status_code=404, detail="Ejercicio no encontrado.")
     return HTMLResponse(content=ruta.read_bytes(), headers=_SECURITY_HEADERS)
+
+
+def _nombre_descarga_seguro(nombre: str | None) -> str:
+    """Filtra el nombre de descarga para que sea seguro en Content-Disposition.
+
+    Solo letras/dígitos/espacio/guion/guion bajo/punto; el resto se descarta (evita inyección
+    de cabecera). Si queda vacío, usa "ficha.pdf".
+    """
+    if not nombre:
+        return "ficha.pdf"
+    limpio = "".join(c for c in nombre if c.isalnum() or c in " -_.").strip()
+    return limpio[:100] or "ficha.pdf"
+
+
+@sandbox_app.get("/ficha/{file_hash}.pdf")
+def servir_ficha_pdf(file_hash: str, descargar: int = 0, nombre: str | None = None) -> Response:
+    """Sirve una ficha PDF content-addressed desde el origen sandbox.
+
+    Por defecto se muestra embebida (``inline``) para el visor del navegador en la ficha pública.
+    Con ``?descargar=1`` se fuerza la descarga (``attachment``) con un nombre amigable, para que
+    familias y alumnado puedan imprimir la ficha y escribir sobre el papel.
+    """
+    if not _HASH_RE.match(file_hash):
+        raise HTTPException(status_code=400, detail="Hash de ficha inválido.")
+    ruta = Path(settings.media_dir) / file_hash[:2] / f"{file_hash}.pdf"
+    if not ruta.is_file():
+        raise HTTPException(status_code=404, detail="Ficha no encontrada.")
+    if descargar:
+        disposition = f'attachment; filename="{_nombre_descarga_seguro(nombre)}"'
+    else:
+        disposition = "inline"
+    headers = {**_SECURITY_HEADERS, "Content-Disposition": disposition}
+    return Response(content=ruta.read_bytes(), media_type="application/pdf", headers=headers)

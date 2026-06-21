@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from urllib.parse import quote
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -23,6 +24,7 @@ from app.contexts.content.application.commands import (
     RestaurarContenidoCommand,
     RestaurarVersionCommand,
     SubirHtmlContenidoCommand,
+    SubirPdfContenidoCommand,
 )
 from app.contexts.content.application.dtos import ContenidoDTO
 from app.contexts.content.application.handlers import (
@@ -38,6 +40,7 @@ from app.contexts.content.application.handlers import (
     RestaurarContenidoHandler,
     RestaurarVersionHandler,
     SubirHtmlContenidoHandler,
+    SubirPdfContenidoHandler,
 )
 from app.contexts.content.application.queries import (
     BuscarContenidosQuery,
@@ -47,6 +50,7 @@ from app.contexts.content.application.queries import (
 )
 from app.contexts.content.infrastructure.html_sanitizer import Nh3HtmlSanitizer
 from app.contexts.content.infrastructure.html_storage import FileSystemHtmlStorage
+from app.contexts.content.infrastructure.pdf_storage import FileSystemPdfStorage
 from app.contexts.content.infrastructure.repositories import (
     SqlAlchemyContenidoRepository,
     SqlAlchemyContentVersionRepository,
@@ -65,6 +69,10 @@ router = APIRouter(tags=["content"])
 
 # Tamaño máximo del HTML de un ejercicio interactivo (defensa contra subidas abusivas).
 MAX_HTML_BYTES = 2 * 1024 * 1024
+# Tamaño máximo de una ficha PDF. Mayor que el HTML: un PDF con imágenes pesa más.
+MAX_PDF_BYTES = 20 * 1024 * 1024
+# Firma de un fichero PDF: todo PDF empieza por "%PDF-" (rechaza ficheros que no lo son).
+_PDF_MAGIC = b"%PDF-"
 
 
 def _auditar(
@@ -76,10 +84,26 @@ def _auditar(
     )
 
 
+def _slug_descarga(titulo: str) -> str:
+    """Nombre de fichero seguro (ASCII) para la descarga del PDF, derivado del título.
+
+    Solo letras/dígitos/espacio/guion/guion bajo; el resto se descarta. Evita inyección en la
+    cabecera Content-Disposition que pone el sandbox y da un nombre amigable ("Ficha de letras.pdf").
+    """
+    limpio = "".join(c for c in titulo if c.isalnum() or c in " -_").strip()
+    return (limpio[:80] or "ficha") + ".pdf"
+
+
 def _dto_to_response(dto: ContenidoDTO) -> ContenidoResponse:
     sandbox_url: str | None = None
     if dto.tipo == "interactivo" and dto.hash_html:
         sandbox_url = f"{settings.sandbox_base_url}/ejercicio/{dto.hash_html}"
+    pdf_url: str | None = None
+    pdf_descarga_url: str | None = None
+    if dto.tipo == "pdf" and dto.hash_pdf:
+        pdf_url = f"{settings.sandbox_base_url}/ficha/{dto.hash_pdf}.pdf"
+        nombre = quote(_slug_descarga(dto.titulo))
+        pdf_descarga_url = f"{pdf_url}?descargar=1&nombre={nombre}"
     return ContenidoResponse(
         id=dto.id,
         titulo=dto.titulo,
@@ -95,8 +119,11 @@ def _dto_to_response(dto: ContenidoDTO) -> ContenidoResponse:
         curso_id=dto.curso_id,
         asignatura_id=dto.asignatura_id,
         hash_html=dto.hash_html,
+        hash_pdf=dto.hash_pdf,
         body_html=dto.body_html,
         sandbox_url=sandbox_url,
+        pdf_url=pdf_url,
+        pdf_descarga_url=pdf_descarga_url,
         created_at=dto.created_at,
         updated_at=dto.updated_at,
     )
@@ -244,6 +271,43 @@ def subir_html_interactivo(
     except DomainError as e:
         raise HTTPException(status_code=400, detail=str(e))
     _auditar(db, current, "subir_html", str(contenido_id), dto.titulo)
+    return _dto_to_response(dto)
+
+
+@router.post("/contenidos/{contenido_id}/pdf", response_model=ContenidoResponse)
+def subir_pdf(
+    contenido_id: UUID,
+    fichero: UploadFile = File(...),
+    current: UsuarioDTO = Depends(require_editor_or_admin),
+    db: Session = Depends(get_db),
+) -> ContenidoResponse:
+    """Sube el fichero PDF de una ficha (NO se sanea; se sirve aislado, §10)."""
+    raw_pdf = fichero.file.read()
+    if not raw_pdf:
+        raise HTTPException(status_code=400, detail="El fichero PDF está vacío.")
+    if len(raw_pdf) > MAX_PDF_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"El fichero supera el máximo de {MAX_PDF_BYTES // (1024 * 1024)} MB.",
+        )
+    if not raw_pdf.startswith(_PDF_MAGIC):
+        raise HTTPException(status_code=400, detail="El fichero no es un PDF válido.")
+    repo = SqlAlchemyContenidoRepository(db)
+    version_repo = SqlAlchemyContentVersionRepository(db)
+    uow = UnitOfWork(db)
+    storage = FileSystemPdfStorage(settings.media_dir)
+    handler = SubirPdfContenidoHandler(repo, version_repo, uow, storage)
+    try:
+        dto = handler.handle(
+            SubirPdfContenidoCommand(
+                contenido_id=contenido_id, editor_id=current.id, raw_pdf=raw_pdf
+            )
+        )
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except DomainError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    _auditar(db, current, "subir_pdf", str(contenido_id), dto.titulo)
     return _dto_to_response(dto)
 
 

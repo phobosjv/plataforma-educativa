@@ -33,23 +33,27 @@ export function ContenidoPage() {
   });
 
   const esInteractivo = data?.tipo === "interactivo";
+  const esPdf = data?.tipo === "pdf";
+  // Tanto el ejercicio como la ficha PDF se ven embebidos y pueden maximizarse: ambos usan la
+  // barra superior con el "path" de taxonomía, así que cargan los catálogos.
+  const conVisor = esInteractivo || esPdf;
 
-  // Taxonomías para construir el "path" del ejercicio (ciclo / curso / asignatura).
+  // Taxonomías para construir el "path" del contenido embebido (ciclo / curso / asignatura).
   // Comparten queryKey con el catálogo, así que se sirven de la caché de React Query.
   const ciclosQ = useQuery<Ciclo[]>({
     queryKey: ["ciclos"],
     queryFn: () => api.GET("/api/v1/taxonomy/ciclos/").then(({ data }) => data ?? []),
-    enabled: esInteractivo,
+    enabled: conVisor,
   });
   const cursosQ = useQuery<Curso[]>({
     queryKey: ["cursos"],
     queryFn: () => api.GET("/api/v1/taxonomy/cursos/").then(({ data }) => data ?? []),
-    enabled: esInteractivo,
+    enabled: conVisor,
   });
   const asigQ = useQuery<Asignatura[]>({
     queryKey: ["asignaturas"],
     queryFn: () => api.GET("/api/v1/taxonomy/asignaturas/").then(({ data }) => data ?? []),
-    enabled: esInteractivo,
+    enabled: conVisor,
   });
 
   // Registra una visita anónima al abrir la ficha del contenido (una por carga). Es
@@ -165,6 +169,80 @@ export function ContenidoPage() {
           </div>
         ) : (
           <p className="cms-empty">Este ejercicio todavía no tiene fichero.</p>
+        )
+      ) : data.tipo === "pdf" ? (
+        data.pdf_url ? (
+          // La ficha PDF se ve embebida (visor del navegador) y puede maximizarse, igual que el
+          // ejercicio. Se sirve desde el origen sandbox (aislada). Además se puede descargar para
+          // imprimirla y escribir sobre el papel (objetivo: práctica de escritura).
+          <div className={`cms-exercise-wrap${maximizado ? " cms-exercise-wrap--max" : ""}`}>
+            {maximizado && (
+              <div className="cms-exercise-bar">
+                <Link to="/" className="cms-exercise-home" title="Ir al inicio">
+                  {nombre_sitio}
+                </Link>
+                <nav className="cms-exercise-path" aria-label="Ubicación de la ficha">
+                  {segmentos.map((seg, i) => (
+                    <Fragment key={i}>
+                      {i > 0 && <span className="cms-exercise-sep" aria-hidden>›</span>}
+                      {seg.to ? (
+                        <Link to={seg.to} className="cms-exercise-crumb">{seg.label}</Link>
+                      ) : (
+                        <span className="cms-exercise-crumb cms-exercise-crumb-actual" aria-current="page">
+                          {seg.label}
+                        </span>
+                      )}
+                    </Fragment>
+                  ))}
+                </nav>
+                {data.pdf_descarga_url && (
+                  <a
+                    className="cms-btn cms-btn-ghost cms-btn-sm"
+                    href={data.pdf_descarga_url}
+                    rel="noreferrer"
+                  >
+                    ⬇ Descargar
+                  </a>
+                )}
+                <button
+                  type="button"
+                  className="cms-btn cms-btn-ghost cms-exercise-min"
+                  onClick={() => setMaximizado(false)}
+                >
+                  ⤡ Minimizar
+                </button>
+              </div>
+            )}
+            <iframe
+              className="cms-exercise-frame"
+              src={data.pdf_url}
+              title={data.titulo}
+              loading="lazy"
+            />
+            {!maximizado && (
+              <div className="cms-pdf-actions">
+                {data.pdf_descarga_url && (
+                  <a
+                    className="cms-btn cms-btn-primary"
+                    href={data.pdf_descarga_url}
+                    rel="noreferrer"
+                  >
+                    ⬇ Descargar / Imprimir
+                  </a>
+                )}
+                <button
+                  type="button"
+                  className="cms-btn cms-btn-ghost"
+                  onClick={() => setMaximizado(true)}
+                  aria-label="Maximizar ficha"
+                >
+                  ⤢ Maximizar
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="cms-empty">Esta ficha todavía no tiene su PDF.</p>
         )
       ) : data.body_html ? (
         <CuerpoArticulo html={data.body_html} />

@@ -20,7 +20,9 @@ function actividades(n: number): string {
 }
 
 function emojiTipo(tipo: string): string {
-  return tipo === "interactivo" ? "🎮" : "📖";
+  if (tipo === "interactivo") return "🎮";
+  if (tipo === "pdf") return "📄";
+  return "📖";
 }
 
 // Coloca los ejercicios marcados como examen (simulacro) al FINAL de la lista, conservando el

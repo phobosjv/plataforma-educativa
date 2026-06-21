@@ -39,6 +39,7 @@ class SqlAlchemyContenidoRepository:
         model.asignatura_id = str(contenido.asignatura_id) if contenido.asignatura_id else None
         model.body_html = contenido.body_html
         model.hash_html = contenido.hash_html
+        model.hash_pdf = contenido.hash_pdf
         model.tags_json = json.dumps(contenido.etiquetas, ensure_ascii=False)
         model.updated_at = contenido.updated_at
 
@@ -137,6 +138,7 @@ class SqlAlchemyContenidoRepository:
             borrado=model.is_deleted,
             es_examen=model.is_exam,
             hash_html=model.hash_html,
+            hash_pdf=model.hash_pdf,
             body_html=model.body_html,
             created_at=model.created_at,
             updated_at=model.updated_at,
@@ -158,6 +160,7 @@ class SqlAlchemyContenidoRepository:
             is_deleted=contenido.borrado,
             is_exam=contenido.es_examen,
             hash_html=contenido.hash_html,
+            hash_pdf=contenido.hash_pdf,
             body_html=contenido.body_html,
             tags_json=json.dumps(contenido.etiquetas, ensure_ascii=False),
             created_at=contenido.created_at,
@@ -219,6 +222,7 @@ class SqlAlchemyContentVersionRepository:
                 metadata_snapshot_json=json.dumps(version.metadata_snapshot, ensure_ascii=False),
                 body_html=version.body_html,
                 hash_html=version.hash_html,
+                hash_pdf=version.hash_pdf,
                 created_by=str(version.created_by),
                 created_at=version.created_at,
             )
@@ -238,6 +242,7 @@ class SqlAlchemyContentVersionRepository:
                 metadata_snapshot=json.loads(m.metadata_snapshot_json),
                 body_html=m.body_html,
                 hash_html=m.hash_html,
+                hash_pdf=m.hash_pdf,
                 created_by=UUID(m.created_by),
                 created_at=m.created_at,
             )

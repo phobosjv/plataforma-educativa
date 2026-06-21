@@ -24,9 +24,14 @@ class ContenidoResponse(BaseModel):
     curso_id: UUID | None
     asignatura_id: UUID | None
     hash_html: str | None
+    hash_pdf: str | None
     body_html: str | None
     # URL absoluta del ejercicio en el origen sandbox (solo tipo interactivo con HTML subido).
     sandbox_url: str | None = None
+    # URL absoluta de la ficha PDF en el origen sandbox: para ver embebido (``pdf_url``) y para
+    # descargar con nombre amigable (``pdf_descarga_url``). Solo tipo pdf con fichero subido.
+    pdf_url: str | None = None
+    pdf_descarga_url: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -45,7 +50,7 @@ class VersionResponse(BaseModel):
 class CrearContenidoRequest(BaseModel):
     titulo: str = Field(min_length=1, max_length=500)
     descripcion: str = ""
-    tipo: Literal["interactivo", "texto"]
+    tipo: Literal["interactivo", "texto", "pdf"]
     idioma: str = "es"
     etiquetas: list[str] = []
     body_html: str | None = None

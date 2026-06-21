@@ -77,7 +77,7 @@ graph TB
 
 | Contexto | Responsabilidad | Agregado raíz |
 |----------|-----------------|---------------|
-| `content` | Ejercicios y artículos, tipos, versionado, papelera | `Contenido` |
+| `content` | Ejercicios, artículos y fichas PDF, tipos, versionado, papelera | `Contenido` |
 | `taxonomy` | Ciclos, cursos, asignaturas, etiquetas (configurables) | `Catalogo` |
 | `identity` | Usuarios admin/editor, roles, autenticación | `Usuario` |
 | `media` | Almacenamiento y serving sandboxed de HTML | `FicheroHtml` |

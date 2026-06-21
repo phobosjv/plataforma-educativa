@@ -8,7 +8,7 @@ type Ciclo = components["schemas"]["CicloResponse"];
 type Curso = components["schemas"]["CursoResponse"];
 type Asignatura = components["schemas"]["AsignaturaResponse"];
 
-export type TipoContenido = "texto" | "interactivo";
+export type TipoContenido = "texto" | "interactivo" | "pdf";
 
 export interface ContenidoFormValues {
   titulo: string;
@@ -126,10 +126,16 @@ export function ContenidoForm({
           >
             <option value="texto">Artículo de texto</option>
             <option value="interactivo">Ejercicio interactivo (HTML)</option>
+            <option value="pdf">Ficha PDF (imprimible)</option>
           </select>
           {v.tipo === "interactivo" && (
             <p className="cms-muted" style={{ marginTop: ".4rem" }}>
               Tras crearlo podrás subir el fichero HTML del ejercicio desde la edición.
+            </p>
+          )}
+          {v.tipo === "pdf" && (
+            <p className="cms-muted" style={{ marginTop: ".4rem" }}>
+              Tras crearla podrás subir el fichero PDF de la ficha desde la edición.
             </p>
           )}
         </div>
@@ -249,7 +255,9 @@ export function ContenidoForm({
             : modo === "crear"
               ? v.tipo === "interactivo"
                 ? "Crear ejercicio"
-                : "Crear artículo"
+                : v.tipo === "pdf"
+                  ? "Crear ficha PDF"
+                  : "Crear artículo"
               : "Guardar cambios"}
         </button>
         <button type="button" className="cms-btn cms-btn-ghost" onClick={onCancelar}>

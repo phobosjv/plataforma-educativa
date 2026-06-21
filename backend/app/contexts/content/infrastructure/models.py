@@ -34,6 +34,7 @@ class ContenidoModel(Base):
     is_deleted: Mapped[bool] = mapped_column(nullable=False, default=False)
     is_exam: Mapped[bool] = mapped_column(nullable=False, default=False)
     hash_html: Mapped[str | None] = mapped_column(nullable=True)
+    hash_pdf: Mapped[str | None] = mapped_column(nullable=True)
     body_html: Mapped[str | None] = mapped_column(nullable=True)
     tags_json: Mapped[str] = mapped_column(nullable=False, default="[]")
     created_at: Mapped[datetime] = mapped_column(nullable=False)
@@ -54,6 +55,7 @@ class ContentVersionModel(Base):
     metadata_snapshot_json: Mapped[str] = mapped_column(nullable=False)
     body_html: Mapped[str | None] = mapped_column(nullable=True)
     hash_html: Mapped[str | None] = mapped_column(nullable=True)
+    hash_pdf: Mapped[str | None] = mapped_column(nullable=True)
     created_by: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
 

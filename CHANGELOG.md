@@ -6,6 +6,34 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.22.0] - 2026-06-21
+
+### Añadido
+- **Tercer tipo de contenido: ficha PDF imprimible.** Junto a los artículos de texto y los
+  ejercicios interactivos, ahora se pueden publicar documentos **PDF**. Pensado para que el
+  alumnado de infantil y primaria practique la escritura: abren la ficha, la **imprimen** y
+  escriben a mano sobre el papel.
+  - En la ficha pública el PDF se muestra **embebido** (visor del navegador), con botón
+    **Maximizar** (a pantalla completa, igual que los ejercicios) y botón **Descargar / Imprimir**.
+  - El editor crea la ficha con tipo «Ficha PDF» y sube el fichero desde la edición (multipart,
+    máx. 20 MB, se valida que sea un PDF real). El documento es **content-addressed por SHA-256**,
+    inmutable, y cada subida queda **versionada** (restaurar una versión recupera su PDF).
+  - El PDF se sirve **aislado desde el subdominio sandbox** (`/ficha/<hash>.pdf`), nunca desde el
+    origen de la app (CLAUDE.md §10). No se sanea (es binario): el aislamiento lo da el origen.
+    La descarga fuerza `attachment` con un nombre amigable derivado del título.
+  - En el catálogo, la ficha PDF tiene su propio icono (📄) y distintivo.
+
+### Migración
+- **018**: añade `hash_pdf` a `content` y a `content_version` (ADD COLUMN; no afecta al índice
+  FTS5). Se aplica en caliente al desplegar.
+
+### Notas
+- Sin cambios disruptivos: el contrato de la API se amplía (campo `hash_pdf`, `pdf_url`,
+  `pdf_descarga_url` en la respuesta de contenido; endpoint `POST /contenidos/{id}/pdf`). Cliente
+  del frontend regenerado.
+
+---
+
 ## [V-0.21.7] - 2026-06-21
 
 ### Añadido (documentación)

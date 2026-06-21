@@ -17,6 +17,7 @@ from app.shared.domain.base import DomainError, DomainEvent, Entity, new_id, now
 class TipoContenido(str, Enum):
     INTERACTIVO = "interactivo"  # fichero HTML autocontenido (ejecuta JS, va aislado)
     TEXTO = "texto"  # artículo WYSIWYG (HTML sanitizado)
+    PDF = "pdf"  # ficha PDF imprimible/descargable (se sirve aislada, no se sanea)
 
 
 # --- Eventos de dominio ---
@@ -56,6 +57,7 @@ class ContentVersion:
     id: UUID = field(default_factory=new_id)
     body_html: str | None = None
     hash_html: str | None = None
+    hash_pdf: str | None = None
     created_at: datetime = field(default_factory=now)
 
 
@@ -77,6 +79,7 @@ class Contenido(Entity):
     borrado: bool = False
     hash_html: str | None = None  # solo para INTERACTIVO
     body_html: str | None = None  # solo para TEXTO
+    hash_pdf: str | None = None  # solo para PDF (fichero PDF por hash, inmutable)
     # Marca de "simulacro de examen": solo aplica a ejercicios interactivos. En el catálogo,
     # los exámenes se listan al final y con un icono propio (la fusión de varios ejercicios en
     # uno la hace a mano el diseñador; aquí es solo una marca para ordenar y distinguir).
@@ -108,6 +111,19 @@ class Contenido(Entity):
             raise DomainError("No se puede adjuntar HTML a un contenido en la papelera.")
         self.hash_html = file_hash
 
+    def adjuntar_pdf(self, file_hash: str) -> None:
+        """Asocia el fichero PDF (por hash) a una ficha de tipo ``pdf``.
+
+        Invariante de dominio: solo los contenidos de tipo ``pdf`` referencian un fichero PDF.
+        El fichero es binario, content-addressed e inmutable; se sirve aislado (origen sandbox),
+        por lo que NO se sanea (CLAUDE.md §10).
+        """
+        if self.tipo is not TipoContenido.PDF:
+            raise DomainError("Solo los contenidos PDF admiten un fichero PDF.")
+        if self.borrado:
+            raise DomainError("No se puede adjuntar un PDF a un contenido en la papelera.")
+        self.hash_pdf = file_hash
+
     def publicar(self) -> ContenidoPublicado:
         if self.borrado:
             raise DomainError("No se puede publicar un contenido borrado.")
@@ -115,6 +131,9 @@ class Contenido(Entity):
         # exigir el fichero evita publicar un ejercicio a medias.
         if self.tipo is TipoContenido.INTERACTIVO and not self.hash_html:
             raise DomainError("No se puede publicar un ejercicio interactivo sin su fichero HTML.")
+        # Una ficha PDF sin su fichero no se podría ni ver ni descargar: misma exigencia.
+        if self.tipo is TipoContenido.PDF and not self.hash_pdf:
+            raise DomainError("No se puede publicar una ficha PDF sin su fichero.")
         self.publicado = True
         return ContenidoPublicado(contenido_id=self.id)
 

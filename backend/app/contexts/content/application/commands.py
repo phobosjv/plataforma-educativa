@@ -46,6 +46,13 @@ class SubirHtmlContenidoCommand:
 
 
 @dataclass(frozen=True)
+class SubirPdfContenidoCommand:
+    contenido_id: UUID
+    editor_id: UUID
+    raw_pdf: bytes
+
+
+@dataclass(frozen=True)
 class PublicarContenidoCommand:
     contenido_id: UUID
     published_by: UUID

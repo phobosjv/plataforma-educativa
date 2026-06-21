@@ -199,6 +199,9 @@ export function ContenidosPage() {
           <Link to="/admin/contenidos/nuevo?tipo=texto" className="cms-btn cms-btn-ghost">
             + Artículo de texto
           </Link>
+          <Link to="/admin/contenidos/nuevo?tipo=pdf" className="cms-btn cms-btn-ghost">
+            + Ficha PDF
+          </Link>
           <Link to="/admin/contenidos/nuevo?tipo=interactivo" className="cms-btn cms-btn-primary">
             + Ejercicio interactivo
           </Link>

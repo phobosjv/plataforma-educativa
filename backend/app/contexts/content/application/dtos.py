@@ -25,6 +25,7 @@ class ContenidoDTO:
     curso_id: UUID | None
     asignatura_id: UUID | None
     hash_html: str | None
+    hash_pdf: str | None
     body_html: str | None
     created_at: datetime
     updated_at: datetime
@@ -66,6 +67,7 @@ def contenido_to_dto(c: Contenido) -> ContenidoDTO:
         curso_id=c.curso_id,
         asignatura_id=c.asignatura_id,
         hash_html=c.hash_html,
+        hash_pdf=c.hash_pdf,
         body_html=c.body_html,
         created_at=c.created_at,
         updated_at=c.updated_at,

@@ -56,6 +56,63 @@ def test_ejercicio_inexistente_devuelve_404(tmp_path, monkeypatch) -> None:  # t
     assert r.status_code == 404
 
 
+def _guardar_pdf(media_dir: str, raw: bytes) -> str:
+    file_hash = hashlib.sha256(raw).hexdigest()
+    destino = f"{media_dir}/{file_hash[:2]}"
+    import os
+
+    os.makedirs(destino, exist_ok=True)
+    with open(f"{destino}/{file_hash}.pdf", "wb") as f:
+        f.write(raw)
+    return file_hash
+
+
+def test_sirve_ficha_pdf_inline_por_defecto(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    monkeypatch.setattr(settings, "media_dir", str(tmp_path))
+    raw = b"%PDF-1.7\n...\n%%EOF"
+    h = _guardar_pdf(str(tmp_path), raw)
+
+    client = TestClient(sandbox_app)
+    r = client.get(f"/ficha/{h}.pdf")
+
+    assert r.status_code == 200
+    assert r.content == raw  # NO se transforma
+    assert r.headers["content-type"] == "application/pdf"
+    assert r.headers["content-disposition"] == "inline"
+    csp = r.headers["content-security-policy"]
+    assert "default-src 'none'" in csp and "frame-ancestors" in csp
+    assert r.headers["x-content-type-options"] == "nosniff"
+
+
+def test_ficha_pdf_descarga_attachment_con_nombre_seguro(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    monkeypatch.setattr(settings, "media_dir", str(tmp_path))
+    raw = b"%PDF-1.7\n...\n%%EOF"
+    h = _guardar_pdf(str(tmp_path), raw)
+
+    client = TestClient(sandbox_app)
+    # Nombre con caracteres peligrosos: el sandbox los filtra (anti-inyección de cabecera).
+    r = client.get(f"/ficha/{h}.pdf", params={"descargar": 1, "nombre": 'a"\r\nb.pdf'})
+
+    assert r.status_code == 200
+    disp = r.headers["content-disposition"]
+    assert disp.startswith("attachment;")
+    assert '"' not in disp.split("filename=", 1)[1].strip('"')  # comillas internas filtradas
+    assert "\r" not in disp and "\n" not in disp
+
+
+def test_ficha_pdf_hash_invalido_devuelve_400() -> None:
+    client = TestClient(sandbox_app)
+    r = client.get("/ficha/no-es-un-hash.pdf")
+    assert r.status_code == 400
+
+
+def test_ficha_pdf_inexistente_devuelve_404(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    monkeypatch.setattr(settings, "media_dir", str(tmp_path))
+    client = TestClient(sandbox_app)
+    r = client.get(f"/ficha/{'a' * 64}.pdf")
+    assert r.status_code == 404
+
+
 def test_health() -> None:
     client = TestClient(sandbox_app)
     r = client.get("/health")

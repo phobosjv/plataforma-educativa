@@ -33,6 +33,17 @@ class HtmlStorage(Protocol):
     def url_for(self, file_hash: str) -> str: ...
 
 
+class PdfStorage(Protocol):
+    """Almacén de ficheros PDF direccionado por hash SHA-256 (inmutable).
+
+    Paralelo a ``HtmlStorage``: las fichas PDF se guardan content-addressed y se sirven
+    aisladas desde el origen sandbox. No se sanean (es binario; CLAUDE.md §10).
+    """
+
+    def save(self, raw_pdf: bytes) -> str: ...  # devuelve el hash
+    def url_for(self, file_hash: str) -> str: ...
+
+
 class HtmlSanitizer(Protocol):
     """Sanea el HTML de los artículos de texto (whitelist de etiquetas seguras).
 

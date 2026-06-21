@@ -136,6 +136,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contenidos/{contenido_id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Subir Pdf
+         * @description Sube el fichero PDF de una ficha (NO se sanea; se sirve aislado, §10).
+         */
+        post: operations["subir_pdf_api_v1_contenidos__contenido_id__pdf_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contenidos/{contenido_id}/publicar": {
         parameters: {
             query?: never;
@@ -830,6 +850,11 @@ export interface components {
             /** Fichero */
             fichero: string;
         };
+        /** Body_subir_pdf_api_v1_contenidos__contenido_id__pdf_post */
+        Body_subir_pdf_api_v1_contenidos__contenido_id__pdf_post: {
+            /** Fichero */
+            fichero: string;
+        };
         /** CicloResponse */
         CicloResponse: {
             /**
@@ -910,10 +935,16 @@ export interface components {
             asignatura_id: string | null;
             /** Hash Html */
             hash_html: string | null;
+            /** Hash Pdf */
+            hash_pdf: string | null;
             /** Body Html */
             body_html: string | null;
             /** Sandbox Url */
             sandbox_url?: string | null;
+            /** Pdf Url */
+            pdf_url?: string | null;
+            /** Pdf Descarga Url */
+            pdf_descarga_url?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -963,7 +994,7 @@ export interface components {
              * Tipo
              * @enum {string}
              */
-            tipo: "interactivo" | "texto";
+            tipo: "interactivo" | "texto" | "pdf";
             /**
              * Idioma
              * @default es
@@ -1495,6 +1526,41 @@ export interface operations {
         requestBody: {
             content: {
                 "multipart/form-data": components["schemas"]["Body_subir_html_interactivo_api_v1_contenidos__contenido_id__html_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContenidoResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subir_pdf_api_v1_contenidos__contenido_id__pdf_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contenido_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_subir_pdf_api_v1_contenidos__contenido_id__pdf_post"];
             };
         };
         responses: {

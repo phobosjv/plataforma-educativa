@@ -6,7 +6,8 @@ Crea, sobre una BD y una carpeta media AISLADAS (no las de desarrollo):
 - una taxonomía mínima (ciclo + curso + asignatura),
 - un ejercicio interactivo publicado con un HTML que INTENTA escapar del sandbox
   (para el test de seguridad: el JS no debe alcanzar el origen padre),
-- un artículo de texto publicado.
+- un artículo de texto publicado,
+- una ficha PDF publicada (visor embebido + descarga).
 
 Las rutas se toman de las variables de entorno DATABASE_URL y MEDIA_DIR (las fija
 playwright.config.ts). Si se ejecuta a mano, usa valores e2e por defecto.
@@ -59,6 +60,21 @@ EJERCICIO_HTML = b"""<!doctype html>
 </html>
 """
 
+# PDF mínimo válido (empieza por %PDF-, una página con un texto). Sirve para el flujo E2E de
+# ficha PDF: el visor lo embebe y el botón de descarga apunta al sandbox.
+FICHA_PDF = (
+    b"%PDF-1.1\n"
+    b"1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
+    b"2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
+    b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 144]"
+    b"/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj\n"
+    b"4 0 obj<</Length 41>>stream\n"
+    b"BT /F1 24 Tf 20 100 Td (Ficha PDF E2E) Tj ET\n"
+    b"endstream endobj\n"
+    b"5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj\n"
+    b"trailer<</Root 1 0 R>>\n%%EOF"
+)
+
 
 def main() -> None:
     import app.bootstrap  # noqa: F401 — registra los modelos ORM con Base.metadata
@@ -67,15 +83,18 @@ def main() -> None:
         CrearContenidoCommand,
         PublicarContenidoCommand,
         SubirHtmlContenidoCommand,
+        SubirPdfContenidoCommand,
     )
     from app.contexts.content.application.handlers import (
         CrearContenidoHandler,
         PublicarContenidoHandler,
         SubirHtmlContenidoHandler,
+        SubirPdfContenidoHandler,
     )
     from app.contexts.content.infrastructure.fts import crear_indice_busqueda
     from app.contexts.content.infrastructure.html_sanitizer import Nh3HtmlSanitizer
     from app.contexts.content.infrastructure.html_storage import FileSystemHtmlStorage
+    from app.contexts.content.infrastructure.pdf_storage import FileSystemPdfStorage
     from app.contexts.content.infrastructure.repositories import (
         SqlAlchemyContenidoRepository,
         SqlAlchemyContentVersionRepository,
@@ -207,7 +226,31 @@ def main() -> None:
             PublicarContenidoCommand(contenido_id=aula_id, published_by=admin_id)
         )
 
-        print(f"[seed_e2e] OK — admin={ADMIN_EMAIL} ejercicio={ejercicio_id} articulo={articulo_id}")
+        # 7. Ficha PDF: crear, subir PDF, publicar.
+        ficha_id = CrearContenidoHandler(repo, vrepo, UnitOfWork(session), Nh3HtmlSanitizer()).handle(
+            CrearContenidoCommand(
+                titulo="Ficha PDF E2E",
+                descripcion="Ficha imprimible de prueba E2E",
+                tipo="pdf",
+                autor_id=admin_id,
+                ciclo_id=ciclo_id,
+                curso_id=curso_id,
+                asignatura_id=asig_id,
+            )
+        )
+        SubirPdfContenidoHandler(
+            repo, vrepo, UnitOfWork(session), FileSystemPdfStorage(settings.media_dir)
+        ).handle(
+            SubirPdfContenidoCommand(contenido_id=ficha_id, editor_id=admin_id, raw_pdf=FICHA_PDF)
+        )
+        PublicarContenidoHandler(repo, UnitOfWork(session)).handle(
+            PublicarContenidoCommand(contenido_id=ficha_id, published_by=admin_id)
+        )
+
+        print(
+            f"[seed_e2e] OK — admin={ADMIN_EMAIL} ejercicio={ejercicio_id} "
+            f"articulo={articulo_id} ficha_pdf={ficha_id}"
+        )
     finally:
         session.close()
 

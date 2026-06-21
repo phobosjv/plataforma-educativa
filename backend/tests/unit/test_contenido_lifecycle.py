@@ -80,6 +80,43 @@ def test_adjuntar_html_a_borrado_lanza_error() -> None:
         c.adjuntar_html_interactivo("a" * 64)
 
 
+def test_adjuntar_pdf_a_tipo_pdf_fija_hash() -> None:
+    c = Contenido(titulo="Ficha de letras", tipo=TipoContenido.PDF)
+    c.adjuntar_pdf("b" * 64)
+    assert c.hash_pdf == "b" * 64
+
+
+def test_adjuntar_pdf_a_texto_lanza_error() -> None:
+    c = _contenido()  # tipo TEXTO
+    with pytest.raises(DomainError):
+        c.adjuntar_pdf("b" * 64)
+
+
+def test_adjuntar_pdf_a_interactivo_lanza_error() -> None:
+    c = Contenido(titulo="Juego", tipo=TipoContenido.INTERACTIVO)
+    with pytest.raises(DomainError):
+        c.adjuntar_pdf("b" * 64)
+
+
+def test_publicar_pdf_sin_fichero_lanza_error() -> None:
+    c = Contenido(titulo="Ficha", tipo=TipoContenido.PDF)
+    with pytest.raises(DomainError):
+        c.publicar()
+
+
+def test_publicar_pdf_con_fichero_ok() -> None:
+    c = Contenido(titulo="Ficha", tipo=TipoContenido.PDF)
+    c.adjuntar_pdf("b" * 64)
+    c.publicar()
+    assert c.publicado is True
+
+
+def test_pdf_no_puede_marcarse_examen() -> None:
+    c = Contenido(titulo="Ficha", tipo=TipoContenido.PDF)
+    with pytest.raises(DomainError):
+        c.marcar_examen(True)
+
+
 def test_content_version_es_inmutable() -> None:
     uid = uuid4()
     v = ContentVersion(

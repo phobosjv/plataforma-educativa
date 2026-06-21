@@ -85,8 +85,10 @@ Ver `docs/ARCHITECTURE.md` §6. Resumen:
 - Comunicación entre contextos **solo** vía casos de uso de aplicación o **eventos de dominio**.
   Está prohibido importar un modelo de un contexto dentro de otro.
 - Reglas concretas:
-  - Un `Contenido` tiene `tipo ∈ {interactivo, texto}` y ese tipo determina su almacenamiento.
+  - Un `Contenido` tiene `tipo ∈ {interactivo, texto, pdf}` y ese tipo determina su almacenamiento.
   - `interactivo` ⇒ referencia a `FicheroHtml` por hash. `texto` ⇒ `body_html` sanitizado.
+    `pdf` ⇒ referencia a un `FicheroPdf` por hash (binario inmutable, NO se sanea, se sirve aislado
+    desde el subdominio sandbox como los ejercicios).
   - Cada modificación crea una **versión inmutable** (`content_version`). Restaurar nunca destruye.
   - Borrar es **lógico** (papelera); la purga es una operación explícita y programada.
   - `ciclo`, `curso` y `asignatura` provienen de **catálogos configurables**, no son enums fijos.

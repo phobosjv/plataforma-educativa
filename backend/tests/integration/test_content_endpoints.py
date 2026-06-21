@@ -381,6 +381,97 @@ class TestSubirHtmlInteractivo:
         assert r.status_code == 400
 
 
+class TestSubirPdfFicha:
+    """Subida del fichero PDF de una ficha imprimible (tercer tipo de contenido)."""
+
+    _PDF = b"%PDF-1.7\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF"
+
+    def _crear_pdf(self, client: TestClient, token: str, titulo: str = "Ficha de letras") -> str:
+        r = client.post(
+            "/api/v1/contenidos/",
+            json={"titulo": titulo, "tipo": "pdf"},
+            headers=_headers(token),
+        )
+        assert r.status_code == 201
+        return str(r.json()["id"])
+
+    def test_subir_pdf_fija_hash_y_urls(
+        self, client: TestClient, editor_token: str, tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+    ) -> None:
+        from app.config import settings
+
+        monkeypatch.setattr(settings, "media_dir", str(tmp_path))
+        uid = self._crear_pdf(client, editor_token)
+        r = client.post(
+            f"/api/v1/contenidos/{uid}/pdf",
+            files={"fichero": ("ficha.pdf", self._PDF, "application/pdf")},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 200
+        body = r.json()
+        h = body["hash_pdf"]
+        assert h is not None
+        assert body["pdf_url"].endswith(f"/ficha/{h}.pdf")
+        assert "descargar=1" in body["pdf_descarga_url"]
+        # El fichero se escribió content-addressed (sin modificar).
+        assert (tmp_path / h[:2] / f"{h}.pdf").read_bytes() == self._PDF
+
+    def test_pdf_se_puede_publicar_con_fichero(
+        self, client: TestClient, editor_token: str, tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+    ) -> None:
+        from app.config import settings
+
+        monkeypatch.setattr(settings, "media_dir", str(tmp_path))
+        uid = self._crear_pdf(client, editor_token)
+        # Sin fichero, no se puede publicar.
+        r = client.post(f"/api/v1/contenidos/{uid}/publicar", headers=_headers(editor_token))
+        assert r.status_code == 400
+        # Con fichero, sí.
+        client.post(
+            f"/api/v1/contenidos/{uid}/pdf",
+            files={"fichero": ("ficha.pdf", self._PDF, "application/pdf")},
+            headers=_headers(editor_token),
+        )
+        r = client.post(f"/api/v1/contenidos/{uid}/publicar", headers=_headers(editor_token))
+        assert r.status_code == 200
+        assert r.json()["publicado"] is True
+
+    def test_subir_pdf_a_tipo_texto_devuelve_400(
+        self, client: TestClient, editor_token: str, tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+    ) -> None:
+        from app.config import settings
+
+        monkeypatch.setattr(settings, "media_dir", str(tmp_path))
+        uid = _crear_contenido(client, editor_token)["id"]  # tipo texto
+        r = client.post(
+            f"/api/v1/contenidos/{uid}/pdf",
+            files={"fichero": ("ficha.pdf", self._PDF, "application/pdf")},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 400
+
+    def test_subir_fichero_no_pdf_devuelve_400(
+        self, client: TestClient, editor_token: str, tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+    ) -> None:
+        from app.config import settings
+
+        monkeypatch.setattr(settings, "media_dir", str(tmp_path))
+        uid = self._crear_pdf(client, editor_token)
+        r = client.post(
+            f"/api/v1/contenidos/{uid}/pdf",
+            files={"fichero": ("falso.pdf", b"esto no es un pdf", "application/pdf")},
+            headers=_headers(editor_token),
+        )
+        assert r.status_code == 400
+
+    def test_subir_pdf_sin_auth_devuelve_401(self, client: TestClient) -> None:
+        r = client.post(
+            "/api/v1/contenidos/00000000-0000-0000-0000-000000000000/pdf",
+            files={"fichero": ("ficha.pdf", self._PDF, "application/pdf")},
+        )
+        assert r.status_code == 401
+
+
 class TestVersionado:
     """Historial de versiones y restauración (CLAUDE.md §7: restaurar nunca destruye)."""
 
