@@ -6,6 +6,25 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.21.7] - 2026-06-21
+
+### Añadido (documentación)
+- **`docs/proxy-webmin-portainer.md`**: plantilla reutilizable para exponer **Webmin** y
+  **Portainer** por HTTPS detrás de Caddy en **cualquier** servidor (no solo este proyecto).
+  Incluye las dos lecciones clave aprendidas en producción y un **prompt copy-paste portátil**
+  (PASO 0 que descubre el contenedor, el Caddyfile y la red de Caddy sin asumir rutas):
+  - `caddy reload` (incluido `docker compose exec caddy caddy reload`) **no** aplica la
+    configuración en caliente — da "Valid configuration" pero sigue sirviendo la anterior; solo
+    `docker compose restart caddy` la activa.
+  - Con `reverse_proxy https://host:puerto` (upstream HTTPS), Caddy manda al upstream el `Host`
+    del upstream por defecto, no el del cliente; hay que forzar `header_up Host {host}`.
+
+### Notas
+- Solo documentación: sin cambios de backend, API, esquema ni código de la aplicación. Esta
+  plantilla quedó fuera del zip de V-0.21.6 (se creó justo después); este release la empaqueta.
+
+---
+
 ## [V-0.21.6] - 2026-06-19
 
 ### Cambiado (despliegue)
