@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import re
@@ -10,12 +11,14 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
+from sqlalchemy.orm import Session
 from starlette.staticfiles import StaticFiles
 
 import app.bootstrap  # noqa: F401 — registra modelos ORM con Base.metadata
+from app.shared.infrastructure.database import get_db
 from app.config import settings
 from app.shared.domain.base import (
     AuthenticationError,
@@ -76,6 +79,68 @@ async def _domain_error(_: object, exc: DomainError) -> JSONResponse:
 @app.get("/health", tags=["infra"])
 def health() -> dict[str, str]:
     return {"status": "ok", "environment": settings.environment}
+
+
+# Colores primarios de las paletas predefinidas (espejo de frontend/src/app/config/palettes.ts).
+_PALETA_PRIMARY: dict[str, str] = {
+    "cielo":    "#0284c7",
+    "bosque":   "#2e7d32",
+    "coral":    "#e91e63",
+    "sol":      "#f59e0b",
+    "lavanda":  "#9c27b0",
+    "estandar": "#4f46e5",
+}
+
+
+@app.get("/manifest.webmanifest", tags=["infra"])
+def pwa_manifest(db: Session = Depends(get_db)) -> Response:
+    """Manifiesto PWA dinámico: nombre, iconos y color de la paleta activa."""
+    from app.contexts.configuration.application.handlers import ObtenerConfiguracionHandler
+    from app.contexts.configuration.infrastructure.repositories import (
+        SqlAlchemyConfiguracionRepository,
+    )
+
+    cfg = ObtenerConfiguracionHandler(SqlAlchemyConfiguracionRepository(db)).handle()
+
+    # Resolver color primario (paleta predefinida o personalizada).
+    theme_color = _PALETA_PRIMARY.get(cfg.paleta_activa)
+    if theme_color is None:
+        for p in cfg.paletas_personalizadas:
+            if p.id == cfg.paleta_activa:
+                theme_color = p.primary
+                break
+    if theme_color is None:
+        theme_color = "#0284c7"
+
+    nombre = cfg.nombre_sitio
+    short_name = nombre[:12]
+
+    icons: list[dict[str, str]] = [
+        {"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+        {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+    ]
+    if cfg.logo_url:
+        icons.append({"src": cfg.logo_url, "sizes": "any"})
+
+    manifest = {
+        "name": nombre,
+        "short_name": short_name,
+        "description": "Plataforma educativa interactiva para infantil y primaria",
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "orientation": "any",
+        "background_color": "#ffffff",
+        "theme_color": theme_color,
+        "lang": "es",
+        "categories": ["education", "kids"],
+        "icons": icons,
+    }
+    return Response(
+        content=json.dumps(manifest, ensure_ascii=False),
+        media_type="application/manifest+json",
+        headers={"Cache-Control": "no-cache"},
+    )
 
 
 class _NoSniffStaticFiles(StaticFiles):

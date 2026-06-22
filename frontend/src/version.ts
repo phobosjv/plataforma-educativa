@@ -5,4 +5,4 @@
 // siguen siendo los viejos.
 //
 // IMPORTANTE (CLAUDE.md §19): mantener sincronizada con `backend/app/version.py` en cada release.
-export const APP_VERSION = "0.22.6";
+export const APP_VERSION = "0.23.0";

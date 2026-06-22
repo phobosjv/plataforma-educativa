@@ -59,6 +59,11 @@ export default defineConfig({
         target: API_TARGET,
         changeOrigin: true,
       },
+      // Manifiesto PWA: generado dinámicamente por el backend (nombre + logo + paleta).
+      "/manifest.webmanifest": {
+        target: API_TARGET,
+        changeOrigin: true,
+      },
     },
   },
 });

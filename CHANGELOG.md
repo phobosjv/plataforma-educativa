@@ -6,6 +6,28 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.23.0] - 2026-06-22
+
+### Añadido
+- **Soporte PWA (Progressive Web App) — instalable en móviles y tablets.** La aplicación
+  puede añadirse a la pantalla de inicio del dispositivo y abrirse como app nativa (sin barra
+  de navegador, `display: standalone`).
+  - Endpoint público `GET /manifest.webmanifest`: manifiesto dinámico generado por el backend
+    con el nombre del sitio, el color primario de la paleta activa y el logo configurado desde
+    administración. Se sirve sin caché para reflejar siempre la configuración actual.
+  - Service worker mínimo (`/sw.js`): registrado automáticamente al cargar la app; habilita
+    el prompt de instalación del navegador sin activar caché offline (la app sigue requiriendo
+    conexión para funcionar).
+  - Iconos placeholder 192×192 y 512×512 PNG en `/icons/` (fondo azul cielo con "PE");
+    el admin puede reemplazarlos subiendo su propio logo desde Apariencia, que el manifiesto
+    incluirá automáticamente como icono adicional.
+  - Meta tags PWA en `index.html`: `<link rel="manifest">`, `theme-color`, `apple-touch-icon`
+    y flags de app móvil para iOS/Android.
+  - Proxy `/manifest.webmanifest` añadido a Vite (dev) y a nginx (prod) para enrutar al backend.
+  - 4 tests de integración del endpoint manifest.
+
+---
+
 ## [V-0.22.6] - 2026-06-22
 
 ### Añadido
