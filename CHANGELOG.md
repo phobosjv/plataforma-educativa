@@ -6,6 +6,32 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.23.1] - 2026-06-22
+
+### Corregido
+- **Icono de la PWA: ya no aparece como un círculo blanco.** El generador de iconos placeholder
+  creaba la imagen en modo RGB pero pintaba el círculo con un color semitransparente; al ignorarse
+  el canal alfa en RGB, el resultado era un círculo blanco sólido con el texto (también blanco)
+  invisible encima. Marcado además como `maskable`, el sistema operativo lo recortaba a un círculo.
+
+### Cambiado
+- **Los iconos de la PWA se generan dinámicamente en el backend a partir del logo del sitio.**
+  Si hay un logo subido en administración, se usa como icono de la app (centrado sobre una baldosa
+  blanca). Si no hay logo, se genera un icono genérico con las iniciales del nombre del sitio sobre
+  el color primario de la paleta activa. Antes los iconos eran ficheros PNG estáticos placeholder.
+  - Nuevo endpoint público `GET /icons/{nombre}.png` que sirve cuatro variantes: 192×192 y 512×512,
+    cada una con propósito `any` (a sangre) y `maskable` (con zona segura para el recorte del SO).
+  - El manifiesto enlaza estas cuatro variantes con sus `purpose` y `sizes` correctos.
+  - Cambian de logo o de paleta se reflejan en la siguiente instalación (servido sin caché).
+  - Nueva dependencia de backend: Pillow (procesado de imagen para los iconos).
+  - Proxy `/icons` añadido en Vite (dev) y nginx (prod).
+
+### Añadido
+- Test de regresión del round-trip de exportación/importación para ficheros content-addressed
+  (fichas PDF y HTML de ejercicio): garantiza que sobreviven intactos a «Exportar» → «Importar».
+
+---
+
 ## [V-0.23.0] - 2026-06-22
 
 ### Añadido

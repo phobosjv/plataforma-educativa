@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Generator
 
 import pytest
@@ -47,6 +46,10 @@ def test_manifest_devuelve_json_valido(client: TestClient) -> None:
     assert isinstance(data["icons"], list)
     assert any(i["sizes"] == "192x192" for i in data["icons"])
     assert any(i["sizes"] == "512x512" for i in data["icons"])
+    # Debe haber al menos un icono maskable (si no, el SO recorta y se ve un círculo).
+    assert any(i.get("purpose") == "maskable" for i in data["icons"])
+    # Los iconos apuntan al endpoint dinámico del backend, no a estáticos.
+    assert all(i["src"].startswith("/icons/app-") for i in data["icons"])
 
 
 def test_manifest_sin_cache(client: TestClient) -> None:
@@ -63,3 +66,19 @@ def test_manifest_color_paleta_predefinida(client: TestClient) -> None:
 def test_manifest_nombre_por_defecto(client: TestClient) -> None:
     r = client.get("/manifest.webmanifest")
     assert r.json()["name"] == "Plataforma Educativa"
+
+
+@pytest.mark.parametrize(
+    "nombre",
+    ["app-any-192", "app-any-512", "app-maskable-192", "app-maskable-512"],
+)
+def test_icono_devuelve_png(client: TestClient, nombre: str) -> None:
+    r = client.get(f"/icons/{nombre}.png")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "image/png"
+    assert r.content.startswith(b"\x89PNG\r\n")  # firma PNG
+    assert r.headers.get("cache-control") == "no-cache"
+
+
+def test_icono_desconocido_es_404(client: TestClient) -> None:
+    assert client.get("/icons/no-existe.png").status_code == 404

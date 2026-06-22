@@ -91,47 +91,90 @@ _PALETA_PRIMARY: dict[str, str] = {
     "estandar": "#4f46e5",
 }
 
+# Iconos de la PWA generados al vuelo: nombre lógico -> (tamaño px, ¿maskable?).
+_ICON_SPECS: dict[str, tuple[int, bool]] = {
+    "app-any-192": (192, False),
+    "app-any-512": (512, False),
+    "app-maskable-192": (192, True),
+    "app-maskable-512": (512, True),
+}
 
-@app.get("/manifest.webmanifest", tags=["infra"])
-def pwa_manifest(db: Session = Depends(get_db)) -> Response:
-    """Manifiesto PWA dinámico: nombre, iconos y color de la paleta activa."""
+
+def _config_actual(db: Session) -> object:
     from app.contexts.configuration.application.handlers import ObtenerConfiguracionHandler
     from app.contexts.configuration.infrastructure.repositories import (
         SqlAlchemyConfiguracionRepository,
     )
 
-    cfg = ObtenerConfiguracionHandler(SqlAlchemyConfiguracionRepository(db)).handle()
+    return ObtenerConfiguracionHandler(SqlAlchemyConfiguracionRepository(db)).handle()
 
-    # Resolver color primario (paleta predefinida o personalizada).
-    theme_color = _PALETA_PRIMARY.get(cfg.paleta_activa)
-    if theme_color is None:
-        for p in cfg.paletas_personalizadas:
-            if p.id == cfg.paleta_activa:
-                theme_color = p.primary
-                break
-    if theme_color is None:
-        theme_color = "#0284c7"
 
-    nombre = cfg.nombre_sitio
-    short_name = nombre[:12]
+def _color_primario(cfg: object) -> str:
+    """Color primario de la paleta activa (predefinida o personalizada)."""
+    color = _PALETA_PRIMARY.get(cfg.paleta_activa)  # type: ignore[attr-defined]
+    if color is None:
+        for p in cfg.paletas_personalizadas:  # type: ignore[attr-defined]
+            if p.id == cfg.paleta_activa:  # type: ignore[attr-defined]
+                return str(p.primary)
+    return color or "#0284c7"
 
-    icons: list[dict[str, str]] = [
-        {"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
-        {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+
+def _logo_path(logo_url: str) -> Path | None:
+    """Ruta en disco del logo subido, o None. Defensivo contra rutas fuera de media/images."""
+    if not logo_url.startswith("/media/images/"):
+        return None
+    base = (Path(settings.media_dir) / "images").resolve()
+    destino = (base / Path(logo_url).name).resolve()
+    if base not in destino.parents:
+        return None
+    return destino if destino.is_file() else None
+
+
+@app.get("/icons/{nombre}.png", tags=["infra"])
+def app_icon(nombre: str, db: Session = Depends(get_db)) -> Response:
+    """Icono de la PWA generado desde el logo del sitio (o genérico con iniciales)."""
+    spec = _ICON_SPECS.get(nombre)
+    if spec is None:
+        raise HTTPException(status_code=404, detail="Icono no encontrado.")
+    size, maskable = spec
+
+    from app.shared.infrastructure.app_icons import generar_icono_png, iniciales_de
+
+    cfg = _config_actual(db)
+    png = generar_icono_png(
+        size,
+        maskable=maskable,
+        logo_path=_logo_path(cfg.logo_url),  # type: ignore[attr-defined]
+        color_primario=_color_primario(cfg),
+        iniciales=iniciales_de(cfg.nombre_sitio),  # type: ignore[attr-defined]
+    )
+    # Sin caché: así un cambio de logo o de paleta se refleja en la próxima instalación.
+    return Response(content=png, media_type="image/png", headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/manifest.webmanifest", tags=["infra"])
+def pwa_manifest(db: Session = Depends(get_db)) -> Response:
+    """Manifiesto PWA dinámico: nombre, iconos y color de la paleta activa."""
+    cfg = _config_actual(db)
+    nombre = cfg.nombre_sitio  # type: ignore[attr-defined]
+
+    icons = [
+        {"src": "/icons/app-any-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+        {"src": "/icons/app-any-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+        {"src": "/icons/app-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+        {"src": "/icons/app-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
     ]
-    if cfg.logo_url:
-        icons.append({"src": cfg.logo_url, "sizes": "any"})
 
     manifest = {
         "name": nombre,
-        "short_name": short_name,
+        "short_name": nombre[:12],
         "description": "Plataforma educativa interactiva para infantil y primaria",
         "start_url": "/",
         "scope": "/",
         "display": "standalone",
         "orientation": "any",
         "background_color": "#ffffff",
-        "theme_color": theme_color,
+        "theme_color": _color_primario(cfg),
         "lang": "es",
         "categories": ["education", "kids"],
         "icons": icons,

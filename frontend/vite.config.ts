@@ -64,6 +64,11 @@ export default defineConfig({
         target: API_TARGET,
         changeOrigin: true,
       },
+      // Iconos de la PWA: generados al vuelo por el backend desde el logo del sitio.
+      "/icons": {
+        target: API_TARGET,
+        changeOrigin: true,
+      },
     },
   },
 });
