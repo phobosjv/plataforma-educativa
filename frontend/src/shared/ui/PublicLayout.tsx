@@ -14,6 +14,7 @@ export function PublicLayout() {
     publicidad_activa,
     publicidad_html_izquierda,
     publicidad_html_derecha,
+    mostrar_version,
   } = useConfig();
   const { pathname } = useLocation();
 
@@ -31,9 +32,11 @@ export function PublicLayout() {
             <img src={logo_url} alt="" className="cms-nav-logo" aria-hidden />
           )}
           {nombre_sitio}
-          <span className="cms-version" title="Versión de la aplicación">
-            v{APP_VERSION}
-          </span>
+          {mostrar_version && (
+            <span className="cms-version" title="Versión de la aplicación">
+              v{APP_VERSION}
+            </span>
+          )}
         </NavLink>
         <span className="cms-nav-spacer" />
         <NavLink

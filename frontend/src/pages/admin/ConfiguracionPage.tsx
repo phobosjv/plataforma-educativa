@@ -22,6 +22,7 @@ function AjustesGenerales({
   aulaEmojiInicial,
   catTituloInicial,
   catSubtituloInicial,
+  mostrarVersionInicial,
   onGuardar,
 }: {
   base: AjustesGeneralesPayload;
@@ -34,6 +35,7 @@ function AjustesGenerales({
   aulaEmojiInicial: string;
   catTituloInicial: string;
   catSubtituloInicial: string;
+  mostrarVersionInicial: boolean;
   onGuardar: (ajustes: AjustesGeneralesPayload) => Promise<void>;
 }) {
   const [nombre, setNombre] = useState(nombreInicial);
@@ -47,6 +49,7 @@ function AjustesGenerales({
   const [aulaEmoji, setAulaEmoji] = useState(aulaEmojiInicial);
   const [catTitulo, setCatTitulo] = useState(catTituloInicial);
   const [catSubtitulo, setCatSubtitulo] = useState(catSubtituloInicial);
+  const [mostrarVersion, setMostrarVersion] = useState(mostrarVersionInicial);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
 
@@ -60,6 +63,7 @@ function AjustesGenerales({
   useEffect(() => setAulaEmoji(aulaEmojiInicial), [aulaEmojiInicial]);
   useEffect(() => setCatTitulo(catTituloInicial), [catTituloInicial]);
   useEffect(() => setCatSubtitulo(catSubtituloInicial), [catSubtituloInicial]);
+  useEffect(() => setMostrarVersion(mostrarVersionInicial), [mostrarVersionInicial]);
 
   const tocado = () => setGuardado(false);
 
@@ -100,7 +104,8 @@ function AjustesGenerales({
     aulaLabel.trim() !== aulaLabelInicial ||
     aulaEmoji !== aulaEmojiInicial ||
     catTitulo.trim() !== catTituloInicial ||
-    catSubtitulo.trim() !== catSubtituloInicial;
+    catSubtitulo.trim() !== catSubtituloInicial ||
+    mostrarVersion !== mostrarVersionInicial;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -120,6 +125,7 @@ function AjustesGenerales({
       aula_abierta_emoji: aulaEmoji.trim(),
       catalogo_titulo: catTitulo.trim(),
       catalogo_subtitulo: catSubtitulo.trim(),
+      mostrar_version: mostrarVersion,
     })
       .then(() => setGuardado(true))
       .catch(() => setGuardado(false)) // el error se muestra a nivel de página
@@ -451,6 +457,18 @@ function AjustesGenerales({
         />
       </div>
 
+      <label
+        style={{ display: "flex", alignItems: "center", gap: ".6rem", cursor: "pointer", marginBottom: "1.5rem", userSelect: "none" }}
+      >
+        <input
+          type="checkbox"
+          checked={mostrarVersion}
+          onChange={(e) => { setMostrarVersion(e.target.checked); setGuardado(false); }}
+          style={{ width: 16, height: 16, cursor: "pointer" }}
+        />
+        <span>Mostrar número de versión junto al nombre del sitio</span>
+      </label>
+
       <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
         <button type="submit" className="cms-btn cms-btn-primary" disabled={!sucio || guardando}>
           {guardando ? "Guardando…" : "Guardar cambios"}
@@ -689,6 +707,7 @@ export function ConfiguracionPage() {
     aula_abierta_emoji,
     catalogo_titulo,
     catalogo_subtitulo,
+    mostrar_version,
     paleta_activa,
     personalizadas,
     isLoading,
@@ -743,6 +762,7 @@ export function ConfiguracionPage() {
         aulaEmojiInicial={aula_abierta_emoji}
         catTituloInicial={catalogo_titulo}
         catSubtituloInicial={catalogo_subtitulo}
+        mostrarVersionInicial={mostrar_version}
         onGuardar={(ajustes) => {
           setError(null);
           return guardarAjustesGenerales(ajustes).catch((e: unknown) => {

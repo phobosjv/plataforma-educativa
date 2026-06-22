@@ -48,6 +48,7 @@ class ActualizarAjustesGeneralesHandler:
         config.cambiar_publicidad(
             cmd.publicidad_activa, cmd.publicidad_html_izquierda, cmd.publicidad_html_derecha
         )
+        config.mostrar_version = cmd.mostrar_version
         self._repo.save(config)
         self._uow.commit()
         return config_to_dto(config)

@@ -73,6 +73,7 @@ export function useConfig() {
     publicidad_activa: data?.publicidad_activa ?? false,
     publicidad_html_izquierda: data?.publicidad_html_izquierda ?? "",
     publicidad_html_derecha: data?.publicidad_html_derecha ?? "",
+    mostrar_version: data?.mostrar_version ?? true,
   };
 
   return {
@@ -94,6 +95,7 @@ export function useConfig() {
     publicidad_activa: data?.publicidad_activa ?? false,
     publicidad_html_izquierda: data?.publicidad_html_izquierda ?? "",
     publicidad_html_derecha: data?.publicidad_html_derecha ?? "",
+    mostrar_version: data?.mostrar_version ?? true,
     todasLasPaletas,
     personalizadas,
   };

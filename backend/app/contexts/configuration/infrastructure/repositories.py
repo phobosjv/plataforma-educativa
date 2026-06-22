@@ -35,6 +35,7 @@ class SqlAlchemyConfiguracionRepository:
         model.publicidad_activa = config.publicidad_activa
         model.publicidad_html_izquierda = config.publicidad_html_izquierda
         model.publicidad_html_derecha = config.publicidad_html_derecha
+        model.mostrar_version = config.mostrar_version
 
     def _get_or_create_model(self) -> ConfiguracionModel:
         """Obtiene la fila singleton, creándola si no existe.
@@ -65,6 +66,7 @@ class SqlAlchemyConfiguracionRepository:
                 publicidad_activa=False,
                 publicidad_html_izquierda="",
                 publicidad_html_derecha="",
+                mostrar_version=True,
             )
             self._session.add(model)
             self._session.flush()
@@ -90,4 +92,5 @@ class SqlAlchemyConfiguracionRepository:
             publicidad_activa=m.publicidad_activa,
             publicidad_html_izquierda=m.publicidad_html_izquierda,
             publicidad_html_derecha=m.publicidad_html_derecha,
+            mostrar_version=m.mostrar_version,
         )

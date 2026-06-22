@@ -132,6 +132,8 @@ class ConfiguracionSitio(Entity):
     publicidad_activa: bool = False
     publicidad_html_izquierda: str = ""
     publicidad_html_derecha: str = ""
+    # Controla si el badge de versión (cms-version) se muestra junto al nombre del sitio.
+    mostrar_version: bool = True
 
     @classmethod
     def singleton(cls) -> "ConfiguracionSitio":

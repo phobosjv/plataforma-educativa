@@ -21,6 +21,7 @@ class ActualizarAjustesGeneralesCommand:
     publicidad_activa: bool = False
     publicidad_html_izquierda: str = ""
     publicidad_html_derecha: str = ""
+    mostrar_version: bool = True
 
 
 @dataclass(frozen=True)

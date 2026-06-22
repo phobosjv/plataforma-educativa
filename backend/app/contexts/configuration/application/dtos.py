@@ -44,6 +44,7 @@ class ConfiguracionDTO:
     publicidad_activa: bool
     publicidad_html_izquierda: str
     publicidad_html_derecha: str
+    mostrar_version: bool
     paletas_personalizadas: list[PaletaDTO]
 
 
@@ -64,6 +65,7 @@ def config_to_dto(c: ConfiguracionSitio) -> ConfiguracionDTO:
         publicidad_activa=c.publicidad_activa,
         publicidad_html_izquierda=c.publicidad_html_izquierda,
         publicidad_html_derecha=c.publicidad_html_derecha,
+        mostrar_version=c.mostrar_version,
         paletas_personalizadas=[
             PaletaDTO(
                 id=p.id,

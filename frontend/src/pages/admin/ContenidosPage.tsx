@@ -11,7 +11,14 @@ type Asignatura = components["schemas"]["AsignaturaResponse"];
 
 const POR_PAGINA = 10;
 
-type ClaveOrden = "titulo" | "tipo" | "ciclo" | "curso" | "asignatura" | "estado" | "visitas";
+type ClaveOrden = "titulo" | "tipo" | "ciclo" | "curso" | "asignatura" | "estado" | "visitas" | "ultima_mod";
+
+function fechaHoraLegible(iso: string): string {
+  return new Date(iso).toLocaleString("es-ES", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
 
 function fetchTodos(): Promise<Contenido[]> {
   return api
@@ -98,8 +105,8 @@ export function ContenidosPage() {
   const [confirmar, setConfirmar] = useState<string | null>(null);
   const [confirmarPurga, setConfirmarPurga] = useState<string | null>(null);
   const [orden, setOrden] = useState<{ clave: ClaveOrden; asc: boolean }>({
-    clave: "titulo",
-    asc: true,
+    clave: "ultima_mod",
+    asc: false,
   });
   const [pagina, setPagina] = useState(1);
 
@@ -136,6 +143,7 @@ export function ContenidosPage() {
         case "asignatura": return asignaturaDe(c);
         case "estado": return estadoLabel(c);
         case "visitas": return visitas?.[c.id] ?? 0;
+        case "ultima_mod": return Date.parse(c.updated_at);
       }
     };
     filas.sort((a, b) => {
@@ -221,6 +229,7 @@ export function ContenidosPage() {
                 {cabecera("asignatura", "Asignatura")}
                 {cabecera("estado", "Estado")}
                 {cabecera("visitas", "Visitas")}
+                {cabecera("ultima_mod", "Última modificación")}
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -240,6 +249,9 @@ export function ContenidosPage() {
                     </span>
                   </td>
                   <td>{visitas?.[c.id] ?? 0}</td>
+                  <td className="cms-text-muted" style={{ whiteSpace: "nowrap", fontSize: ".82rem" }}>
+                    {fechaHoraLegible(c.updated_at)}
+                  </td>
                   <td style={{ display: "flex", gap: ".4rem", flexWrap: "wrap" }}>
                     {!c.borrado && (
                       <Link

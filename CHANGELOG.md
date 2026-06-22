@@ -6,6 +6,21 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.22.6] - 2026-06-22
+
+### Añadido
+- **Columna "Última modificación" en la tabla de contenidos del panel admin.** Muestra la
+  fecha y hora de la última edición de cada contenido (campo `updated_at` ya existente en la
+  API). El orden por defecto de la tabla pasa a ser esta columna de forma descendente (más
+  reciente primero); sigue siendo ordenable por cualquier cabecera.
+- **Toggle "Mostrar número de versión" en Apariencia.** Permite al admin ocultar o mostrar
+  el badge de versión (`v0.22.x`) que aparece junto al nombre del sitio en la cabecera pública
+  y en la barra lateral del panel. El valor por defecto es "mostrar". Implementado como flag
+  `mostrar_version` en `site_config` (migración Alembic 019) propagado por todas las capas
+  hasta los layouts.
+
+---
+
 ## [V-0.22.5] - 2026-06-21
 
 ### Corregido

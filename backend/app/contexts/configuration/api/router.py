@@ -75,6 +75,7 @@ def _dto_to_response(dto: object) -> ConfiguracionResponse:
         publicidad_activa=dto.publicidad_activa,
         publicidad_html_izquierda=dto.publicidad_html_izquierda,
         publicidad_html_derecha=dto.publicidad_html_derecha,
+        mostrar_version=dto.mostrar_version,
         paletas_personalizadas=[
             PaletaResponse(**p.__dict__) for p in dto.paletas_personalizadas
         ],
@@ -112,6 +113,7 @@ def actualizar_ajustes_generales(
                 publicidad_activa=body.publicidad_activa,
                 publicidad_html_izquierda=body.publicidad_html_izquierda,
                 publicidad_html_derecha=body.publicidad_html_derecha,
+                mostrar_version=body.mostrar_version,
             )
         )
     )

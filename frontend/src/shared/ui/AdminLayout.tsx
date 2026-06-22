@@ -5,7 +5,7 @@ import { APP_VERSION } from "../../version";
 
 export function AdminLayout() {
   const { user, logout } = useAuth();
-  const { nombre_sitio, logo_url } = useConfig();
+  const { nombre_sitio, logo_url, mostrar_version } = useConfig();
   const navigate = useNavigate();
 
   function handleLogout() {
@@ -21,9 +21,11 @@ export function AdminLayout() {
             <img src={logo_url} alt="" className="cms-nav-logo" aria-hidden />
           )}
           {nombre_sitio}
-          <span className="cms-version" title="Versión de la aplicación">
-            v{APP_VERSION}
-          </span>
+          {mostrar_version && (
+            <span className="cms-version" title="Versión de la aplicación">
+              v{APP_VERSION}
+            </span>
+          )}
         </div>
         <NavLink
           to="/admin"

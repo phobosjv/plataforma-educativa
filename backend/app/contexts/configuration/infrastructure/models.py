@@ -28,3 +28,4 @@ class ConfiguracionModel(Base):
     publicidad_activa: Mapped[bool] = mapped_column(Boolean, default=False)
     publicidad_html_izquierda: Mapped[str] = mapped_column(Text, default="")
     publicidad_html_derecha: Mapped[str] = mapped_column(Text, default="")
+    mostrar_version: Mapped[bool] = mapped_column(Boolean, default=True)

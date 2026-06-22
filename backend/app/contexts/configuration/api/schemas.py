@@ -48,6 +48,7 @@ class ConfiguracionResponse(BaseModel):
     publicidad_activa: bool
     publicidad_html_izquierda: str
     publicidad_html_derecha: str
+    mostrar_version: bool = True
     paletas_personalizadas: list[PaletaResponse]
 
 
@@ -66,6 +67,7 @@ class AjustesGeneralesRequest(BaseModel):
     publicidad_activa: bool = False
     publicidad_html_izquierda: str = Field(default="", max_length=8000)
     publicidad_html_derecha: str = Field(default="", max_length=8000)
+    mostrar_version: bool = True
 
 
 class ActivarPaletaRequest(BaseModel):
