@@ -11,6 +11,21 @@ sistema de gestión. Solo cambia `<MIDOMINIO>` (y la carpeta de despliegue).
 
 - **Webmin** tras el proxy avisa de *Trusted Referrers* y genera redirecciones al host interno
   (obliga a recargar) porque recibe un `Host` distinto del dominio público y cree que va sin TLS.
+  Además, su **terminal** (WebSocket) se queda en `CONNECTING…` y el log
+  `/var/webmin/miniserv.error` muestra `Invalid Websockets origin`. Esto tiene DOS causas que hay que
+  resolver juntas:
+  1. **El upgrade WebSocket no llega a Webmin** sobre un upstream HTTPS si Caddy no fuerza HTTP/1.1
+     (el WS aparece como `Finished`/0 B en vez de `101`). Se arregla con `versions 1.1` en el
+     `transport http` del bloque de Caddy.
+  2. **Webmin rechaza el origen**: su anti-CSWSH (`handle_websocket_request` en `miniserv.pl`) acepta
+     el `Origin` del navegador (`https://webmin.<MIDOMINIO>`) solo si está en
+     `get_websocket_allowed_origins()`. Esa lista se arma con `host:puerto` del acceso directo
+     (lleva el puerto interno 10000 → no casa), las cabeceras `X-Forwarded-*` (solo si
+     `trust_real_ip=1`), `websocket_host` y `websocket_extra_origins`. Ni `header_up Host` ni
+     `referers` la alimentan. **Solución: `websocket_extra_origins=https://webmin.<MIDOMINIO>` en
+     `/etc/webmin/miniserv.conf`** (alternativa equivalente: `trust_real_ip=1`, ya que Caddy manda
+     `X-Forwarded-Host/Proto`, pero es menos quirúrgico). `header_up Host {host}` se mantiene igualmente
+     para alinear referers/redirecciones de las páginas normales.
 - **Portainer** da `Forbidden - origin invalid` al reiniciar/parar contenedores: su protección CSRF
   (Portainer 2.20+) compara el `Host` que recibe con el `Origin` del navegador. Alcanzándolo por el
   puerto publicado recibe un `Host` interno (`host.docker.internal:9443`) → no coincide → rechaza.
@@ -28,6 +43,29 @@ sistema de gestión. Solo cambia `<MIDOMINIO>` (y la carpeta de despliegue).
 
 ## Solución
 
+### Webmin — bloque del Caddyfile
+
+Webmin habla HTTPS con cert autofirmado, así que se omite la verificación TLS interna. `versions 1.1`
+es **imprescindible para el terminal** (el WebSocket necesita HTTP/1.1; si no, no llega a Webmin).
+`header_up Host {host}` alinea referers/redirecciones de las páginas normales.
+
+```caddyfile
+webmin.<MIDOMINIO> {
+    reverse_proxy https://host.docker.internal:10000 {
+        transport http {
+            tls_insecure_skip_verify
+            versions 1.1
+        }
+        header_up Host {host}
+        header_up X-Forwarded-Proto https
+        header_up X-Forwarded-Host {host}
+    }
+}
+```
+
+Aplica **reiniciando Caddy** (no `reload`): `docker compose restart caddy`. Requiere
+`extra_hosts: ["host.docker.internal:host-gateway"]` en el servicio Caddy del compose.
+
 ### Webmin (en el HOST, una vez — no va en el zip)
 
 ```bash
@@ -39,6 +77,14 @@ grep -q "^redirect_ssl=" /etc/webmin/miniserv.conf \
 grep -q "^referers=" /etc/webmin/config \
   && sed -i "s/^referers=.*/referers=webmin.<MIDOMINIO> host.docker.internal/" /etc/webmin/config \
   || echo "referers=webmin.<MIDOMINIO> host.docker.internal" >> /etc/webmin/config
+
+# TERMINAL (WebSocket): mete el origen publico en la lista blanca de WebSockets de miniserv.
+# Sin esto el terminal queda en "CONNECTING..." y el log da "Invalid Websockets origin", porque la
+# lista de origenes permitidos NO se alimenta de Host ni de referers (ver get_websocket_allowed_origins
+# en miniserv.pl). OJO: va en miniserv.conf, NO en config.
+grep -q "^websocket_extra_origins=" /etc/webmin/miniserv.conf \
+  && sed -i "s|^websocket_extra_origins=.*|websocket_extra_origins=https://webmin.<MIDOMINIO>|" /etc/webmin/miniserv.conf \
+  || echo "websocket_extra_origins=https://webmin.<MIDOMINIO>" >> /etc/webmin/miniserv.conf
 
 # (opcional, quita el aviso de /tmp en tmpfs)
 mkdir -p /var/webmin/tmp
@@ -95,9 +141,23 @@ PASO 0 — DESCUBRE EL ENTORNO (no asumas rutas):
 - Existe 'portainer':  docker ps --format '{{.Names}}' | grep -x portainer
 Dime lo que encuentres antes de modificar nada.
 
+WEBMIN — bloque del Caddyfile (necesario para que el TERMINAL, que va por WebSocket, llegue a Webmin):
+   reverse_proxy https://host.docker.internal:10000 {
+       transport http { tls_insecure_skip_verify; versions 1.1 }
+       header_up Host {host}
+       header_up X-Forwarded-Proto https
+       header_up X-Forwarded-Host {host}
+   }
+   'versions 1.1' es imprescindible: el WebSocket necesita HTTP/1.1; sobre upstream HTTPS, sin esto el
+   upgrade no llega a Webmin (el WS sale "Finished"/0 B en vez de "101"). Aplica reiniciando Caddy (no
+   'reload'). Requiere extra_hosts host.docker.internal:host-gateway en el servicio Caddy del compose.
+
 WEBMIN (HOST, /etc/webmin/, una vez; idempotente con sudo bash -c):
 - miniserv.conf: redirect_ssl=1
 - config: referers=webmin.<MIDOMINIO> host.docker.internal
+- TERMINAL (WebSocket): miniserv.conf -> websocket_extra_origins=https://webmin.<MIDOMINIO>
+  (sin esto el terminal da "Invalid Websockets origin"; la lista de origenes permitidos NO usa Host ni
+  referers, ver get_websocket_allowed_origins en miniserv.pl. Alternativa: trust_real_ip=1.)
 - (cosmético tmpfs) mkdir -p /var/webmin/tmp ; config: tempdir=/var/webmin/tmp
 - systemctl restart webmin ; verifica con grep.
 

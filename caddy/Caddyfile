@@ -44,11 +44,24 @@
 # NOTA Webmin (en el HOST, /etc/webmin/, una sola vez): para que no de "Trusted Referrers" ni
 # obligue a recargar, en /etc/webmin/miniserv.conf -> redirect_ssl=1, y en /etc/webmin/config ->
 # referers=<tu webmin.dominio> host.docker.internal ; luego systemctl restart webmin.
+#
+# header_up Host {host}: imprescindible para el TERMINAL de Webmin (WebSocket). Webmin valida el
+# Origin del navegador (https://webmin.<dominio>) contra el Host que recibe; sin reescribirlo le
+# llega host.docker.internal:10000 -> no coinciden -> rechaza el handshake y el terminal se queda
+# en "CONNECTING...". (Mismo problema que el "origin invalid" de Portainer.) Solo cambia la cabecera
+# Host; Caddy sigue conectando por TCP a host.docker.internal:10000 (con tls_insecure el SNI da igual).
 {$WEBMIN_DOMAIN} {
 	reverse_proxy https://host.docker.internal:10000 {
 		transport http {
 			tls_insecure_skip_verify
+			# El terminal de Webmin usa WebSocket (RFC 6455), que requiere HTTP/1.1. Sobre un
+			# upstream HTTPS Caddy podría negociar otra versión y el upgrade se cae (la conexión
+			# acaba como "Finished"/0 B en vez de "101 Switching Protocols"). Forzar 1.1 lo arregla.
+			versions 1.1
 		}
+		header_up Host {host}
+		header_up X-Forwarded-Proto https
+		header_up X-Forwarded-Host {host}
 	}
 }
 

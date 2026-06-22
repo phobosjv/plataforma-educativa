@@ -6,6 +6,28 @@ Versionado según [Semver](https://semver.org/lang/es/) con prefijo `V-`.
 
 ---
 
+## [V-0.23.2] - 2026-06-22
+
+### Corregido
+- **El terminal de Webmin (acceso SSH por navegador) detrás del proxy Caddy ya conecta.** Se quedaba
+  en `CONNECTING…` por dos motivos encadenados, ambos resueltos:
+  - **Caddy no completaba el *upgrade* del WebSocket** contra el upstream HTTPS de Webmin. El
+    WebSocket clásico (RFC 6455) requiere HTTP/1.1; sobre un upstream HTTPS Caddy podía negociar otra
+    versión y el handshake se caía (aparecía como `Finished`/0 B en vez de `101 Switching Protocols`).
+    Solución en `caddy/Caddyfile`: `versions 1.1` en el `transport http` del bloque de Webmin, más
+    `header_up Host {host}` + `X-Forwarded-Proto/Host` (alinean referers y origen).
+  - **Webmin rechazaba el origen del WebSocket** (`Invalid Websockets origin`): su lista de orígenes
+    permitidos no se alimenta del `Host` ni de `referers`. La pieza que faltaba es del **lado Webmin
+    (host, una vez)**: `websocket_extra_origins=https://webmin.<dominio>` en
+    `/etc/webmin/miniserv.conf` (documentado en `docs/proxy-webmin-portainer.md`; no va en el zip).
+  - Verificado y confirmado funcionando en el servidor del usuario.
+
+### Cambiado
+- `docs/proxy-webmin-portainer.md` (plantilla portátil) ampliado con el diagnóstico y la solución del
+  terminal de Webmin por WebSocket (`versions 1.1` en Caddy + `websocket_extra_origins` en Webmin).
+
+---
+
 ## [V-0.23.1] - 2026-06-22
 
 ### Corregido
